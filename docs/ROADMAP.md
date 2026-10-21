@@ -15,7 +15,8 @@ Each milestone ends with: `npm run check` green, deployed preview on Vercel, `HA
 - **DoD met:** live URL up, `npm run check` passes on empty story, Vercel builds with `npm run build`.
 
 ### M1: Engine core (2-3 sessions)
-- [ ] types, schema (Zod), rng, conditions, effects, reducer, select
+- [x] types, schema (Zod), rng (M1 s1)
+- [ ] conditions, effects, reducer, select
 - [ ] honor.ts, checks.ts, echoes.ts, endings.ts, save.ts
 - [ ] Tiny test story (5 scenes, all effect kinds)
 - [ ] `lint-story` + `fuzz` working on test story
@@ -92,8 +93,10 @@ Each milestone ends with: `npm run check` green, deployed preview on Vercel, `HA
 | D7 | Rule 0: AI reads docs first, updates docs last; `docs:check` gate | Docs stay true across many Claude accounts | Accepted (M0) |
 | D8 | `npm run rules` replaces `size`; purity + size + header in one script | One gate for golden rules 1 and 3 | Accepted (M0) |
 | D9 | Repomix presets in `scripts/pack.ts` (not 10 npm scripts); every pack includes START_HERE + HANDOFF | One place to edit, docs always travel with code | Accepted (M0) |
-| D10 | Zod deferred to M1 (first real schema) | Delete before adding | Accepted (M0) |
+| D10 | Zod deferred to M1 (first real schema) | Delete before adding | Accepted (M0); done by D12 |
 | D11 | Rule 0.5 "pack next": AI ends each session with a task pack `npm run pack:<milestone><session>`, enforced by `docs:check` | One-command context for switching Claude accounts | Accepted (M0+) |
+| D12 | Add `zod` ^4 (runtime dependency). `engine/schema.ts` validates story data; optional fields use `z.exactOptional` to match `exactOptionalPropertyTypes` | First real schema (D10); one validator for dev, `lint:story` and tests; Condition/Effect tuples stay typed | Accepted (M1 s1) |
+| D13 | Every task pack includes `scripts/pack.ts`, `docs/REPOMIX.md`, `docs/ROADMAP.md` (`PACKING` list) | `m1s1` lacked them, so the session could not create the next pack or log a decision | Accepted (M1 s1) |
 
 ## Open questions (M0 did not depend on these; decide before M2/M4)
 1. **Art direction:** silhouettes first (recommended) or illustrated from day one?

@@ -1,6 +1,6 @@
 # STORY FORMAT (the data contract)
 
-Story is **TypeScript data** (typed, autocompleted, validated by Zod + linter; Zod arrives in M1). Engine reads it; engine never contains prose.
+Story is **TypeScript data** (typed, autocompleted, validated by Zod (`engine/schema.ts`, live since M1 s1) + linter). Engine reads it; engine never contains prose.
 One file per chapter part, ≤ 400 lines. Files export `scenes: Scene[]` through `defineScenes([...])`.
 
 ## 1. IDs
@@ -38,7 +38,7 @@ One file per chapter part, ≤ 400 lines. Files export `scenes: Scene[]` through
 | `echo` | schedule a future scene (see effects) |
 
 ## 4. Conditions (`if` / `lock`): small, closed vocabulary
-Tuples, combinable with `all`, `any`, `not`:
+Tuples, combinable with `{ all: [c, ...] }`, `{ any: [c, ...] }`, `{ not: c }` (lists are non-empty, nest freely). Operators: `>=` `<=` `>` `<` `==`. Tiers: `T1`-`T5`.
 ```
 ['flag','route_church']            ['honor','>=',21]            ['tier','>=','T4']
 ['res','food','>=',2]              ['stat','reason','<',30]      ['attr','wits','>=',3]
@@ -57,6 +57,7 @@ Tuples, combinable with `all`, `any`, `not`:
 ['echo',{ scene:'c4.father', after:12 }]    // after N scenes, or { at:'c4' } at chapter start
 ['time',{ day:1, phase:'night' }]
 ```
+Shape rules (enforced by `engine/schema.ts`): `party` and `trait` values start with `+` or `-`; `echo` needs exactly one of `after` / `at`; `honor` is `[tag, witnessed]`.
 Adding a new effect or condition kind = edit `engine/effects.ts` or `conditions.ts` + `STORY_FORMAT.md` + a test, in one change.
 
 ## 6. Example (the contract, tiny)
@@ -90,7 +91,8 @@ Adding a new effect or condition kind = edit `engine/effects.ts` or `conditions.
 **Reason glitch:** scenes may include `glitch: string` variants shown when `reason < 30`.
 
 ## 8. Linter checks (`npm run lint:story`)
-Errors: duplicate id, missing target, unreachable scene, scene with no exit, unknown flag/char/item/tag, effect with bad shape, choice with > 4 options or > 12 words, `echo` pointing to missing scene.
+Schema (`engine/schema.ts`, rejects a scene before the graph is checked): unknown key, condition/effect with unknown kind or bad shape, scene without exactly one of `choices` / `next` / `end`, choice without exactly one of `to` / `check`, more than 4 choices, duplicate choice ids, choice text > 12 words, more than 3 `who`, `echo` without exactly one of `after` / `at`.
+Errors: duplicate id, missing target, unreachable scene, scene with no exit, unknown flag/char/item/tag, `echo` pointing to missing scene, plus any schema failure.
 Warnings: flag set but never read, flag read but never set, no honor tag in a chapter, scene text > 90 words, same `fx` on all choices (fake choice).
 
 ## 9. Authoring workflow with Claude

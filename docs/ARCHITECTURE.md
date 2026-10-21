@@ -14,8 +14,8 @@ story (data)  ->  engine (pure logic)  ->  ui (React)       debug/ may read all,
 ```
 src/
   engine/
-    types.ts        GameState, Action, Scene, Effect, Condition types
-    schema.ts       Zod schemas for story data (M1; add `zod` then)
+    types.ts        GameState, Action, SaveData, LogEntry, Scene, Choice, Effect, Condition types (live since M1 s1)
+    schema.ts       Zod schemas for story data: Condition, Effect, Choice, Scene (live since M1 s1)
     reducer.ts      reduce(state, action, story) -> state   (the only state change path)
     conditions.ts   evaluate(cond, state) -> boolean
     effects.ts      apply(effect, state) -> {state, log}
@@ -23,7 +23,7 @@ src/
     checks.ts       resolveCheck(attr, dc, state, rng)
     echoes.ts       schedule, due
     endings.ts      resolveEnding(state, rules)
-    rng.ts          seeded RNG (mulberry32), pure
+    rng.ts          seeded mulberry32, pure: `nextFloat(rng) -> {value, rng}`, `nextInt`, `d6`, `initRng(seed)` (live since M1 s1)
     save.ts         serialize, migrate, replay (storage injected)
     select.ts       view selectors: currentView(state, story)
     log.ts          typed log entries
@@ -46,6 +46,7 @@ tests/          engine/*.test.ts  golden/*.test.ts
 GameState {
   v: number                       // save schema version
   seed: number; rng: number       // seed + current rng state
+  name: string                    // player name, set by START
   scene: string; chapter: string
   day: number; phase: 'dawn'|'day'|'dusk'|'night'
   stats: { hp, reason, rot }      res: { food, ammo, meds }
@@ -72,7 +73,7 @@ UI click -> dispatch({type:'CHOOSE', choice}) -> reduce(state, action, story)
   -> 5 push history + log, autosave
 UI re-renders from select.currentView(state)
 ```
-Actions: `START(bg,name,seed)`, `CHOOSE(choiceId)`, `CONTINUE` (for `next` scenes), `CAMP(action)`, `LOAD(save)`, `DEBUG_*` (debug build only).
+Actions (typed in `engine/types.ts`): `START(bg,name,seed)`, `CHOOSE(choice)` where `choice` is the choice id `a`-`d`, `CONTINUE` (for `next` scenes), `CAMP(action)`, `LOAD(save)`. `DEBUG_*` actions (debug build only) arrive with the DebugPanel in M2.
 
 ## 5. Anti-bug rules
 1. **One state-changing path** (`reduce`). Everything else is read-only.
@@ -105,9 +106,9 @@ Actions: `START(bg,name,seed)`, `CHOOSE(choiceId)`, `CONTINUE` (for `next` scene
 ## 8. Tooling scripts
 - `lint-story.ts`: loads all chapters, runs schema and graph checks (reachability, dead ends, flag usage). Exits non-zero on error.
 - `fuzz.ts`: runs N random playthroughs per background with seeded RNG and random choices. Reports soft-locks (no available choices), loops (> 500 steps), invalid state (NaN, out-of-range), unreachable endings. Prints the failing `seed` and path so you can replay it in the debug panel.
-- `rules-check.ts`: line limits, header-comment check, engine/story purity (golden rules 1 and 3). Live since M0.
+- `rules-check.ts`: line limits, header-comment check, engine/story purity (golden rules 1 and 3), and fails if git tracks anything under `node_modules/` or `dist/` (`git ls-files`; skipped with a warning outside git; added M1 s1). Live since M0.
 - `docs-check.ts`: "docs last" gate. Fails if code changed (src, scripts, tests, root config) but `docs/HANDOFF.md` did not; warns if only HANDOFF changed; and always checks that HANDOFF has a `Next pack: `npm run pack:<name>`` line whose npm script and `scripts/pack.ts` preset exist. Uses `git status` for the first check (skipped outside git). Run via `npm run ready`.
-- `pack.ts`: repomix presets. Generic ones (map, docs, core, story, ui, bug, chapter) plus one task pack per upcoming session (`m1s1`...), created by the AI at the end of each session. One place to edit what each pack includes.
+- `pack.ts`: repomix presets. Generic ones (map, docs, core, story, ui, bug, chapter) plus one task pack per upcoming session (`m1s1`...), created by the AI at the end of each session. Task packs always include `scripts/pack.ts`, `docs/REPOMIX.md`, `docs/ROADMAP.md` (the `PACKING` list). One place to edit what each pack includes.
 - Golden tests: scripted choice lists per chapter assert expected gate scene and key flags.
 
 ## 9. UI rules

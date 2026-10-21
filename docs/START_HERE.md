@@ -14,7 +14,7 @@ Paste this file first in any new Claude chat, then `HANDOFF.md`, then a repomix 
 3. **Docs are the source of truth.** If code and docs disagree, fix the disagreement now (update the doc, or flag it as a bug in `HANDOFF.md`). Never leave it for later.
 4. **Return the updated docs as full files**, listed with the code files, under their `### docs/...` headings.
 5. **Pack next.** Before you finish, create the repomix pack for the *next* session so the owner can switch Claude accounts with one command:
-   - add a preset named `<milestone><session>` (letters and digits only, e.g. `m1s2`) to `scripts/pack.ts`, listing exactly the docs and files the next task needs (always keep START_HERE + HANDOFF; add `package.json`/`tsconfig.json` if the task touches dependencies or config);
+   - add a preset named `<milestone><session>` (letters and digits only, e.g. `m1s2`) to `scripts/pack.ts`, listing exactly the docs and files the next task needs (always keep START_HERE + HANDOFF; add `package.json`/`tsconfig.json` if the task touches dependencies or config; always add `scripts/pack.ts`, `docs/REPOMIX.md`, `docs/ROADMAP.md`, because the next session must create its own pack and may log a decision);
    - add `"pack:<name>": "tsx scripts/pack.ts <name>"` to `package.json`;
    - put this line in `HANDOFF.md`: ``Next pack: `npm run pack:<name>` ``;
    - delete task packs (`m*s*`) of finished milestones; generic packs (map, docs, core, story, ui, bug, chapter) stay;
@@ -22,7 +22,7 @@ Paste this file first in any new Claude chat, then `HANDOFF.md`, then a repomix 
 6. Verify with `npm run ready` (`check` then `docs:check`). `docs:check` fails if code changed but `docs/HANDOFF.md` did not, or if the `Next pack` line, its npm script, or its preset is missing.
 
 ## Stack (decided; change only via the decision log in ROADMAP.md)
-Vite 8 + React 19 + TypeScript 7 (strict) + Vitest 5. Plain CSS variables. localStorage saves. No router, no state library (`useReducer`). Chapters lazy-loaded. Zod is added in M1 (story validation). **Node ≥ 22.12** (Vitest 5 requires it; Vite 8 alone needs 20.19+). Use `nvm install 22 && nvm use 22`.
+Vite 8 + React 19 + TypeScript 7 (strict) + Vitest 5. Plain CSS variables. localStorage saves. No router, no state library (`useReducer`). Chapters lazy-loaded. Zod 4 (added in M1 s1, D12) validates story data in `engine/schema.ts`. **Node ≥ 22.12** (Vitest 5 requires it; Vite 8 alone needs 20.19+). Use `nvm install 22 && nvm use 22`.
 
 ## Golden rules
 1. **Engine is pure and deterministic.** No React, DOM, `Date`, or `Math.random` in `src/engine` or `src/story`. Randomness only via the seeded RNG. (`npm run rules` enforces it.)

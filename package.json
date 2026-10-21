@@ -24,11 +24,13 @@
     "pack:core": "tsx scripts/pack.ts core",
     "pack:story": "tsx scripts/pack.ts story",
     "pack:ui": "tsx scripts/pack.ts ui",
-    "pack:m1s1": "tsx scripts/pack.ts m1s1"
+    "pack:m1s1": "tsx scripts/pack.ts m1s1",
+    "pack:m1s2": "tsx scripts/pack.ts m1s2"
   },
   "dependencies": {
     "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "react-dom": "^19.3.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
