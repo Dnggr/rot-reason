@@ -16,7 +16,7 @@ Paste this file first in any new Claude chat, then `HANDOFF.md`, then a repomix 
 5. Verify with `npm run ready` (runs `check` then `docs:check`; `docs:check` fails if code changed but `docs/HANDOFF.md` did not).
 
 ## Stack (decided; change only via the decision log in ROADMAP.md)
-Vite 8 + React 19 + TypeScript 7 (strict) + Vitest 5. Plain CSS variables. localStorage saves. No router, no state library (`useReducer`). Chapters lazy-loaded. Zod is added in M1 (story validation). Node ≥ 20.19.
+Vite 8 + React 19 + TypeScript 7 (strict) + Vitest 5. Plain CSS variables. localStorage saves. No router, no state library (`useReducer`). Chapters lazy-loaded. Zod is added in M1 (story validation). **Node ≥ 22.12** (Vitest 5 requires it; Vite 8 alone needs 20.19+). Use `nvm install 22 && nvm use 22`.
 
 ## Golden rules
 1. **Engine is pure and deterministic.** No React, DOM, `Date`, or `Math.random` in `src/engine` or `src/story`. Randomness only via the seeded RNG. (`npm run rules` enforces it.)
