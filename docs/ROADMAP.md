@@ -6,13 +6,13 @@ Never write Ch2+ text before the Prologue + Ch1 slice is fun and bug-free.
 ## Milestones
 Each milestone ends with: `npm run check` green, deployed preview on Vercel, `HANDOFF.md` updated.
 
-### M0: Scaffold (1 session)
+### M0: Scaffold (1 session) - DONE (live: https://rotandreason.vercel.app/)
 - [x] Vite + React + TS strict, folder structure from ARCHITECTURE
 - [x] Scripts: `dev check ready build test lint:story fuzz rules docs:check pack*`
 - [x] `repomix.config.json`, `.gitignore` (.repomix), `rules-check`, `docs-check`, `pack` presets
 - [x] Rule 0 (docs first, docs last) added to START_HERE, README, PROMPTS, enforced by `docs:check`
-- [ ] Vercel connected to the repo; "Hello Marrow Bay" deployed (needs your account: see HANDOFF)
-- **DoD:** live URL, `npm run check` passes on empty story. (`check` and `build` verified locally.)
+- [x] Vercel connected to the repo; "Hello Marrow Bay" deployed (https://rotandreason.vercel.app/)
+- **DoD met:** live URL up, `npm run check` passes on empty story, Vercel builds with `npm run build`.
 
 ### M1: Engine core (2-3 sessions)
 - [ ] types, schema (Zod), rng, conditions, effects, reducer, select
@@ -93,6 +93,7 @@ Each milestone ends with: `npm run check` green, deployed preview on Vercel, `HA
 | D8 | `npm run rules` replaces `size`; purity + size + header in one script | One gate for golden rules 1 and 3 | Accepted (M0) |
 | D9 | Repomix presets in `scripts/pack.ts` (not 10 npm scripts); every pack includes START_HERE + HANDOFF | One place to edit, docs always travel with code | Accepted (M0) |
 | D10 | Zod deferred to M1 (first real schema) | Delete before adding | Accepted (M0) |
+| D11 | Rule 0.5 "pack next": AI ends each session with a task pack `npm run pack:<milestone><session>`, enforced by `docs:check` | One-command context for switching Claude accounts | Accepted (M0+) |
 
 ## Open questions (M0 did not depend on these; decide before M2/M4)
 1. **Art direction:** silhouettes first (recommended) or illustrated from day one?

@@ -106,8 +106,8 @@ Actions: `START(bg,name,seed)`, `CHOOSE(choiceId)`, `CONTINUE` (for `next` scene
 - `lint-story.ts`: loads all chapters, runs schema and graph checks (reachability, dead ends, flag usage). Exits non-zero on error.
 - `fuzz.ts`: runs N random playthroughs per background with seeded RNG and random choices. Reports soft-locks (no available choices), loops (> 500 steps), invalid state (NaN, out-of-range), unreachable endings. Prints the failing `seed` and path so you can replay it in the debug panel.
 - `rules-check.ts`: line limits, header-comment check, engine/story purity (golden rules 1 and 3). Live since M0.
-- `docs-check.ts`: "docs last" gate. Fails if code changed (src, scripts, tests, root config) but `docs/HANDOFF.md` did not. Warns if only HANDOFF changed. Uses `git status`; skipped outside a git repo. Run via `npm run ready`.
-- `pack.ts`: repomix presets (map, docs, core, story, ui, bug, chapter). One place to edit what each pack includes.
+- `docs-check.ts`: "docs last" gate. Fails if code changed (src, scripts, tests, root config) but `docs/HANDOFF.md` did not; warns if only HANDOFF changed; and always checks that HANDOFF has a `Next pack: `npm run pack:<name>`` line whose npm script and `scripts/pack.ts` preset exist. Uses `git status` for the first check (skipped outside git). Run via `npm run ready`.
+- `pack.ts`: repomix presets. Generic ones (map, docs, core, story, ui, bug, chapter) plus one task pack per upcoming session (`m1s1`...), created by the AI at the end of each session. One place to edit what each pack includes.
 - Golden tests: scripted choice lists per chapter assert expected gate scene and key flags.
 
 ## 9. UI rules

@@ -26,6 +26,8 @@ Goal: give Claude **just enough** to work, in as few tokens as possible, and mak
 | `pack:ui` | UI_UX, ARCHITECTURE, `src/ui/**`, `src/engine/types.ts`, `src/engine/select.ts` | UI work | ≤ 15k |
 | `pack -- bug <files>` | ARCHITECTURE + the files you list, e.g. `src/engine/honor.ts` | Debugging | ≤ 6k |
 
+**Task packs (one per next session).** Besides the generic presets, the AI creates a task pack at the end of every session (START_HERE Rule 0.5): name `<milestone><session>` (e.g. `m1s2`), preset in `scripts/pack.ts`, script `pack:m1s2` in `package.json`, and the line ``Next pack: `npm run pack:m1s2` `` in HANDOFF.md. Run it, then give the new Claude account the single file `.repomix/<name>.xml` (it already contains START_HERE and HANDOFF). `docs:check` fails if the line, script or preset is missing. Task packs of finished milestones are deleted; generic packs stay.
+
 Extra globs after the preset name are added to its include list: `npm run pack -- bug src/engine/honor.ts tests/engine/honor.test.ts`. Output goes to `.repomix/<preset>.xml`.
 
 Raw commands, if you prefer no scripts:
@@ -38,7 +40,7 @@ Check size before pasting: repomix prints total tokens and the top files (`--top
 
 ## 4. Multi-account handoff protocol
 **Starting a session on any account**
-1. Upload or paste: `docs/START_HERE.md` + `docs/HANDOFF.md` + one pack.
+1. Run the command in HANDOFF's `Next pack:` line, then upload `.repomix/<name>.xml` (it includes START_HERE and HANDOFF; add other packs only if needed).
 2. Use a prompt from `PROMPTS.md` (bootstrap, write scenes, implement, bug). Every prompt starts with the **docs rule**: read docs first, update docs last (START_HERE Rule 0).
 3. State the single goal of the session in one sentence.
 

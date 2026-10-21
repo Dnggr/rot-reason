@@ -8,6 +8,8 @@ DOCS RULE (START_HERE Rule 0): First read START_HERE.md, HANDOFF.md and the docs
 lists for this task; name them in one line. If a needed doc is missing, tell me and stop.
 After you change or fix anything, update the docs to match what you did (HANDOFF.md always,
 plus every doc affected) and return them in full with the code. Code and docs must agree.
+Before you finish, create the pack for the next session (Rule 0.5): preset in scripts/pack.ts,
+"pack:<name>" in package.json, `Next pack:` line in HANDOFF.md, and tell me the command.
 ```
 
 ## 1. Bootstrap (new chat / new account)
@@ -81,7 +83,7 @@ Keep tests green. Return all changed files in full, and update the repo map / ar
 Produce the final docs/HANDOFF.md (<= 1k tokens): status, what changed this session,
 decisions made, story changes, known bugs, next 3 tasks, commands to verify.
 Move older entries to the Archive section. Also list any other doc you changed this session.
-Return the full file(s).
+Make sure `Next pack:` names a real preset and npm script (add them if missing). Return the full file(s).
 ```
 
 ## 10. Doc audit (run every few sessions)

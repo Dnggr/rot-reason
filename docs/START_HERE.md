@@ -6,14 +6,20 @@ Paste this file first in any new Claude chat, then `HANDOFF.md`, then a repomix 
 **Pitch:** The port city of Marrow Bay falls to "the Rot". The last evacuation ship leaves Pier 9 on Day 21 with six seats. Your deeds set your honor; honor decides who stands with you.
 **Status:** always read `docs/HANDOFF.md` (newest truth).
 
-## RULE 0: DOCS FIRST, DOCS LAST (applies to every AI session, no exceptions)
+## RULE 0: DOCS FIRST, DOCS LAST, PACK NEXT (applies to every AI session, no exceptions)
 1. **Docs first.** Before any plan, code, or answer, read `START_HERE.md` and `HANDOFF.md`, then every doc the Doc map below lists for your task. If a needed doc is not in your context, say which one and stop; do not guess.
 2. **Docs last.** After you change or fix anything (code, story, config, scripts), you must edit the docs to match what you actually did, in the same response:
    - `HANDOFF.md`: always (what changed, decisions, bugs, next tasks).
    - Every other doc your change touches (architecture, story format, storyboard, honor, UI, roadmap checkboxes, repomix presets, commands...).
 3. **Docs are the source of truth.** If code and docs disagree, fix the disagreement now (update the doc, or flag it as a bug in `HANDOFF.md`). Never leave it for later.
 4. **Return the updated docs as full files**, listed with the code files, under their `### docs/...` headings.
-5. Verify with `npm run ready` (runs `check` then `docs:check`; `docs:check` fails if code changed but `docs/HANDOFF.md` did not).
+5. **Pack next.** Before you finish, create the repomix pack for the *next* session so the owner can switch Claude accounts with one command:
+   - add a preset named `<milestone><session>` (letters and digits only, e.g. `m1s2`) to `scripts/pack.ts`, listing exactly the docs and files the next task needs (always keep START_HERE + HANDOFF; add `package.json`/`tsconfig.json` if the task touches dependencies or config);
+   - add `"pack:<name>": "tsx scripts/pack.ts <name>"` to `package.json`;
+   - put this line in `HANDOFF.md`: ``Next pack: `npm run pack:<name>` ``;
+   - delete task packs (`m*s*`) of finished milestones; generic packs (map, docs, core, story, ui, bug, chapter) stay;
+   - state the command in the last line of your response.
+6. Verify with `npm run ready` (`check` then `docs:check`). `docs:check` fails if code changed but `docs/HANDOFF.md` did not, or if the `Next pack` line, its npm script, or its preset is missing.
 
 ## Stack (decided; change only via the decision log in ROADMAP.md)
 Vite 8 + React 19 + TypeScript 7 (strict) + Vitest 5. Plain CSS variables. localStorage saves. No router, no state library (`useReducer`). Chapters lazy-loaded. Zod is added in M1 (story validation). **Node ≥ 22.12** (Vitest 5 requires it; Vite 8 alone needs 20.19+). Use `nvm install 22 && nvm use 22`.
@@ -48,16 +54,17 @@ public/               images (WebP), later audio
 |---|---|
 | `npm run dev` | local dev server |
 | `npm run check` | typecheck + lint:story + tests + rules (the gate) |
-| `npm run ready` | `check` + `docs:check` (run before every commit) |
+| `npm run ready` | `check` + `docs:check` (run before every commit, changes uncommitted) |
 | `npm run build` | `check` + production build (Vercel runs this) |
 | `npm run lint:story` / `fuzz` / `rules` / `docs:check` | single gates |
-| `npm run pack:map\|docs\|core\|story\|ui` | repomix presets (output in `.repomix/`) |
-| `npm run pack -- bug <files>` / `-- chapter <globs>` | presets with extra files |
+| `npm run pack:map\|docs\|core\|story\|ui` | generic repomix presets (output in `.repomix/`) |
+| `npm run pack:<task>` (e.g. `pack:m1s1`) | task pack for the next session, made by the AI (Rule 0.5); named in HANDOFF `Next pack` |
+| `npm run pack -- bug <files>` / `-- chapter <globs>` | generic presets with extra files |
 
 ## How Claude must answer (output contract)
 - Start with: docs you read (one line), then a plan of at most 8 lines.
 - Return the **full content** of every changed file (code **and docs**) under a `### path/to/file` heading. No `...` elisions, no partial snippets.
-- End with: files changed, and how to verify (`npm run ready`), in at most 5 lines.
+- End with: files changed, how to verify (`npm run ready`), and the next pack command (`npm run pack:<name>`), in at most 5 lines.
 - Ask at most one clarifying question; otherwise state the assumption and proceed.
 - Never invent files or IDs that are not in the pack; if something is missing, say what to pack.
 
