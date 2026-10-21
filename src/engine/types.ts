@@ -10,7 +10,6 @@ export type Cmp = '>=' | '<=' | '>' | '<' | '=='
 export type Mood = 'calm' | 'tense' | 'dread' | 'warm' | 'glitch'
 export type Tone = 'mercy' | 'lie' | 'threaten' | 'brave' | 'quiet' | 'honest' | 'cold'
 export type SceneTag = 'camp' | 'gate' | 'hub' | 'echo'
-
 // ---- Conditions (STORY_FORMAT §4): closed vocabulary, tuples combinable with all / any / not ----
 export type Condition =
   | readonly ['flag', string]
@@ -30,7 +29,6 @@ export type Condition =
   | { readonly all: readonly Condition[] }
   | { readonly any: readonly Condition[] }
   | { readonly not: Condition }
-
 // ---- Effects (STORY_FORMAT §5): closed vocabulary ----
 export interface EchoSpec {
   scene: SceneId
@@ -56,7 +54,6 @@ export type Effect =
   | readonly ['reveal', string]
   | readonly ['echo', EchoSpec]
   | readonly ['time', TimeChange]
-
 // ---- Scene (STORY_FORMAT §2, §3) ----
 export type Beat = string | { readonly if: Condition; readonly text: string }
 export interface CheckBranch {
@@ -95,7 +92,9 @@ export interface Scene {
   tags?: readonly SceneTag[]
   glitch?: string
 }
-
+// ---- Injected story data tables (src/story/honor.ts, src/story/traits.ts); the engine never imports story data ----
+export type DeedTable = Readonly<Record<string, number>> // deed tag -> honor delta
+export type TraitBonuses = Readonly<Record<string, Partial<Record<AttrKey, number>>>> // trait -> check bonus per attribute
 // ---- Runtime (ARCHITECTURE §3, §4, §6): JSON-serializable, no functions, no class instances ----
 export interface NpcState {
   alive: boolean
@@ -128,7 +127,8 @@ export interface GameState {
   traits: string[]
   honor: number
   flags: Record<string, true>
-  secrets: string[]
+  secrets: string[] // secret ids still held (not yet revealed)
+  owed: Record<string, number> // secret id -> honor still owed when it surfaces (HONOR §3 witness rule)
   party: string[]
   npc: Record<string, NpcState>
   echoes: EchoEntry[]

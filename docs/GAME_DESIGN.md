@@ -1,20 +1,24 @@
 # GAME DESIGN
 
 ## 1. Pillars (every feature must serve at least one)
+
 1. **Choices cost something.** No free options, no obviously right answer.
 2. **You are what you did.** Honor and relationships remember, and the world reacts visibly.
 3. **People over zombies.** The dead are the setting; the drama is the living.
 4. **Fast to play, deep to replay.** 30 s per scene, ~30 min per run, 6 endings, 3 backgrounds.
 
 ## 2. Player fantasy, tone, guardrails
+
 - **Fantasy:** "I decided who got to live, and I have to live with who I became."
 - **Tone:** grounded, bleak but not hopeless; small moments of warmth and dark humor. Show through concrete detail, not exposition.
 - **Guardrails:** violence is implied or brief, never gratuitous. No real-world groups as villains. No sexual violence. No content that targets children (kids appear as stakes, never as gore). Optional "Soften violence" setting (replaces graphic lines with short variants).
 
 ## 3. Core loop
+
 ```
 Scene (read) -> Choice (cost) -> Consequence (instant + echo later) -> Camp (recover / bond) -> next Scene
 ```
+
 - **Micro (30 s):** read 40-90 words, pick 2-4 options, see a toast ("Nora will remember that").
 - **Meso (5 min):** a scene chain ends in a bottleneck scene (all branches converge).
 - **Macro (30 min):** 5 chapters + prologue, Day 1 to Day 21, ending resolved from honor, alive party, flags.
@@ -35,19 +39,20 @@ Scene (read) -> Choice (cost) -> Consequence (instant + echo later) -> Camp (rec
 | Echoes | queue | Delayed consequences | MVP |
 | Secrets | set | Unwitnessed deeds that can surface later | M3 |
 
-**Checks (no combat system).** `roll = d6 (seeded) + attribute + trait bonus` vs `DC`. UI shows odds as words (Risky / Even / Likely), never hides the cost of failure. Violence is resolved by choice plus check, not a combat screen.
+**Checks (no combat system).** `roll = d6 (seeded) + attribute + trait bonus` vs `DC`. A tie passes (`total >= DC`). Trait bonuses live in `src/story/traits.ts` (Bruiser: Grit +2, Signal: Wits +1); `resolveCheck` adds the bonus of every trait the player holds. UI shows odds as words (Risky / Even / Likely), never hides the cost of failure. Violence is resolved by choice plus check, not a combat screen.
 
 **Time.** Scenes may advance the clock. Camp costs 1 Food per living party member (+ Biscuit). Running out of food costs HP/Reason, never an instant fail.
 
 **Camp hub (safe scenes).** Eat, rest (+Reason), talk to a companion (bond scene if trust threshold met), plan the route. Camp scenes are templates fed by data, not hand-written each time.
 
-**Party.** Max 3 companions at once. Each has a perk, an opinion of your tags, and a leave/betray threshold.
+**Party.** Max 3 companions at once (enforced in `engine/effects.ts`). Each has a perk, an opinion of your tags, and a leave/betray threshold.
 
 **Echoes.** A choice can schedule a future scene (`after N scenes` or `at chapter X`). This is the main consequence engine.
 
 **Secrets.** An unwitnessed deed is stored as a secret; it can surface later (a witness, a diary, a confession) and then applies its full honor and trust cost.
 
 ## 5. Choice design rules (writers and Claude must follow)
+
 1. 2-4 choices (Hick's law). Each ≤ 12 words.
 2. Differ in **value**, not wording. Each option implies a different priority (safety, kindness, power, truth, speed).
 3. Every dilemma has a cost on each side (resource, trust, honor, time, Reason).
@@ -82,10 +87,12 @@ Scene (read) -> Choice (cost) -> Consequence (instant + echo later) -> Camp (rec
 | **Thumb-zone layout** | Choices at the bottom, reachable one-handed |
 
 ## 7. Scope (MoSCoW)
+
 - **Must:** engine, 6 chapters of text, honor, 6 endings, 3 backgrounds, autosave, Journal, debug tools.
 - **Should:** Rot/Reason mechanics, camp hub, companion bond scenes, SFX, soften-violence setting.
 - **Could:** timed choices, ambient music, share-your-ending card, PWA install.
 - **Won't (v1):** real-time combat, inventory crafting, multiplayer, account system, backend.
 
 ## 8. Content budget
+
 ~130 scenes total (Prologue 8, Ch1-5 about 22 each, 12 camp/ending). ~60 words per scene, ~7.5k words of story. Each chapter ≤ 400 lines per file, split into `a/b` files if larger.

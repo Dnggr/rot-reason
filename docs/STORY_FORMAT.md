@@ -4,12 +4,14 @@ Story is **TypeScript data** (typed, autocompleted, validated by Zod (`engine/sc
 One file per chapter part, ≤ 400 lines. Files export `scenes: Scene[]` through `defineScenes([...])`.
 
 ## 1. IDs
+
 - Scenes: `<chapter>.<name>` e.g. `c2.crypt`. Chapter gate scene is always `<chapter>.gate`.
 - Choices: unique inside the scene: `a`, `b`, `c`, `d`.
 - Flags: `snake_case`, registered in `src/story/flags.ts` with a one-line meaning. Unregistered flag = lint error.
 - Characters, items, factions: lowercase ids from their data files.
 
 ## 2. Scene
+
 | Field | Required | Meaning |
 |---|---|---|
 | `id` | yes | unique |
@@ -25,6 +27,7 @@ One file per chapter part, ≤ 400 lines. Files export `scenes: Scene[]` through
 | `tags` | no | `camp`, `gate`, `hub`, `echo` (used by tooling) |
 
 ## 3. Choice
+
 | Field | Meaning |
 |---|---|
 | `text` | ≤ 12 words |
@@ -38,7 +41,9 @@ One file per chapter part, ≤ 400 lines. Files export `scenes: Scene[]` through
 | `echo` | schedule a future scene (see effects) |
 
 ## 4. Conditions (`if` / `lock`): small, closed vocabulary
+
 Tuples, combinable with `{ all: [c, ...] }`, `{ any: [c, ...] }`, `{ not: c }` (lists are non-empty, nest freely). Operators: `>=` `<=` `>` `<` `==`. Tiers: `T1`-`T5`.
+
 ```
 ['flag','route_church']            ['honor','>=',21]            ['tier','>=','T4']
 ['res','food','>=',2]              ['stat','reason','<',30]      ['attr','wits','>=',3]
@@ -47,7 +52,10 @@ Tuples, combinable with `{ all: [c, ...] }`, `{ any: [c, ...] }`, `{ not: c }` (
 ['day','>=',10]                    ['secret','hart_wife']
 ```
 
+Runtime notes (`engine/conditions.ts`): `secret` is true while the secret is held, not yet revealed. Unknown npc ids read as not alive, trust 0, fear 0. `tier` compares in order `T1` < ... < `T5`.
+
 ## 5. Effects (`fx`, `on`): closed vocabulary
+
 ```
 ['honor','mercy', true]            // tag, witnessed. Delta comes from honor table
 ['stat','hp',-1]                   ['res','food',-1]            ['set','route_church']  ['clear','x']
@@ -57,10 +65,20 @@ Tuples, combinable with `{ all: [c, ...] }`, `{ any: [c, ...] }`, `{ not: c }` (
 ['echo',{ scene:'c4.father', after:12 }]    // after N scenes, or { at:'c4' } at chapter start
 ['time',{ day:1, phase:'night' }]
 ```
+
 Shape rules (enforced by `engine/schema.ts`): `party` and `trait` values start with `+` or `-`; `echo` needs exactly one of `after` / `at`; `honor` is `[tag, witnessed]`.
+Runtime rules (`engine/effects.ts`, `applyAll` applies a list in order):
+
+- Numbers are clamped (hp 0-5, reason/rot 0-100, res 0-9, trust -100..100, fear 0..100, day 1-21). `time` sets absolute values.
+- `party` holds at most 3 and a joiner must be a known npc. `trust`, `fear`, `kill` on an unknown npc, an unknown deed tag or a missing `+`/`-` are ERROR log lines and change nothing.
+- `echo` `after: N`: N scenes play normally, then the echo fires at the next transition. `at: 'c4'`: due while the chapter is `c4`.
+- Unwitnessed deeds: put `['honor', tag, false]` before `['secret', id]` in the same list. The secret then owes the rest of the deed and pays it on `['reveal', id]`. A secret with no deed before it owes nothing. A remainder with no secret after it is forfeited and logged.
+- The `reveal` trust hit is authored as a `['trust', id, n]` effect (the companion approval table arrives in M3).
+
 Adding a new effect or condition kind = edit `engine/effects.ts` or `conditions.ts` + `STORY_FORMAT.md` + a test, in one change.
 
 ## 6. Example (the contract, tiny)
+
 ```ts
 {
   id: 'c2.crypt',
@@ -81,6 +99,7 @@ Adding a new effect or condition kind = edit `engine/effects.ts` or `conditions.
 ```
 
 ## 7. Writing rules
+
 **Voice:** second person, present tense, concrete nouns, no adverbs stacked, one image per sentence.
 **Length:** a scene is 40-90 words; a beat ≤ 35 words. Mobile screens fit about 120 words with choices.
 **Callbacks:** at least one conditional line per scene that reflects a past choice (`if` Beat).
@@ -91,11 +110,13 @@ Adding a new effect or condition kind = edit `engine/effects.ts` or `conditions.
 **Reason glitch:** scenes may include `glitch: string` variants shown when `reason < 30`.
 
 ## 8. Linter checks (`npm run lint:story`)
+
 Schema (`engine/schema.ts`, rejects a scene before the graph is checked): unknown key, condition/effect with unknown kind or bad shape, scene without exactly one of `choices` / `next` / `end`, choice without exactly one of `to` / `check`, more than 4 choices, duplicate choice ids, choice text > 12 words, more than 3 `who`, `echo` without exactly one of `after` / `at`.
 Errors: duplicate id, missing target, unreachable scene, scene with no exit, unknown flag/char/item/tag, `echo` pointing to missing scene, plus any schema failure.
 Warnings: flag set but never read, flag read but never set, no honor tag in a chapter, scene text > 90 words, same `fx` on all choices (fake choice).
 
 ## 9. Authoring workflow with Claude
+
 1. Pick beats from `STORYBOARD.md` (≤ 6 scenes per session).
 2. Ask Claude to write one chapter part file + any new flags in `flags.ts`.
 3. Run `npm run lint:story` and the chapter's golden-path test.

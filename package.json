@@ -25,7 +25,8 @@
     "pack:story": "tsx scripts/pack.ts story",
     "pack:ui": "tsx scripts/pack.ts ui",
     "pack:m1s1": "tsx scripts/pack.ts m1s1",
-    "pack:m1s2": "tsx scripts/pack.ts m1s2"
+    "pack:m1s2": "tsx scripts/pack.ts m1s2",
+    "pack:m1s3": "tsx scripts/pack.ts m1s3"
   },
   "dependencies": {
     "react": "^19.3.1",

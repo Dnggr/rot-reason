@@ -23,6 +23,13 @@ const PRESETS: Record<string, { include: string[]; compress?: boolean }> = {
   m1s2: {
     include: [...BASE, ...CFG, ...PACKING, 'docs/ARCHITECTURE.md', 'docs/STORY_FORMAT.md', 'docs/HONOR.md', 'docs/GAME_DESIGN.md', 'src/engine/**', 'tests/**'],
   },
+  // M1 s3: reducer, select, endings, save, test story, lint-story graph checks, fuzz
+  m1s3: {
+    include: [
+      ...BASE, ...CFG, ...PACKING, 'docs/ARCHITECTURE.md', 'docs/STORY_FORMAT.md', 'docs/HONOR.md', 'docs/GAME_DESIGN.md', 'docs/CHARACTERS.md', 'docs/STORYBOARD.md',
+      'src/engine/**', 'src/story/**', 'scripts/lint-story.ts', 'scripts/fuzz.ts', 'tests/engine/fixtures.ts',
+    ],
+  },
 }
 const [name, ...extra] = process.argv.slice(2)
 const preset = name ? PRESETS[name] : undefined

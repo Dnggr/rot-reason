@@ -7,6 +7,7 @@ Paste this file first in any new Claude chat, then `HANDOFF.md`, then a repomix 
 **Status:** always read `docs/HANDOFF.md` (newest truth).
 
 ## RULE 0: DOCS FIRST, DOCS LAST, PACK NEXT (applies to every AI session, no exceptions)
+
 1. **Docs first.** Before any plan, code, or answer, read `START_HERE.md` and `HANDOFF.md`, then every doc the Doc map below lists for your task. If a needed doc is not in your context, say which one and stop; do not guess.
 2. **Docs last.** After you change or fix anything (code, story, config, scripts), you must edit the docs to match what you actually did, in the same response:
    - `HANDOFF.md`: always (what changed, decisions, bugs, next tasks).
@@ -22,9 +23,11 @@ Paste this file first in any new Claude chat, then `HANDOFF.md`, then a repomix 
 6. Verify with `npm run ready` (`check` then `docs:check`). `docs:check` fails if code changed but `docs/HANDOFF.md` did not, or if the `Next pack` line, its npm script, or its preset is missing.
 
 ## Stack (decided; change only via the decision log in ROADMAP.md)
+
 Vite 8 + React 19 + TypeScript 7 (strict) + Vitest 5. Plain CSS variables. localStorage saves. No router, no state library (`useReducer`). Chapters lazy-loaded. Zod 4 (added in M1 s1, D12) validates story data in `engine/schema.ts`. **Node ≥ 22.12** (Vitest 5 requires it; Vite 8 alone needs 20.19+). Use `nvm install 22 && nvm use 22`.
 
 ## Golden rules
+
 1. **Engine is pure and deterministic.** No React, DOM, `Date`, or `Math.random` in `src/engine` or `src/story`. Randomness only via the seeded RNG. (`npm run rules` enforces it.)
 2. **Story is data, logic is code, views are dumb.** `src/story` (data) / `src/engine` (logic) / `src/ui` (render). Never mix.
 3. **One file, one job, ≤ 200 lines** (story chapter files ≤ 400). First line is a one-line purpose comment. (`npm run rules` enforces it.)
@@ -37,10 +40,11 @@ Vite 8 + React 19 + TypeScript 7 (strict) + Vitest 5. Plain CSS variables. local
 10. **Keep docs short**, and keep them true (Rule 0).
 
 ## Repo map
+
 ```
 docs/                 these files (read first, update last)
-src/engine/           pure logic: reducer, conditions, effects, honor, rng, echoes, checks, save
-src/story/            data only: chapters/, characters, items, factions, backgrounds, endings, flags
+src/engine/           pure logic: reducer, conditions, effects, honor, rng, echoes, checks, bounds, log, save
+src/story/            data only: chapters/, characters, items, factions, backgrounds, endings, flags, honor, traits
 src/ui/               App.tsx, strings.ts, screens/, components/, hooks/, styles/ (tokens.css, base.css)
 src/debug/            DebugPanel, report export (?debug=1)          [M2]
 scripts/              lint-story, fuzz, rules-check, docs-check, pack
@@ -50,6 +54,7 @@ public/               images (WebP), later audio
 ```
 
 ## Commands
+
 | Command | Does |
 |---|---|
 | `npm run dev` | local dev server |
@@ -62,6 +67,7 @@ public/               images (WebP), later audio
 | `npm run pack -- bug <files>` / `-- chapter <globs>` | generic presets with extra files |
 
 ## How Claude must answer (output contract)
+
 - Start with: docs you read (one line), then a plan of at most 8 lines.
 - Return the **full content** of every changed file (code **and docs**) under a `### path/to/file` heading. No `...` elisions, no partial snippets.
 - End with: files changed, how to verify (`npm run ready`), and the next pack command (`npm run pack:<name>`), in at most 5 lines.
@@ -69,6 +75,7 @@ public/               images (WebP), later audio
 - Never invent files or IDs that are not in the pack; if something is missing, say what to pack.
 
 ## Doc map: open only what the task needs (plus START_HERE and HANDOFF, always)
+
 | Task | Open |
 |---|---|
 | Write or change story scenes | STORYBOARD, STORY_FORMAT, CHARACTERS, HONOR |
