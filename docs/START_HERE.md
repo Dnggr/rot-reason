@@ -1,0 +1,73 @@
+# START HERE (context capsule)
+
+Paste this file first in any new Claude chat, then `HANDOFF.md`, then a repomix pack (see `REPOMIX.md`).
+
+**Game:** Rot & Reason, a mobile-first zombie story game with choices and consequences. Web, Vercel. Repo: `github.com/Dnggr/rot-reason`
+**Pitch:** The port city of Marrow Bay falls to "the Rot". The last evacuation ship leaves Pier 9 on Day 21 with six seats. Your deeds set your honor; honor decides who stands with you.
+**Status:** always read `docs/HANDOFF.md` (newest truth).
+
+## RULE 0: DOCS FIRST, DOCS LAST (applies to every AI session, no exceptions)
+1. **Docs first.** Before any plan, code, or answer, read `START_HERE.md` and `HANDOFF.md`, then every doc the Doc map below lists for your task. If a needed doc is not in your context, say which one and stop; do not guess.
+2. **Docs last.** After you change or fix anything (code, story, config, scripts), you must edit the docs to match what you actually did, in the same response:
+   - `HANDOFF.md`: always (what changed, decisions, bugs, next tasks).
+   - Every other doc your change touches (architecture, story format, storyboard, honor, UI, roadmap checkboxes, repomix presets, commands...).
+3. **Docs are the source of truth.** If code and docs disagree, fix the disagreement now (update the doc, or flag it as a bug in `HANDOFF.md`). Never leave it for later.
+4. **Return the updated docs as full files**, listed with the code files, under their `### docs/...` headings.
+5. Verify with `npm run ready` (runs `check` then `docs:check`; `docs:check` fails if code changed but `docs/HANDOFF.md` did not).
+
+## Stack (decided; change only via the decision log in ROADMAP.md)
+Vite 8 + React 19 + TypeScript 7 (strict) + Vitest 5. Plain CSS variables. localStorage saves. No router, no state library (`useReducer`). Chapters lazy-loaded. Zod is added in M1 (story validation). Node ≥ 20.19.
+
+## Golden rules
+1. **Engine is pure and deterministic.** No React, DOM, `Date`, or `Math.random` in `src/engine` or `src/story`. Randomness only via the seeded RNG. (`npm run rules` enforces it.)
+2. **Story is data, logic is code, views are dumb.** `src/story` (data) / `src/engine` (logic) / `src/ui` (render). Never mix.
+3. **One file, one job, ≤ 200 lines** (story chapter files ≤ 400). First line is a one-line purpose comment. (`npm run rules` enforces it.)
+4. **All game text lives in `src/story`** (UI labels in `src/ui/strings.ts`). No prose in engine code.
+5. **Gate:** every change passes `npm run check` (typecheck + lint:story + tests + rules). `npm run build` runs `check` first, so a broken story never deploys.
+6. **No `any`, no silent `catch`.** Errors become log entries plus a visible fallback.
+7. **Delete before adding.** No new dependency without a decision-log entry.
+8. **No fake choices.** Every choice changes at least one of: honor, stat, flag, trust/fear, route.
+9. **Fix the root cause**, then add a test or fuzz case that would have caught it.
+10. **Keep docs short**, and keep them true (Rule 0).
+
+## Repo map
+```
+docs/                 these files (read first, update last)
+src/engine/           pure logic: reducer, conditions, effects, honor, rng, echoes, checks, save
+src/story/            data only: chapters/, characters, items, factions, backgrounds, endings, flags
+src/ui/               App.tsx, strings.ts, screens/, components/, hooks/, styles/ (tokens.css, base.css)
+src/debug/            DebugPanel, report export (?debug=1)          [M2]
+scripts/              lint-story, fuzz, rules-check, docs-check, pack
+tests/                engine unit tests + per-chapter golden paths
+public/               images (WebP), later audio
+(root)                package.json, tsconfig.json, vite.config.ts, repomix.config.json, index.html
+```
+
+## Commands
+| Command | Does |
+|---|---|
+| `npm run dev` | local dev server |
+| `npm run check` | typecheck + lint:story + tests + rules (the gate) |
+| `npm run ready` | `check` + `docs:check` (run before every commit) |
+| `npm run build` | `check` + production build (Vercel runs this) |
+| `npm run lint:story` / `fuzz` / `rules` / `docs:check` | single gates |
+| `npm run pack:map\|docs\|core\|story\|ui` | repomix presets (output in `.repomix/`) |
+| `npm run pack -- bug <files>` / `-- chapter <globs>` | presets with extra files |
+
+## How Claude must answer (output contract)
+- Start with: docs you read (one line), then a plan of at most 8 lines.
+- Return the **full content** of every changed file (code **and docs**) under a `### path/to/file` heading. No `...` elisions, no partial snippets.
+- End with: files changed, and how to verify (`npm run ready`), in at most 5 lines.
+- Ask at most one clarifying question; otherwise state the assumption and proceed.
+- Never invent files or IDs that are not in the pack; if something is missing, say what to pack.
+
+## Doc map: open only what the task needs (plus START_HERE and HANDOFF, always)
+| Task | Open |
+|---|---|
+| Write or change story scenes | STORYBOARD, STORY_FORMAT, CHARACTERS, HONOR |
+| Engine / state / saves | ARCHITECTURE, STORY_FORMAT |
+| UI / styling | UI_UX, ARCHITECTURE (UI section) |
+| Balance / new mechanic | GAME_DESIGN, HONOR |
+| Bug | HANDOFF + debug report + the files involved |
+| Tooling / packs / workflow | REPOMIX, ARCHITECTURE |
+| Planning | ROADMAP, GAME_DESIGN |

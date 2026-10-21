@@ -1,0 +1,40 @@
+{
+  "name": "rot-reason",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "engines": { "node": ">=20.19" },
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run check && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint:story": "tsx scripts/lint-story.ts",
+    "test": "vitest run",
+    "rules": "tsx scripts/rules-check.ts",
+    "fuzz": "tsx scripts/fuzz.ts",
+    "check": "npm run typecheck && npm run lint:story && npm run test && npm run rules",
+    "docs:check": "tsx scripts/docs-check.ts",
+    "ready": "npm run check && npm run docs:check",
+    "pack": "tsx scripts/pack.ts",
+    "pack:map": "tsx scripts/pack.ts map",
+    "pack:docs": "tsx scripts/pack.ts docs",
+    "pack:core": "tsx scripts/pack.ts core",
+    "pack:story": "tsx scripts/pack.ts story",
+    "pack:ui": "tsx scripts/pack.ts ui"
+  },
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  }
+}

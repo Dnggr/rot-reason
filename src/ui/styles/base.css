@@ -1,0 +1,15 @@
+/* base.css — reset + page shell (mobile first, max width 560px) */
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-story);
+  font-size: 18px;
+  line-height: 1.55;
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+}
+.shell { max-width: 560px; margin: 0 auto; padding: calc(var(--space) * 4) calc(var(--space) * 2); }
+h1 { font-family: var(--font-ui); letter-spacing: 0.04em; margin: 0 0 var(--space); }
+.tagline { color: var(--honor); font-style: italic; margin-top: 0; }
+.muted { color: var(--muted); font-family: var(--font-ui); font-size: 14px; }

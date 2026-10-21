@@ -1,0 +1,15 @@
+{
+  "$schema": "https://repomix.com/schemas/latest/schema.json",
+  "output": {
+    "filePath": ".repomix/pack.xml",
+    "style": "xml",
+    "removeEmptyLines": true,
+    "showLineNumbers": false,
+    "topFilesLength": 10
+  },
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": ["package-lock.json", "public/**", "dist/**", ".repomix/**", "**/*.svg", "**/*.webp", "**/*.png", "**/*.jpg"]
+  }
+}
