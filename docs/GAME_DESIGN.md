@@ -27,7 +27,7 @@ Scene (read) -> Choice (cost) -> Consequence (instant + echo later) -> Camp (rec
 
 | System | Range | Role | When |
 |---|---|---|---|
-| HP | 0-5 | 0 = death ending. Lost to danger, restored by meds/rest | MVP |
+| HP | 0-5 | 0 = death ending (`sys.death`, beats any ending). Lost to danger, restored by meds/rest | MVP |
 | Reason | 0-100 | Sanity. Falls with horror, killing humans, losing allies. Rises with rest, bonds, Biscuit. Low = unreliable text, forced options | MVP |
 | Food / Ammo / Meds | 0-9 each | Spent by choices, camp, checks. Scarcity drives dilemmas | MVP |
 | Honor | -100..+100 | Reputation. See `HONOR.md` | MVP |
@@ -39,7 +39,7 @@ Scene (read) -> Choice (cost) -> Consequence (instant + echo later) -> Camp (rec
 | Echoes | queue | Delayed consequences | MVP |
 | Secrets | set | Unwitnessed deeds that can surface later | M3 |
 
-**Checks (no combat system).** `roll = d6 (seeded) + attribute + trait bonus` vs `DC`. A tie passes (`total >= DC`). Trait bonuses live in `src/story/traits.ts` (Bruiser: Grit +2, Signal: Wits +1); `resolveCheck` adds the bonus of every trait the player holds. UI shows odds as words (Risky / Even / Likely), never hides the cost of failure. Violence is resolved by choice plus check, not a combat screen.
+**Checks (no combat system).** `roll = d6 (seeded) + attribute + trait bonus` vs `DC`. A tie passes (`total >= DC`). Trait bonuses live in `src/story/traits.ts` (Bruiser: Grit +2, Signal: Wits +1); `resolveCheck` adds the bonus of every trait the player holds. `select.currentView` gives each check choice an odds word: Risky (2 or fewer of 6 faces win), Even (3), Likely (4 or more); the UI never hides the cost of failure. Violence is resolved by choice plus check, not a combat screen.
 
 **Time.** Scenes may advance the clock. Camp costs 1 Food per living party member (+ Biscuit). Running out of food costs HP/Reason, never an instant fail.
 

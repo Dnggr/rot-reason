@@ -7,9 +7,9 @@ const state: GameState = {
   bg: 'dockworker', traits: ['Medic'], honor: 0, flags: { route_church: true }, secrets: ['hart_wife'], owed: { hart_wife: 3 },
   party: ['nora'], npc: { nora: { alive: true, trust: 10, fear: 0 } },
   echoes: [{ scene: 'c4.father', dueIn: 12 }, { scene: 'c4.hart_knows', atChapter: 'c4' }],
-  deedCount: { mercy: 1 }, history: ['c0.start:a'], log: [{ n: 1, kind: 'SCENE', text: 'c0.start' }],
+  deedCount: { mercy: 1 }, history: ['c0.start:a'], log: [{ n: 1, kind: 'SCENE', text: 'c0.start' }], resume: 'c2.toll',
 }
-const save: SaveData = { v: 1, seed: 7, history: ['c0.start:a'], snapshot: state, checkpoint: null, savedAt: 0 }
+const save: SaveData = { v: 1, seed: 7, bg: 'dockworker', name: 'Ash', history: ['c0.start:a'], snapshot: state, checkpoint: null, savedAt: 0 }
 const actions: Action[] = [
   { type: 'START', bg: 'dockworker', name: 'Ash', seed: 7 },
   { type: 'CHOOSE', choice: 'a' },

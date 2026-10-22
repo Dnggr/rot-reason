@@ -1,7 +1,7 @@
 # STORY FORMAT (the data contract)
 
 Story is **TypeScript data** (typed, autocompleted, validated by Zod (`engine/schema.ts`, live since M1 s1) + linter). Engine reads it; engine never contains prose.
-One file per chapter part, ≤ 400 lines. Files export `scenes: Scene[]` through `defineScenes([...])`.
+One file per chapter part, ≤ 400 lines. Files export `scenes: Scene[]` (a plain array; `npm run lint:story` validates it).
 
 ## 1. IDs
 
@@ -21,9 +21,10 @@ One file per chapter part, ≤ 400 lines. Files export `scenes: Scene[]` through
 | `mood` | no | `calm`, `tense`, `dread`, `warm`, `glitch` (drives UI style) |
 | `on` | no | effects applied on entering the scene |
 | `choices` | yes* | 1-4 choices. *Not for `next`/`end` scenes |
-| `next` | no | auto-continue to a scene id (use for narration-only beats) |
-| `end` | no | ending id, final scene |
-| `time` | no | `{ day?, phase? }` clock change |
+| `next` | no | auto-continue to a scene id (use for narration-only beats); echo scenes use `'$resume'` |
+| `end` | no | ending id, final scene. `'auto'` asks the ending resolver (`story/endings.ts`, first match wins); `'death'` is `sys.death`'s |
+| `time` | no | `{ day?, phase? }` clock change, applied when the player leaves the scene |
+| `glitch` | no | text shown instead of `text` when Reason is under 30 |
 | `tags` | no | `camp`, `gate`, `hub`, `echo` (used by tooling) |
 
 ## 3. Choice
@@ -33,7 +34,7 @@ One file per chapter part, ≤ 400 lines. Files export `scenes: Scene[]` through
 | `text` | ≤ 12 words |
 | `tone` | `mercy`, `lie`, `threaten`, `brave`, `quiet`, `honest`, `cold` (UI tag) |
 | `if` | condition to **show** (otherwise hidden) |
-| `lock` | condition to **enable**; if false, shown disabled with the reason |
+| `lock` | condition to **enable**; if false, shown disabled (`why: 'lock'`; the reason text is a UI task, see HANDOFF) |
 | `cost` | chips shown and charged: `{ food:1, ammo:2 }` |
 | `fx` | effects on pick |
 | `check` | `{ attr, dc, pass:{fx?,to}, fail:{fx?,to} }`, replaces `to` |
@@ -75,6 +76,15 @@ Runtime rules (`engine/effects.ts`, `applyAll` applies a list in order):
 - Unwitnessed deeds: put `['honor', tag, false]` before `['secret', id]` in the same list. The secret then owes the rest of the deed and pays it on `['reveal', id]`. A secret with no deed before it owes nothing. A remainder with no secret after it is forfeited and logged.
 - The `reveal` trust hit is authored as a `['trust', id, n]` effect (the companion approval table arrives in M3).
 
+Flow rules (`engine/choose.ts`, `flow.ts`, `reducer.ts`):
+
+- Order for a pick: `tick` echoes, pay `cost`, roll the `check`, apply choice `fx` then the branch `fx`, schedule the choice `echo`, `capScene`, apply the departing scene's `time`, then move.
+- `lock` and `cost` are enforced by the reducer too: a locked, hidden or unaffordable pick is ignored and logged.
+- Moving: a due echo replaces the target (any scene except system ones, endings included); the echo scene ends with `next: '$resume'` (or choices whose `to` is `'$resume'`) and play continues at the remembered target. Echo scenes must be tagged `echo` and exit only through `$resume`.
+- A scene's `on` effects run when it is entered, under their own honor cap. A chapter is the part of the scene id before the first `.`; on a change deed counts reset and every npc's fear fades by 5. An echo scene does not change the chapter.
+- hp 0 sends the player to `sys.death` (it beats any ending). A missing target goes to `sys.missing`, a thrown error to `sys.error`; both log an ERROR.
+- Checks roll a seeded d6 (`d6 + attr + trait bonus >= dc`). The view shows odds as `risky` (2 or fewer faces win), `even` (3), `likely` (4 or more).
+
 Adding a new effect or condition kind = edit `engine/effects.ts` or `conditions.ts` + `STORY_FORMAT.md` + a test, in one change.
 
 ## 6. Example (the contract, tiny)
@@ -112,8 +122,8 @@ Adding a new effect or condition kind = edit `engine/effects.ts` or `conditions.
 ## 8. Linter checks (`npm run lint:story`)
 
 Schema (`engine/schema.ts`, rejects a scene before the graph is checked): unknown key, condition/effect with unknown kind or bad shape, scene without exactly one of `choices` / `next` / `end`, choice without exactly one of `to` / `check`, more than 4 choices, duplicate choice ids, choice text > 12 words, more than 3 `who`, `echo` without exactly one of `after` / `at`.
-Errors: duplicate id, missing target, unreachable scene, scene with no exit, unknown flag/char/item/tag, `echo` pointing to missing scene, plus any schema failure.
-Warnings: flag set but never read, flag read but never set, no honor tag in a chapter, scene text > 90 words, same `fx` on all choices (fake choice).
+Errors (graph and references, `scripts/lint*.ts`): duplicate id, id without a `.`, missing target (exits and echoes), unreachable scene, scene with no path to an ending, `$resume` outside an echo scene or an echo scene with another exit, unknown ending id, last ending rule with a condition, missing system scene, unknown flag / character / deed tag / background, plus any schema failure. (Items are not checked: there are none yet.)
+Warnings: flag set but never read, flag read but never set, reveal of a secret no scene holds, no honor tag in a chapter, scene text > 90 words, same outcome on all choices (fake choice), every choice has `if`/`lock` (possible soft-lock).
 
 ## 9. Authoring workflow with Claude
 

@@ -1,4 +1,4 @@
-// engine/types.ts — shared types: story data (Scene, Choice, Effect, Condition) and runtime (GameState, Action)
+// engine/types.ts — shared types: story data (Scene, Choice, Effect, Condition, Story) and runtime (GameState, Action, SaveData)
 export type SceneId = string
 export type ChoiceId = 'a' | 'b' | 'c' | 'd'
 export type Phase = 'dawn' | 'day' | 'dusk' | 'night'
@@ -95,6 +95,34 @@ export interface Scene {
 // ---- Injected story data tables (src/story/honor.ts, src/story/traits.ts); the engine never imports story data ----
 export type DeedTable = Readonly<Record<string, number>> // deed tag -> honor delta
 export type TraitBonuses = Readonly<Record<string, Partial<Record<AttrKey, number>>>> // trait -> check bonus per attribute
+// ---- Story tables and the assembled Story (M1 s3, D16); built by src/story/index.ts, passed into reduce / currentView ----
+export interface Background {
+  name: string
+  attr: Record<AttrKey, number>
+  trait: string
+  stats: Record<StatKey, number>
+  res: Record<ResKey, number> // starting kit
+}
+export interface NpcStart {
+  name: string
+  trust: number
+  fear: number
+}
+export interface EndingRule {
+  id: string
+  if?: Condition // no condition = always matches (the last rule)
+}
+export interface StoryTables {
+  start: SceneId
+  deeds: DeedTable
+  traitBonus: TraitBonuses
+  backgrounds: Readonly<Record<string, Background>>
+  npcs: Readonly<Record<string, NpcStart>>
+  endings: readonly EndingRule[] // first match wins
+}
+export interface Story extends StoryTables {
+  scenes: Readonly<Record<SceneId, Scene>>
+}
 // ---- Runtime (ARCHITECTURE §3, §4, §6): JSON-serializable, no functions, no class instances ----
 export interface NpcState {
   alive: boolean
@@ -135,10 +163,13 @@ export interface GameState {
   deedCount: Record<string, number> // per chapter, for diminishing returns
   history: string[] // "scene:choice" list for replay
   log: LogEntry[] // ring buffer, last 200
+  resume: SceneId | null // where to go when an echo scene ends with '$resume' (flow.advance)
 }
 export interface SaveData {
   v: number
   seed: number
+  bg: string // seed + bg + name + history is enough to replay the game when the snapshot is unusable
+  name: string
   history: string[]
   snapshot: GameState
   checkpoint: GameState | null

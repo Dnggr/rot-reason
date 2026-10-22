@@ -16,18 +16,12 @@ const PRESETS: Record<string, { include: string[]; compress?: boolean }> = {
   bug: { include: [...BASE, 'docs/ARCHITECTURE.md'] }, // add the files from the debug log: npm run pack -- bug src/engine/honor.ts
   chapter: { include: [...BASE, 'docs/STORY_FORMAT.md', 'docs/STORYBOARD.md', 'src/story/flags.ts'] }, // add: src/story/chapters/ch2*
   // ---- TASK PACKS: one per upcoming session, named <milestone><session> (START_HERE Rule 0.5). Delete when the milestone is done. ----
-  m1s1: {
-    include: [...BASE, ...CFG, 'docs/ARCHITECTURE.md', 'docs/STORY_FORMAT.md', 'src/engine/**', 'src/story/chapters/index.ts', 'scripts/lint-story.ts', 'tests/**'],
-  },
-  // M1 s2: conditions, effects, log, honor (+ story/honor.ts deed table), checks, echoes
-  m1s2: {
-    include: [...BASE, ...CFG, ...PACKING, 'docs/ARCHITECTURE.md', 'docs/STORY_FORMAT.md', 'docs/HONOR.md', 'docs/GAME_DESIGN.md', 'src/engine/**', 'tests/**'],
-  },
-  // M1 s3: reducer, select, endings, save, test story, lint-story graph checks, fuzz
-  m1s3: {
+  // M2 s1: UI shell part 1 (useGame hook, Title / Background / Play screens, ChoiceList, StatBar, HonorMeter, Toast, ErrorFallback)
+  m2s1: {
     include: [
-      ...BASE, ...CFG, ...PACKING, 'docs/ARCHITECTURE.md', 'docs/STORY_FORMAT.md', 'docs/HONOR.md', 'docs/GAME_DESIGN.md', 'docs/CHARACTERS.md', 'docs/STORYBOARD.md',
-      'src/engine/**', 'src/story/**', 'scripts/lint-story.ts', 'scripts/fuzz.ts', 'tests/engine/fixtures.ts',
+      ...BASE, ...CFG, ...PACKING, 'docs/UI_UX.md', 'docs/ARCHITECTURE.md', 'docs/HONOR.md',
+      'src/ui/**', 'src/main.tsx', 'src/engine/types.ts', 'src/engine/select.ts', 'src/engine/reducer.ts', 'src/engine/save.ts', 'src/engine/honor.ts',
+      'src/engine/endings.ts', 'src/engine/ids.ts', 'src/story/index.ts', 'src/story/backgrounds.ts', 'src/story/characters.ts', 'tests/smoke.test.ts',
     ],
   },
 }

@@ -16,14 +16,14 @@ Each milestone ends with: `npm run check` green, deployed preview on Vercel, `HA
 - [x] Vercel connected to the repo; "Hello Marrow Bay" deployed (https://rotandreason.vercel.app/)
 - **DoD met:** live URL up, `npm run check` passes on empty story, Vercel builds with `npm run build`.
 
-### M1: Engine core (2-3 sessions)
+### M1: Engine core (3 sessions) - DONE
 
 - [x] types, schema (Zod), rng (M1 s1)
 - [x] conditions, effects, log, bounds, honor.ts, checks.ts, echoes.ts (M1 s2; 100% line coverage measured on `src/engine`)
-- [ ] reducer, select, endings.ts, save.ts
-- [ ] Tiny test story (5 scenes, all effect kinds)
-- [ ] `lint-story` + `fuzz` working on test story
-- **DoD:** ≥ 90% line coverage on engine; fuzz 1,000 runs clean; same seed + history replays identically.
+- [x] reducer (+ choose, flow, init), select, endings.ts, save.ts (+ stateSchema), backgrounds, characters, flags, system scenes (M1 s3)
+- [x] Tiny test story: 5 scenes, all 14 effect kinds (`src/story/chapters/test.ts`, deleted in M4)
+- [x] `lint-story` (schema, graph, references) + `fuzz` working on the test story
+- **DoD met (M1 s3):** 100% line coverage on `src/engine` (`npm run coverage`, threshold 90); `npm run fuzz` 1,000 runs clean (seeds 1 and 99); replay of seed + bg + name + history equals the live run (tested, and checked on every fuzz run).
 
 ### M2: UI shell (2 sessions)
 
@@ -112,6 +112,10 @@ Each milestone ends with: `npm run check` green, deployed preview on Vercel, `HA
 | D13 | Every task pack includes `scripts/pack.ts`, `docs/REPOMIX.md`, `docs/ROADMAP.md` (`PACKING` list) | `m1s1` lacked them, so the session could not create the next pack or log a decision | Accepted (M1 s1) |
 | D14 | Story data tables (deeds, trait bonuses) are passed into engine functions, never imported by the engine | Keeps ARCHITECTURE §1 (engine imports story types only); tests use tiny tables | Accepted (M1 s2) |
 | D15 | `GameState.owed` (secret id -> honor still owed); an unwitnessed deed's remainder goes to the next `secret` in the same effect list | The effect vocabulary has no deed-to-secret link, and this needs no new syntax | Accepted (M1 s2) |
+| D16 | Add `@vitest/coverage-v8` (devDependency), `npm run coverage`, line threshold 90 on `src/engine` | M1 definition of done needs a measured number | Accepted (M1 s3) |
+| D17 | `Story` = `StoryTables` (start, deeds, traitBonus, backgrounds, npcs, endings) + `scenes` map, assembled in `src/story/index.ts` and passed into `reduce` / `currentView`. Fallback scenes `sys.missing`, `sys.error`, `sys.death` live in `story/system.ts`. hp 0 always goes to `sys.death` | Keeps D14 (engine imports no story data) and golden rule 4 (no prose in engine) | Accepted (M1 s3) |
+| D18 | A due echo replaces the transition target and `GameState.resume` remembers it; echo scenes (tag `echo`) exit only with `'$resume'`. Echoes may fire before an ending, never before a system scene | Echo scenes cannot know where the player was heading; without a return slot an echo would drop the story line | Accepted (M1 s3) |
+| D19 | `SaveData` gains `bg` and `name`; replay rebuilds a game from `seed + bg + name + history` ("scene:choice", "scene:>"); `makeSave` moves the checkpoint at `gate` scenes | Replay needs the start inputs even when the snapshot is unusable (ARCHITECTURE §6) | Accepted (M1 s3) |
 
 ## Open questions (M0 did not depend on these; decide before M2/M4)
 

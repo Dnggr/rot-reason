@@ -44,8 +44,8 @@ Every honor effect is a **tagged deed**, not a raw number: `deed(tag, witnessed)
 **Rules (all in `engine/honor.ts`):**
 
 1. **Witness rule.** `witnessed=true` applies the full Δ. `witnessed=false` applies **half** now (halves round away from zero) and the rest is **owed** to the `secret` that follows the deed in the same effect list (STORY_FORMAT §5). When the secret is revealed, the remainder applies; the trust hit is an authored `trust` effect (companion table: M3).
-2. **Diminishing returns.** The same tag repeated within one chapter gives 100%, then 50%, then 25% (3rd use and later), for every tag. Counted in `deedCount`; the reducer resets it at each chapter. Prevents farming mercy.
-3. **Scene cap.** Net honor change per scene is clamped to ±25 (`capScene(before, state)`: the reducer passes the honor value from before the scene's effects).
+2. **Diminishing returns.** The same tag repeated within one chapter gives 100%, then 50%, then 25% (3rd use and later), for every tag. Counted in `deedCount`; the reducer resets it at each chapter change (live since M1 s3). Prevents farming mercy.
+3. **Scene cap.** Net honor change per scene is clamped to ±25 (`capScene(before, state)`: the reducer passes the honor value from before the scene's effects; a pick and a scene's `on` effects each get their own cap).
 4. **Context mods.** `applyDeed` takes a scale of `x2` (huge moment) or `x0.5` (minor one). Nothing else may scale it. The `honor` effect has no scale slot yet, so effects use `x1` until a scene needs one.
 5. **Clamp** to -100..+100. Every change emits a log line: `HONOR +5 mercy witnessed -> 12`.
 
@@ -82,7 +82,7 @@ Each companion reacts to tags (see `CHARACTERS.md`): `+` raises trust, `-` lower
 
 ## 6. Fear (separate from honor)
 
-`fear` is per-NPC `0..100`, raised by `intimidate` and `cruelty_show`. High fear gives compliance but low trust; fear decays 5 per chapter unless renewed. Honor-negative plus fear is the "Warden of the Dead" route.
+`fear` is per-NPC `0..100`, raised by `intimidate` and `cruelty_show`. High fear gives compliance but low trust; fear decays 5 per chapter unless renewed (done in `engine/flow.ts` on a chapter change). Honor-negative plus fear is the "Warden of the Dead" route.
 
 ## 7. Player-facing UI
 

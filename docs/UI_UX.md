@@ -46,7 +46,7 @@ Mobile portrait first (360-430 px wide). Desktop = same layout centered, max wid
 
 ## 5. Choice button spec
 - Tone tag chip (left), text, right chips: cost (`-2 Food`), odds word (`Risky` / `Even` / `Likely`), lock icon.
-- Locked: shows why ("Needs Medic" / "Honor 21+"). Never hide a lock when seeing it teaches the player something; hide it only if it would spoil.
+- Locked: shows why ("Needs Medic" / "Honor 21+"). `select.currentView` gives `enabled` and `why: 'lock' | 'cost'` per choice but no reason text yet; deciding how the UI words it (derive from the condition, or add an authored field) is an M2 task. Never hide a lock when seeing it teaches the player something; hide it only if it would spoil.
 - Min tap target 48 px; spacing 8 px; max 4 buttons.
 - Keyboard: `1-4` select, `Space` skips typing, `J` Journal.
 - Confirm step only for irreversible high-impact choices (kill, betray): press and hold 400 ms or second tap.

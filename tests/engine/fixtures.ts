@@ -6,7 +6,7 @@ export function makeState(overrides: Partial<GameState> = {}): GameState {
     stats: { hp: 5, reason: 80, rot: 0 }, res: { food: 3, ammo: 2, meds: 1 }, attr: { grit: 2, wits: 3, heart: 1 },
     bg: 'dockworker', traits: [], honor: 0, flags: {}, secrets: [], owed: {}, party: [],
     npc: { nora: { alive: true, trust: 10, fear: 0 }, brick: { alive: true, trust: 0, fear: 5 }, juno: { alive: true, trust: 0, fear: 0 }, hart: { alive: true, trust: 0, fear: 0 } },
-    echoes: [], deedCount: {}, history: [], log: [],
+    echoes: [], deedCount: {}, history: [], log: [], resume: null,
     ...overrides,
   }
 }
