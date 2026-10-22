@@ -102,6 +102,7 @@ export interface Background {
   trait: string
   stats: Record<StatKey, number>
   res: Record<ResKey, number> // starting kit
+  hook?: string // one line for the Background screen (CHARACTERS.md "Unique hook")
 }
 export interface NpcStart {
   name: string

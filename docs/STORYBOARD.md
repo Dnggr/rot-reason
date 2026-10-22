@@ -120,7 +120,7 @@ Goal: siege, boarding, the truth, the final choice.
 
 Each ending has 1 screen of epilogue per surviving companion (data-driven from `fate` flags).
 
-In data (`src/story/endings.ts`, live since M1 s3) the ids are `beacon`, `warden_of_the_dead`, `broken_reason`, `rot_within`, `lighthouse`, `last_seat`, and E6 sits before E5 so the unconditional default is last. Allies for Beacon are Nora, Brick, Juno, Hart, Calloway (alive, trust >= 30). The flags they read (`final_lead`, `final_stay`, `route_fear`, `nora_turned`, `broadcast_changed`) are in `story/flags.ts`. Death is a separate ending id, `death`.
+In data (`src/story/endings.ts`, live since M1 s3) the ids are `beacon`, `warden_of_the_dead`, `broken_reason`, `rot_within`, `lighthouse`, `last_seat`, and E6 sits before E5 so the unconditional default is last. Allies for Beacon are Nora, Brick, Juno, Hart, Calloway (alive, trust >= 30). The flags they read (`final_lead`, `final_stay`, `route_fear`, `nora_turned`, `broadcast_changed`) are in `story/flags.ts`. Death is a separate ending id, `death`. The Ending screen titles are in `src/ui/strings.ts` (`endings`): rename an ending there too.
 
 ## 5. Flexible-change protocol
 1. Change this file first (new beat or ending).

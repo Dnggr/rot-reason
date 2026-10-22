@@ -1,10 +1,11 @@
-// engine/select.ts — currentView(state, story): everything the UI renders for the current scene (the UI never reads story data)
+// engine/select.ts — currentView(state, story): everything the UI renders for the current scene; hudOf(state): the vitals (the UI never reads story data)
 import { checkOdds, type Odds } from './checks'
 import { status } from './choices'
 import { evaluate } from './conditions'
 import { AUTO_ENDING, resolveEnding } from './endings'
+import { tierOf } from './honor'
 import { findScene } from './ids'
-import type { ChoiceId, GameState, Mood, ResKey, Scene, SceneId, Story, Tone } from './types'
+import type { ChoiceId, Condition, GameState, Mood, Phase, ResKey, Scene, SceneId, StatKey, Story, Tier, Tone } from './types'
 export const GLITCH_BELOW = 30 // reason under this shows a scene's `glitch` text instead of its text
 export interface ChoiceView {
   id: ChoiceId
@@ -13,6 +14,7 @@ export interface ChoiceView {
   cost: Partial<Record<ResKey, number>> | undefined
   enabled: boolean
   why: 'lock' | 'cost' | undefined // why a disabled choice is disabled
+  lock: Condition | undefined // the condition behind a locked choice; the UI words it (ui/lockReason.ts, D20)
   odds: Odds | undefined // checks only
 }
 export interface View {
@@ -37,9 +39,19 @@ export function currentView(state: GameState, story: Story): View {
     const st = status(c, state)
     if (st === 'hidden') return []
     const odds = c.check === undefined ? undefined : checkOdds(c.check.attr, c.check.dc, state, story.traitBonus)
-    return [{ id: c.id, text: c.text, tone: c.tone, cost: c.cost, enabled: st === 'open', why: st === 'locked' ? 'lock' : st === 'broke' ? 'cost' : undefined, odds }]
+    return [{ id: c.id, text: c.text, tone: c.tone, cost: c.cost, enabled: st === 'open', why: st === 'locked' ? 'lock' : st === 'broke' ? 'cost' : undefined, lock: st === 'locked' ? c.lock : undefined, odds }]
   })
   const kind = scene.choices !== undefined ? 'choices' : scene.next !== undefined ? 'next' : scene.end !== undefined ? 'end' : 'error'
   const ending = scene.end === undefined ? undefined : scene.end === AUTO_ENDING ? resolveEnding(state, story.endings) : scene.end
   return { kind, scene: scene.id, lines: linesOf(scene, state), who: [...(scene.who ?? [])], place: scene.place, mood: scene.mood, choices, ending }
 }
+export interface Hud {
+  name: string
+  day: number
+  phase: Phase
+  stats: Record<StatKey, number>
+  res: Record<ResKey, number>
+  honor: number
+  tier: Tier
+}
+export const hudOf = (s: GameState): Hud => ({ name: s.name, day: s.day, phase: s.phase, stats: { ...s.stats }, res: { ...s.res }, honor: s.honor, tier: tierOf(s.honor) })

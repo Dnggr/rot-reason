@@ -10,7 +10,7 @@ story (data)  ->  engine (pure logic)  ->  ui (React)       debug/ may read all,
 
 - `story` imports nothing but its own types.
 - `engine` imports `story` types only. No DOM, no React, no `Date`, no `Math.random`, no storage (storage passed in as an interface). Story data tables (deeds, trait bonuses) are passed in by the caller, never imported (D14).
-- `ui` calls `engine` through one hook (`useGame`). UI never mutates state, never reads story data directly except via selectors.
+- `ui` calls `engine` through one hook (`useGame`; `useStory` only loads the story). UI never mutates state, never reads story data directly except via selectors. The debug report builder is `engine/report.ts`, so the error boundary can use it without reading `debug/` (D21).
 
 ## 2. Folder structure
 
@@ -35,8 +35,9 @@ src/
     rng.ts          seeded mulberry32, pure: `nextFloat(rng) -> {value, rng}`, `nextInt`, `d6`, `initRng(seed)` (live since M1 s1)
     save.ts         makeSave, migrate, replay, loadSave, readSave / writeSave (storage injected) (live since M1 s3)
     stateSchema.ts  Zod schema for GameState and the save envelope, validState (live since M1 s3)
-    select.ts       view selectors: currentView(state, story) -> View (live since M1 s3)
+    select.ts       view selectors: currentView(state, story) -> View (each locked choice carries its `lock` condition), hudOf(state) -> Hud (live since M1 s3; lock and hudOf M2 s1)
     log.ts          LogLine, Applied, line, pushLog (200-entry ring buffer), formatEntry (live since M1 s2)
+    report.ts       buildReport, reportText: the debug report JSON, pure (live since M2 s1)
   story/
     index.ts        buildStory(scenes), loadStory(), TABLES (live since M1 s3)
     flags.ts  characters.ts  backgrounds.ts  endings.ts  system.ts   (live since M1 s3; items.ts and factions.ts come when a scene needs them)
@@ -44,14 +45,16 @@ src/
     traits.ts       TRAIT_BONUS: trait -> check bonus per attribute (live since M1 s2)
     chapters/ ch0_prologue.ts  ch1_a.ts  ch1_b.ts  ...  index.ts (registry, lazy by chapter)
   ui/
-    App.tsx  strings.ts
-    screens/    Title  Background  Play  Camp  Journal  Ending  Settings
-    components/ SceneView  ChoiceList  StatBar  HonorMeter  Toast  CharacterCard  ErrorFallback
-    hooks/      useGame.ts  useSaves.ts
+    App.tsx         root: ErrorBoundary > story loading > Game (live since M2 s1)
+    Game.tsx        picks the screen from useGame; playRoute -> fallback / ending / play
+    strings.ts  lockReason.ts  toasts.ts  names.ts  storage.ts  version.ts
+    screens/    TitleScreen  BackgroundScreen  PlayScreen  EndingScreen (live)   Camp  Journal  Settings (later)
+    components/ StatBar  HonorMeter  SceneView  ChoiceList  ChoiceButton  Toast  ReportButton  ErrorFallback  ErrorBoundary (live)   CharacterCard (M3)
+    hooks/      useGame.ts  gameModel.ts (pure reducer, autosave, Continue, playRoute)  useStory.ts
     styles/     tokens.css  base.css  play.css
-  debug/        DebugPanel.tsx  report.ts
+  debug/        DebugPanel.tsx   (M2 s2)
 scripts/        lint-story.ts  fuzz.ts  rules-check.ts  docs-check.ts  pack.ts
-tests/          engine/*.test.ts  golden/*.test.ts
+tests/          engine/*.test.ts  ui/*.test.ts  golden/*.test.ts
 ```
 
 ## 3. State shape (single source of truth, JSON-serializable)
@@ -96,7 +99,7 @@ UI re-renders from select.currentView(state, story)
 ```
 `chapter` is the chapter of the flow, not of `state.scene`: an echo scene from c4 shown during c2 leaves `chapter` at c2. CONTINUE (for `next` scenes) runs the same steps with no cost, check or fx. START builds the state (`init.startGame`) and enters `story.start`. LOAD restores a valid snapshot (`save.loadSave` does the replay and checkpoint fallbacks first). CAMP is a stub until M4.
 
-Actions (typed in `engine/types.ts`): `START(bg,name,seed)`, `CHOOSE(choice)` where `choice` is the choice id `a`-`d`, `CONTINUE` (for `next` scenes), `CAMP(action)`, `LOAD(save)`. `DEBUG_*` actions (debug build only) arrive with the DebugPanel in M2.
+Actions (typed in `engine/types.ts`): `START(bg,name,seed)`, `CHOOSE(choice)` where `choice` is the choice id `a`-`d`, `CONTINUE` (for `next` scenes), `CAMP(action)`, `LOAD(save)`. `DEBUG_*` actions (debug build only) arrive with the DebugPanel in M2 s2.
 
 ## 5. Anti-bug rules
 
@@ -104,12 +107,12 @@ Actions (typed in `engine/types.ts`): `START(bg,name,seed)`, `CHOOSE(choice)` wh
 2. **Deterministic.** Same `seed + history` gives the same game. Any bug is reproducible with a report.
 3. **Validate at the edge.** Story validated with Zod at dev start and in `lint:story`; saves validated on load; actions validated in the reducer.
 4. **Fail soft, never blank.** Missing scene -> `sys.missing` fallback scene plus log entry; a thrown error -> `sys.error` plus an ERROR entry; hp 0 -> `sys.death` (all three live in `story/system.ts`, ids in `engine/ids.ts`). Corrupt save -> offer "Restart chapter" or "New game". Never a white screen.
-5. **Error boundary** wraps the app: shows "Something broke" + a button **Copy debug report**.
+5. **Error boundary** wraps the app: shows "Something broke" + a button **Copy debug report** (live since M2 s1; if the clipboard is blocked the text is shown to copy by hand). A broken scene reaches `ErrorFallback` through `playRoute`, with Restart chapter when a checkpoint exists.
 6. **Bounded values.** Everything is clamped in one function (`engine/bounds.ts`); NaN/Infinity throws (the reducer turns a throw into an ERROR log plus the fallback scene).
 7. **Closed vocabularies.** Conditions/effects are tuples from a fixed list; unknown kinds are lint errors and runtime log errors.
 8. **Small, pure files.** `npm run rules` fails on files > 200 lines (chapter files > 400), a missing first-line purpose comment, or `Math.random` / `Date` / DOM / React inside `src/engine` or `src/story`.
 9. **Typed everything.** `strict`, `noUncheckedIndexedAccess`, no `any`.
-10. **Tests where bugs hurt:** reducer, honor, conditions, checks, saves, endings. UI gets smoke tests only.
+10. **Tests where bugs hurt:** reducer, honor, conditions, checks, saves, endings. UI gets smoke tests only (`tests/ui`: pure UI logic plus `react-dom/server` render checks; no DOM library).
 11. **Build gate.** `"build": "npm run check && vite build"`; a broken story or failing test blocks the Vercel deploy. (Live since M0.)
 12. **Chapter checkpoints.** A snapshot is saved at each chapter gate. Replay failures fall back to the last checkpoint.
 13. **Docs are part of the code.** Every change updates the docs it touches plus `HANDOFF.md` (START_HERE Rule 0), checked by `docs:check`.
@@ -120,7 +123,7 @@ Actions (typed in `engine/types.ts`): `START(bg,name,seed)`, `CHOOSE(choice)` wh
 - Load order (`save.loadSave`): migrate -> validate snapshot (`stateSchema`) -> if invalid, replay `seed + bg + name + history` -> if that fails, load the chapter checkpoint -> else a list of errors (the UI offers "Restart chapter" or "New game").
 - `makeSave(state, checkpoint, story, savedAt)` moves the checkpoint to the current state whenever the scene is tagged `gate`. Never autosave a state parked on `sys.error`.
 - Storage is injected as `KeyValueStore { getItem, setItem }`; `readSave` returns `undefined` when nothing is stored and an error result (never a throw) for bad JSON.
-- Autosave after every choice (debounced). Manual slots later (M5).
+- Autosave after every state change on the play screen (`useGame` effect -> `gameModel.autosave`; synchronous, no debounce, D21). A failed write shows a notice, never a throw. Continue reads the save with `readSave` on the title screen; an unreadable save shows a notice and New game. `ui/storage.ts` falls back to memory when localStorage is blocked, and the Title warns. Manual slots later (M5).
 - `migrate(v)` functions are small and tested with fixture saves.
 
 ## 7. Debug tooling (`?debug=1` or dev build)
@@ -143,7 +146,7 @@ Actions (typed in `engine/types.ts`): `START(bg,name,seed)`, `CHOOSE(choice)` wh
 
 ## 9. UI rules
 
-- Screens are components that take `view` + `dispatch` only. No game logic in components.
+- Screens are components that take `view` (+ `hud`) and callbacks only. No game logic in components. `useGame` holds `{ screen, game, checkpoint, toasts }` in one `useReducer` (`gameModel.uiReducer` wraps `reduce` and adds navigation); the boundary's report ref is the one read-only use of `GameState` outside the hook.
 - Text is rendered from `view.text`; typewriter effect is cosmetic and skippable; the full text is in the DOM from the start (accessibility, tests).
 - Styles in 3 CSS files with CSS variables; no CSS-in-JS, no utility framework (saves tokens and bundle).
 - Images referenced by key from `place`/`who`; missing image -> placeholder, never an error.

@@ -2,31 +2,25 @@
 
 ## Status
 
-- **Phase:** M1 (engine core) DONE. Sessions 1-3 complete. Next: M2 session 1 (UI shell part 1).
-- **Deployed:** https://rotandreason.vercel.app/ (Vercel, auto-deploys on push to `main`; build runs `npm run build` = `check` + `vite build`). Nothing user-visible changed: the UI is still the M0 placeholder.
-- **Last verified:** in a repo rebuilt from the pack on Node 22.22: `npm run check` green (typecheck, lint:story 5 scenes 0 errors 0 warnings, 197 tests, rules), `npm run coverage` 100% lines on `src/engine`, `npm run fuzz` 1,000 runs 0 failures (seeds 1 and 99). `docs:check` was run against a throwaway git repo: run `npm run ready` once locally. **Run `npm install`** (new devDependency, so `package-lock.json` changes; commit it).
+- **Phase:** M2 (UI shell) session 1 of 2 DONE. Next: M2 session 2 (Settings, keyboard + typewriter, DebugPanel).
+- **Deployed:** https://rotandreason.vercel.app/ (auto-deploys on push to `main`; build runs `npm run build`). After this push the live page is the playable test story: Title, Background, Play, Ending. Not pushed or checked on a phone yet.
+- **Last verified:** in a repo rebuilt from the pack on Node 22.22: `npm run ready` green (typecheck, lint:story 5 scenes 0 errors 0 warnings, 267 tests, rules 98 files, docs:check run in a throwaway git repo), `npm run coverage` 100% lines on `src/engine`, `npm run fuzz` 1,000 runs 0 failures (seeds 1 and 99), `npm run build` ok (JS 107 KB gzip, target 150). A throwaway jsdom click-through of the real `<App />` also passed (new game to ending, autosave, Continue after reload, broken save, blocked storage, error boundary, Copy report both paths); jsdom was removed again, so no phone or real-browser check exists yet: do it on the Vercel preview. No dependency changes.
 
-## This session (M1 s3: reducer, saves, test story, lint, fuzz)
+## This session (M2 s1: UI shell part 1)
 
-- `src/engine/`: `reducer` (START, CHOOSE, CONTINUE, LOAD; CAMP stub), `choose`, `flow`, `init`, `choices`, `ids`, `select` (`currentView` -> `View`), `endings`, `save`, `stateSchema`; `checks.checkOdds`. `types.ts`: `Story`, `StoryTables`, `Background`, `NpcStart`, `EndingRule`, `GameState.resume`, `SaveData.bg/name`.
-- `src/story/`: `index` (`buildStory`, `loadStory`), `backgrounds`, `characters`, `flags`, `endings`, `system`, `chapters/test.ts` (5 scenes, all 14 effect kinds; registered as chapter `test`, start scene `t.wake`).
-- Scripts: `lint-story` is real (`lintCore/Graph/Refs/Walk`); `fuzz` is real (`fuzzRun`); `pack.ts` has `m2s1`, task packs `m1s1`-`m1s3` deleted (M1 done); `package.json`: `coverage`, `pack:m2s1`, `@vitest/coverage-v8`; `vite.config.ts`: coverage thresholds.
-- Tests: reducer, select (+ odds, endings), save, lint, fuzz, story (golden paths) added; `fixtures.ts` + `types.test.ts` gained `resume` / `bg` / `name`.
-- Docs updated: START_HERE, ARCHITECTURE, STORY_FORMAT (flow rules, §8 linter), HONOR, GAME_DESIGN, STORYBOARD, UI_UX, README, ROADMAP (M1 done, D16-D19), HANDOFF.
+- Engine: `select.ts` (`ChoiceView.lock` condition, `hudOf` -> `Hud`), new `report.ts` (`buildReport`, `reportText`), `Background.hook?` (types) with one line per background in `story/backgrounds.ts`.
+- UI: `App` (ErrorBoundary > `useStory` > `Game`), `Game` (screen router, `playRoute`), `strings`, `lockReason`, `toasts`, `names`, `storage`, `version`; `hooks/useGame` + `gameModel` (pure `uiReducer`, `autosave`, `savedGame`) + `useStory`; screens Title, Background, Play, Ending; components StatBar, HonorMeter, SceneView, ChoiceList, ChoiceButton, Toast, ReportButton, ErrorFallback, ErrorBoundary; `styles/play.css`, `--border` token.
+- Tests (+70): `tests/ui/*` (gameModel, lockReason, toasts, storage, render), `tests/engine/report.test.ts`, select tests for `lock` and `hudOf`.
+- Docs updated: START_HERE, ARCHITECTURE, UI_UX, STORY_FORMAT, CHARACTERS, STORYBOARD, ROADMAP (M2 s1 ticked, D20, D21), README, HANDOFF. Pack: `m2s2` added; `m2s1` stays until M2 is done.
 
 ## Decisions made
 
-- D16 coverage provider; D17 `Story` shape and `sys.*` scenes; D18 `resume` + `$resume` for echoes; D19 save carries `bg` and `name`. Earlier: D1-D15.
+- D20 lock reason derived in the UI from the condition (no authored field); D21 one `useGame` hook, synchronous autosave, report builder in the engine. Earlier: D1-D19.
 
-## Assumptions to confirm (small, easy to change; details in STORY_FORMAT §2, §5)
+## Assumptions to confirm (small, easy to change)
 
-- From s1/s2, still open: `GameState.name`; `LogEntry` shape; `all`/`any`/`not`; `CHOOSE` carries the choice id; `lock` has no reason text; new deed tag `lie_harm`; owed remainder pairing (D15); echo `after: N` = N scenes play then it fires.
-- New: `scene.time` applies when the player LEAVES the scene; `glitch` replaces `text` when Reason < 30; start stats hp 5 / reason 80 / rot 0 (in `backgrounds.ts`); a due echo may fire before an ending; `end: 'auto'` runs the resolver; endings E5/E6 swapped in data so the default is last; `reduce` START ignores its `state` argument (the UI can pass any placeholder).
-- Starting kit items (crowbar, toolkit) are not modelled; only resources.
-
-## Story changes
-
-- Test chapter `t.*` (wake, street, gate, echo, end) is placeholder content in the live registry. Delete it and set `START_SCENE` in `story/index.ts` when M4 writes the Prologue.
+- Still open from M1 (STORY_FORMAT §2, §5): `GameState.name`; `LogEntry` shape; `all`/`any`/`not`; `CHOOSE` carries the choice id; new deed tag `lie_harm`; owed remainder pairing (D15); echo `after: N`; `scene.time` applies when the player leaves; `glitch` replaces `text` when Reason < 30; start stats hp 5 / reason 80 / rot 0; a due echo may fire before an ending; endings E5/E6 order; `reduce` START ignores its `state`; starting kit items are not modelled.
+- New: ending titles are UI labels in `ui/strings.ts` (`endings`, from STORYBOARD §4), to move into `src/story` when companion epilogues need authored text (M6). NPC display names are the capitalised id (`ui/names.ts`). Autosave covers every state except `sys.error`, an ending included, so Continue reopens the ending. New game over a save needs a second tap; the old save is replaced at the first autosave after Begin. Toasts omit the deed tag (the diff has none). Continue shows the raw chapter id until chapter titles exist (M4). The default name is "Ash" (CHARACTERS).
 
 ## Known bugs
 
@@ -34,21 +28,20 @@
 
 ## Known gaps
 
-- `ChoiceView` has `why: 'lock'` but no reason text (UI_UX §5 wants "Needs Medic"). Decide in M2: derive from the condition, or add an authored field.
-- `CAMP` is a stub (M4). Companion approval table, trust hit on `reveal`, Rot/Reason mechanics are M3/M5. Fuzz lists endings never reached as information only (gate in M6).
-- Debug-only actions (`DEBUG_*`) and the `useGame` / `useSaves` hooks do not exist yet (M2).
+- M2 s2: Settings, keyboard (`1-4`, `Space`, `J`), typewriter, low-HP / low-Reason visuals, DebugPanel, `DEBUG_*` actions, `window.__rr`, `?debug=1`. The Play screen has a single Menu button (back to title) instead of the Journal / Party / Menu bar.
+- M3+: Journal, Party cards, TierBanner, check fail-cost hint line (needs data in `ChoiceView`), confirm step for irreversible choices (needs a scene flag). `CAMP` is a stub (M4). Restart chapter appears only once a gate scene was reached or a save with a checkpoint was loaded.
 
 ## Environment
 
 - Node >= 22.12 (`nvm install 22 && nvm use 22`, then `npm install`). Vercel builds on Node 22. Push over SSH (`git@github.com:Dnggr/rot-reason.git`).
 
-## Next 3 tasks (M2 session 1: UI shell part 1)
+## Next 3 tasks (M2 session 2: UI shell part 2)
 
-Next pack: `npm run pack:m2s1`
+Next pack: `npm run pack:m2s2`
 
-1. `useGame` hook (`loadStory`, `useReducer(reduce)`, autosave via `makeSave` / `writeSave`, Continue via `readSave`), Title and Background screens (name + 3 background cards from `BACKGROUNDS`).
-2. Play screen: `SceneView`, `ChoiceList` / `ChoiceButton` (tone, cost chips, odds word, locked reason), `StatBar`, `HonorMeter` (`tierOf`), `Toast`; ending screen from `view.ending`.
-3. `ErrorFallback` for `view.kind === 'error'` / ending `sys_error` plus the error boundary with Copy debug report; settle the lock-reason question above. Then create the next pack (`m2s2`) and update HANDOFF (Rule 0).
+1. Settings screen and store (text size S/M/L/XL, soften violence, reduced motion, high contrast, sound, reset save) applied through CSS classes and tokens; Title gets a Settings button.
+2. Keyboard (`1-4`, `Space`, `J`) and typewriter text (rAF, skippable, off with reduced motion); low-HP / low-Reason visuals if cheap.
+3. DebugPanel (`?debug=1` or dev): state, last 30 log lines, flags, jump / set / force-check / rewind through `DEBUG_*` actions, `window.__rr`, report with a note. Check the M2 definition of done on a phone, then create the next pack (`m3s1`), delete `m2s1` / `m2s2` (M2 done) and update HANDOFF (Rule 0).
 
 ## Verify
 
@@ -61,3 +54,4 @@ Next pack: `npm run pack:m2s1`
 - M0 (scaffold): Vite + React + TS strict scaffold, scripts, repomix config and presets, Rule 0 / 0.5 (D7-D11), Vercel deploy, Node >= 22.12 fix.
 - M1 s1 (foundations): `types`, `schema` (Zod, D12), `rng`, `rules-check` guard for tracked `node_modules/` / `dist/`, `PACKING` list (D13), 56 tests.
 - M1 s2 (rules pieces): `log`, `bounds`, `conditions`, `effects`, `honor`, `checks`, `echoes`, `story/honor.ts`, `story/traits.ts`; D14, D15; 117 tests, 100% engine lines.
+- M1 s3 (reducer, saves, test story, lint, fuzz): reducer (+ choose, flow, init), select, endings, save (+ stateSchema), story index / backgrounds / characters / flags / endings / system, 5-scene test chapter, real `lint-story` and `fuzz`, coverage; D16-D19; 197 tests, 100% engine lines.

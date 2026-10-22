@@ -25,11 +25,13 @@ Each milestone ends with: `npm run check` green, deployed preview on Vercel, `HA
 - [x] `lint-story` (schema, graph, references) + `fuzz` working on the test story
 - **DoD met (M1 s3):** 100% line coverage on `src/engine` (`npm run coverage`, threshold 90); `npm run fuzz` 1,000 runs clean (seeds 1 and 99); replay of seed + bg + name + history equals the live run (tested, and checked on every fuzz run).
 
-### M2: UI shell (2 sessions)
+### M2: UI shell (2 sessions) - session 1 DONE
 
-- [ ] Title, Background, Play, Settings screens; ChoiceList, StatBar, HonorMeter, Toast
-- [ ] Autosave/Continue, ErrorFallback, DebugPanel + Copy report
-- [ ] Mobile layout, keyboard controls, text size
+- [x] Title, Background, Play, Ending screens; ChoiceList, StatBar, HonorMeter, Toast (M2 s1)
+- [ ] Settings screen (M2 s2)
+- [x] Autosave/Continue, ErrorFallback, error boundary + Copy debug report (M2 s1)
+- [ ] DebugPanel (M2 s2)
+- [ ] Mobile layout (CSS is mobile-first, still to check on a phone), keyboard controls, text size (M2 s2)
 - **DoD:** the test story is playable on a phone via Vercel preview; a deliberately broken scene shows fallback, not a blank screen.
 
 ### M3: Social systems (2 sessions)
@@ -116,6 +118,8 @@ Each milestone ends with: `npm run check` green, deployed preview on Vercel, `HA
 | D17 | `Story` = `StoryTables` (start, deeds, traitBonus, backgrounds, npcs, endings) + `scenes` map, assembled in `src/story/index.ts` and passed into `reduce` / `currentView`. Fallback scenes `sys.missing`, `sys.error`, `sys.death` live in `story/system.ts`. hp 0 always goes to `sys.death` | Keeps D14 (engine imports no story data) and golden rule 4 (no prose in engine) | Accepted (M1 s3) |
 | D18 | A due echo replaces the transition target and `GameState.resume` remembers it; echo scenes (tag `echo`) exit only with `'$resume'`. Echoes may fire before an ending, never before a system scene | Echo scenes cannot know where the player was heading; without a return slot an echo would drop the story line | Accepted (M1 s3) |
 | D19 | `SaveData` gains `bg` and `name`; replay rebuilds a game from `seed + bg + name + history` ("scene:choice", "scene:>"); `makeSave` moves the checkpoint at `gate` scenes | Replay needs the start inputs even when the snapshot is unusable (ARCHITECTURE §6) | Accepted (M1 s3) |
+| D20 | The reason text of a locked choice is derived in the UI from its `lock` condition (`ui/lockReason.ts`); `ChoiceView` carries the condition; flags, secrets and nested conditions read "Locked" so a lock never spoils. No authored field (an optional `lockText` can be added if a scene needs custom wording) | Settles the M1 s3 question with no schema or story change; every UI_UX §5 example is derivable | Accepted (M2 s1) |
+| D21 | UI shell state: one `useGame` hook over a `useReducer` of `{ screen, game, checkpoint, toasts }` (`gameModel.uiReducer` wraps `reduce`); autosave runs after every state change on the play screen, synchronously (no debounce); the debug report builder lives in `engine/report.ts` (pure) so the error boundary can use it without reading `debug/` | No router or state library (D1); a save is about 15 KB so debouncing buys nothing and risks losing the last choice; `debug/` stays unread by other layers (ARCHITECTURE §1) | Accepted (M2 s1) |
 
 ## Open questions (M0 did not depend on these; decide before M2/M4)
 

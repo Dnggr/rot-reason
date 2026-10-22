@@ -24,6 +24,14 @@ const PRESETS: Record<string, { include: string[]; compress?: boolean }> = {
       'src/engine/endings.ts', 'src/engine/ids.ts', 'src/story/index.ts', 'src/story/backgrounds.ts', 'src/story/characters.ts', 'tests/smoke.test.ts',
     ],
   },
+  // M2 s2: UI shell part 2 (Settings, keyboard + typewriter, DebugPanel + DEBUG_* actions, M2 definition of done)
+  m2s2: {
+    include: [
+      ...BASE, ...CFG, ...PACKING, 'docs/UI_UX.md', 'docs/ARCHITECTURE.md', 'vite.config.ts',
+      'src/ui/**', 'src/debug/**', 'src/main.tsx', 'src/engine/types.ts', 'src/engine/reducer.ts', 'src/engine/flow.ts', 'src/engine/select.ts', 'src/engine/report.ts', 'src/engine/save.ts',
+      'src/story/index.ts', 'tests/ui/**', 'tests/engine/fixtures.ts', 'tests/engine/reducerHelpers.ts', 'tests/engine/reducer.test.ts',
+    ],
+  },
 }
 const [name, ...extra] = process.argv.slice(2)
 const preset = name ? PRESETS[name] : undefined

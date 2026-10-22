@@ -34,7 +34,7 @@ One file per chapter part, ≤ 400 lines. Files export `scenes: Scene[]` (a plai
 | `text` | ≤ 12 words |
 | `tone` | `mercy`, `lie`, `threaten`, `brave`, `quiet`, `honest`, `cold` (UI tag) |
 | `if` | condition to **show** (otherwise hidden) |
-| `lock` | condition to **enable**; if false, shown disabled (`why: 'lock'`; the reason text is a UI task, see HANDOFF) |
+| `lock` | condition to **enable**; if false, shown disabled (`why: 'lock'`; the UI words the reason from this condition in `ui/lockReason.ts`, D20: a trait, honor / stat / attr / res / day threshold, tier, trust, fear, party or alive lock gets specific text; a flag, secret, bg or all / any / not reads "Locked" so it never spoils) |
 | `cost` | chips shown and charged: `{ food:1, ammo:2 }` |
 | `fx` | effects on pick |
 | `check` | `{ attr, dc, pass:{fx?,to}, fail:{fx?,to} }`, replaces `to` |

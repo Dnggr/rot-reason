@@ -1,8 +1,8 @@
-// tests/engine/select.test.ts — currentView: beats, glitch, choice states, odds, endings, missing scene; checkOdds; resolveEnding
+// tests/engine/select.test.ts — currentView: beats, glitch, choice states, lock condition, odds, endings, missing scene; hudOf; checkOdds; resolveEnding
 import { describe, expect, it } from 'vitest'
 import { checkOdds } from '../../src/engine/checks'
 import { endingIds, resolveEnding } from '../../src/engine/endings'
-import { currentView } from '../../src/engine/select'
+import { currentView, hudOf } from '../../src/engine/select'
 import type { Scene } from '../../src/engine/types'
 import { makeState } from './fixtures'
 import { makeStory } from './storyFixture'
@@ -74,5 +74,17 @@ describe('resolveEnding', () => {
   })
   it('lists the ids a scene may name', () => {
     expect(endingIds(rules)).toEqual(['auto', 'death', 'sys_error', 'one', 'two', 'last'])
+  })
+})
+describe('lock condition and hudOf (M2 s1)', () => {
+  it('a locked choice carries its lock condition; open, broke and hidden ones do not', () => {
+    const v = currentView(makeState({ scene: 'c1.a' }), story)
+    expect(v.choices.map((c) => c.lock)).toEqual([undefined, ['honor', '>=', 10], undefined])
+  })
+  it('hudOf copies the vitals and derives the tier', () => {
+    const s = makeState({ name: 'Ash', day: 4, phase: 'dusk', honor: 24, stats: { hp: 3, reason: 55, rot: 2 }, res: { food: 1, ammo: 0, meds: 2 } })
+    expect(hudOf(s)).toEqual({ name: 'Ash', day: 4, phase: 'dusk', stats: { hp: 3, reason: 55, rot: 2 }, res: { food: 1, ammo: 0, meds: 2 }, honor: 24, tier: 'T4' })
+    expect(hudOf(makeState({ honor: -80 })).tier).toBe('T1')
+    expect(hudOf(s).stats).not.toBe(s.stats) // a copy, so the UI cannot mutate state
   })
 })

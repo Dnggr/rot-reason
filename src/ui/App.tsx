@@ -1,13 +1,30 @@
-// ui/App.tsx — root component (M0: placeholder screen only)
+// ui/App.tsx — root: error boundary, story loading, then <Game />
+import { useMemo, useRef } from 'react'
+import { buildReport, reportText } from '../engine/report'
+import type { GameState } from '../engine/types'
+import { ErrorBoundary } from './components/ErrorBoundary'
+import { ErrorFallback } from './components/ErrorFallback'
+import { Game } from './Game'
+import { useStory } from './hooks/useStory'
+import { openStore } from './storage'
 import { S } from './strings'
-
+import { APP_VERSION } from './version'
 export function App() {
+  const stateRef = useRef<GameState | undefined>(undefined)
+  const persist = useMemo(() => openStore(), [])
+  const load = useStory()
   return (
-    <main className="shell">
-      <h1>{S.title}</h1>
-      <p className="tagline">{S.tagline}</p>
-      <p>{S.hello}</p>
-      <p className="muted">{S.status}</p>
-    </main>
+    <ErrorBoundary stateRef={stateRef}>
+      {load.status === 'loading' && <main className="shell"><p className="muted">{S.loading}</p></main>}
+      {load.status === 'failed' && (
+        <ErrorFallback
+          title={S.storyFailed}
+          lines={[load.error]}
+          report={() => reportText(buildReport({ version: APP_VERSION, state: undefined, note: undefined, error: load.error }))}
+          actions={[{ label: S.reload, onClick: () => window.location.reload() }]}
+        />
+      )}
+      {load.status === 'ready' && <Game story={load.story} persist={persist} stateRef={stateRef} />}
+    </ErrorBoundary>
   )
 }

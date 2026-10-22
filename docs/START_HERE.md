@@ -43,12 +43,12 @@ Vite 8 + React 19 + TypeScript 7 (strict) + Vitest 5 (+ `@vitest/coverage-v8`, a
 
 ```
 docs/                 these files (read first, update last)
-src/engine/           pure logic: reducer (+ choose, flow, init), select, conditions, effects, honor, rng, echoes, checks, choices, bounds, endings, save (+ stateSchema), ids, log
+src/engine/           pure logic: reducer (+ choose, flow, init), select, conditions, effects, honor, rng, echoes, checks, choices, bounds, endings, save (+ stateSchema), ids, log, report
 src/story/            data only: chapters/ (test chapter until M4), index (assembles the Story), characters, backgrounds, endings, flags, system, honor, traits
-src/ui/               App.tsx, strings.ts, screens/, components/, hooks/, styles/ (tokens.css, base.css)
-src/debug/            DebugPanel, report export (?debug=1)          [M2]
+src/ui/               App, Game (screen router), strings, lockReason, toasts, names, storage, version; screens/ (Title, Background, Play, Ending); components/ (StatBar, HonorMeter, SceneView, ChoiceList/Button, Toast, ErrorFallback/Boundary, ReportButton); hooks/ (useGame + gameModel, useStory); styles/ (tokens, base, play)
+src/debug/            DebugPanel (?debug=1)                         [M2 s2]; the report builder is src/engine/report.ts
 scripts/              lint-story (+ lintCore/Graph/Refs/Walk), fuzz (+ fuzzRun), rules-check, docs-check, pack
-tests/                engine unit tests + per-chapter golden paths
+tests/                engine unit tests + per-chapter golden paths + tests/ui (UI logic, render smoke)
 public/               images (WebP), later audio
 (root)                package.json, tsconfig.json, vite.config.ts, repomix.config.json, index.html
 ```
@@ -65,7 +65,7 @@ public/               images (WebP), later audio
 | `npm run fuzz -- [runs=1000] [seed=1]` | random-playthrough bot; exits 1 on soft-lock, loop, invalid state, ERROR log or replay drift |
 | `npm run coverage` | tests + line coverage of `src/engine` (fails under 90%) |
 | `npm run pack:map\|docs\|core\|story\|ui` | generic repomix presets (output in `.repomix/`) |
-| `npm run pack:<task>` (e.g. `pack:m2s1`) | task pack for the next session, made by the AI (Rule 0.5); named in HANDOFF `Next pack` |
+| `npm run pack:<task>` (e.g. `pack:m2s2`) | task pack for the next session, made by the AI (Rule 0.5); named in HANDOFF `Next pack` |
 | `npm run pack -- bug <files>` / `-- chapter <globs>` | generic presets with extra files |
 
 ## How Claude must answer (output contract)

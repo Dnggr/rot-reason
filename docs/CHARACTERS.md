@@ -13,6 +13,8 @@ Fields per character: **Trait** (how they act), **Perk** (party benefit), **Flaw
 | Mechanic | 3 | 4 | 2 | Fixer | 1 Ammo, toolkit | Repairs radio, gates, vehicles; Ch3 vehicle option |
 | Teacher | 2 | 3 | 4 | Silver Tongue | 2 Meds | Persuasion checks easier; kids and elders trust faster |
 
+In data (`src/story/backgrounds.ts`) the hook is an optional one-line `hook` string written for the player and shown on the Background screen; it promises no mechanic that is not in `traits.ts`.
+
 - **Voice:** second person narration, present tense, short sentences.
 - **Hidden arc:** the story asks whether you are becoming the person you'd have feared on Day 1.
 
