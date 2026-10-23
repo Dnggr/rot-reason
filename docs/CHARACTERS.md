@@ -47,7 +47,7 @@ In data (`src/story/backgrounds.ts`) the hook is an optional one-line `hook` str
 - **Wants:** to find her older brother (on the pier). **Fears:** being alone in the dark.
 - **Likes:** honest, protect, share. **Dislikes:** lie (strongly), abandon, steal.
 - **T/F:** 5 / 0.
-- **Arc:** Ch1 radio voice only, met in person late Ch1/Ch2 · Ch2 argues with Hart · Ch3 deciphers depot logs · Ch4 finds her brother (alive or listed as dead) · Ch5 broadcast choice that shapes the final crowd.
+- **Arc:** Prologue first heard (`p.voice`): breaks into the Haven loop, says nobody has a word for them, notices Haven named "the Rot" before the city had a problem · Ch1 radio voice only, met in person late Ch1/Ch2 · Ch2 argues with Hart · Ch3 deciphers depot logs · Ch4 finds her brother (alive or listed as dead) · Ch5 broadcast choice that shapes the final crowd.
 - **Honor reaction:** low honor: scared of you, goes quiet, may sabotage. High: idolizes you, takes risks for you.
 - **Fates:** boards · stays to broadcast · sacrificed in a bad run · leaves alone if betrayed.
 
@@ -95,9 +95,15 @@ In data (`src/story/backgrounds.ts`) the hook is an optional one-line `hook` str
 - **Honor reaction:** low honor: courts you ("We could use a closer."); high: obsessed with corrupting you.
 - **Fates:** killed · recruited · defeated and spared · escapes.
 
+## Walt Dole, the neighbor in 3B (the first cost)
+- **Role:** Prologue only (`dole`, not a companion, no trust or fear effects). Late 60s, cardigan, slippers, plays ballgames too loud, a late wife, a bad-hipped dog (Biscuit is his).
+- **Beat:** bitten on the stairs by a man in a St. Brigid's wristband; knocks (three slow, a wait, three more) and asks to sit down. The player lets him in (he is shut in the bathroom and knocks from inside: echo), keeps him out (he stops talking; later the knock comes back with no voice), or sends him to St. Brigid's (he is seen again in the street, far from it).
+- **Rule:** he never says what is wrong with him; nobody can.
+
 ## Biscuit, a scruffy mutt (the heart)
 - **Trait:** loyal, alert. **Perk:** Reason +1 at camp; alerts to ambushes (once per chapter).
 - **Likes:** share, protect. **Dislikes:** nothing; reacts to cruelty by hiding.
+- **Origin:** Dole's dog, found hanging from his leash in the stairwell (Prologue, `p.stairs`); the tag reads DOLE, 3B and, on the back, BISCUIT. He hides from Dole once Dole is bitten. If the player shuts the door (`biscuit_left`) he is simply left behind, not killed.
 - **Fates:** survives with you · lost in a bad run · sacrificed (high-impact Reason hit). **Rule:** the game never forces Biscuit's death on a neutral choice. Only the player can cause it.
 
 ## Cast matrix: who leaves you

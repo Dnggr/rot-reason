@@ -16,11 +16,11 @@ import { EndingScreen } from '../../src/ui/screens/EndingScreen'
 import { PlayScreen } from '../../src/ui/screens/PlayScreen'
 import { TitleScreen } from '../../src/ui/screens/TitleScreen'
 import { memoryStore } from '../../src/ui/storage'
-import { loadStory } from '../../src/story/index'
+import { loadTestChapterStory } from '../engine/testStory'
 import { makeState } from '../engine/fixtures'
 let story: Story
 beforeAll(async () => {
-  story = await loadStory()
+  story = await loadTestChapterStory()
 })
 const html = (el: ReactElement): string => renderToStaticMarkup(el)
 const noop = (): void => undefined

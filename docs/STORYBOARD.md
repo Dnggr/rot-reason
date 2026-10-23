@@ -32,19 +32,24 @@ Every chapter ends on a **gate scene** (bottleneck) that reads variables, not pa
 - Haven is real and offshore. The broadcast loops from a relay on a lighthouse near Pier 9.
 - Seats are checked at the **Screening** (a test for infection). Carriers are refused, and what happens to them is Calloway's secret.
 - Ship departs **Day 21 at dusk**.
+- **Nobody in Marrow Bay has a word for the dead who walk** (D23). No one has seen the idea in a story, so no one says "zombie" or "undead" (lint error). On Day 1 people say "the sick", "them", "that thing". The name **"the Rot" is first heard on the Haven broadcast** (Day 1 night); Juno notices that Haven had a name before the city had a problem (a seed for `c5.truth`). The player and the reader learn the rules by watching: they follow sound, they walk toward bells, they knock.
+- **The knock** (three slow, a wait, three more; polite, patient) is the recurring sign: Dole's habit, the dream, the dead.
+- Dole (3B) was bitten by a man wearing a St. Brigid's hospital wristband. Biscuit is Dole's dog.
 
 ## 3. Chapters
 
-### Prologue: "Fever Dreams" (Day 1, 8 scenes)
-Goal: pick background, learn choices/checks, set first honor, meet Biscuit and the radio voice.
-| Scene | Beat | Key choice | Consequence / Echo |
+### Prologue: "Fever Dreams" (Day 1)
+**Part 1, the intro: LIVE (`chapters/prologue.ts`, 23 scenes, ~1,100-1,300 words, about 6 minutes).** Story first (85:15, D22): 3 choice scenes, the rest narration. The player does not know what is happening and neither does anyone else (D23). It ends at night with the player asleep, handing over to the test chapter (`t.wake`) until M4 replaces it.
+| Scene(s) | Beat | Key choice | Consequence / Echo |
 |---|---|---|---|
-| p.wake | Name + background; apartment, muted TV, sirens | Choose background | Attributes, kit |
-| p.dole | Neighbor Dole, bitten, begs for help | Mercy-kill / lock out / bring inside | `mercy` or `abandon`; if inside, **echo:** he turns in Ch1 night (Reason -10) |
-| p.biscuit | Dog trapped in stairwell | Risk HP / leave | Biscuit joins (Reason regen) or lost |
-| p.radio | Juno's voice: "Haven, Pier 9" | Trust it / doubt it | Flag `heard_haven`; sets early Reason tone |
-| p.street | A father and child ask for food | Share / refuse / rob | `share` / none / `steal`. Witnessed. **Echo:** father reappears in Ch4 as ally or enemy |
-| p.gate | Gate scene: exit the building | n/a | Day 1 dusk |
+| p.dream, p.wake, p.phone, p.tv, p.below, p.building | Cold open (bell, knock, your name); the fever breaks into a wrong silence; the city goes quiet in small ways; a woman turns her head toward a horn | n/a (background lines in wake / phone) | Reason -2, -3 (HUD pulse) |
+| p.whine, **p.stairs** | A dog whines behind the fire door; Biscuit hangs from his leash, a woman in a bathrobe faces the wall below | Whisper him calm (Heart 7) / haul him loose (Grit 7) / shut the door | Biscuit joins (trust +15, Reason +5) or a noisy rescue (-1 HP, `stairs_noise`) or `biscuit_left` (Reason -5) |
+| p.landing, p.bowl | Aftermath; the tag reads DOLE 3B; background pantry line (Food / Ammo / Meds) | n/a | callbacks on the rescue |
+| p.knock, **p.dole** | The dream's knock at the door: Dole, bitten, burning up | Let him in (`mercy`) / keep the bolt on (`abandon`) / send him to St. Brigid's (`honest`, Reason -3) | `dole_inside` (**echo** `p.dole_knocks`, 2 scenes later, Reason -10: knocking from inside the bathroom), `dole_out`, `dole_sent` |
+| p.hours, p.dusk, p.bell | The afternoon; the power dies; a church bell and a street of people walking toward it, then standing still | n/a | Reason -5; each Dole route has its own knock texture (inside, on the landing, silence) |
+| p.static, p.voice, **p.radio**, p.night | The Haven loop names "the Rot"; Juno ("I don't have a word for them") says they follow noise and that Haven had the name first | Believe it / doubt it / switch it off | `heard_haven` + `haven_trust` / `haven_doubt` / `radio_off`; read by `t.wake`, `t.echo`, `t.gate` |
+
+**Part 2 (M4, not written):** `p.street` (a father and child ask for food: share / refuse / rob; `share` / none / `steal`, witnessed; **echo:** the father reappears in Ch4) and `p.gate` (exit the building, Day 2 dawn). The test chapter stands in for it until then.
 
 ### Ch1: "Quarantine Zone" (Days 1-3, ~22 scenes)
 Goal: find allies and supplies; first camp; choose route.
@@ -54,7 +59,7 @@ Goal: find allies and supplies; first camp; choose route.
 | c1.hospital | St. Brigid's ER overrun; Nora triages | Help patients (-Meds) / take Meds and go / lock the ward | `protect`/`steal`/`abandon`. **Echo:** survivors vouch (or accuse) you at Pier 9 |
 | c1.nora | Recruit Nora | Convince / accept / refuse | Party +Nora (trust set by deeds) |
 | c1.checkpoint | Calloway's deserter camp at a checkpoint | Trade info for ammo (lie or truth) / ignore | Seeds Calloway; `lie` or `honest` |
-| c1.camp | First camp; bond with Biscuit/Nora; Dole echo if brought inside | Eat / rest / talk | Reason, trust, food |
+| c1.camp | First camp; bond with Biscuit/Nora (the Dole echo now plays inside the Prologue) | Eat / rest / talk | Reason, trust, food |
 | c1.gate | Two ways to Pier 9: **Church** (Mercy St, safe but strict) or **Highway** (fast, deadly) | Route choice | Flag `route`. Highway gives a detour scene, then merges into Ch2 |
 
 ### Ch2: "Mercy Street" (Days 4-7, ~22 scenes)

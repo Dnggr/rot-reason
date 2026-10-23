@@ -6,6 +6,7 @@
 2. **You are what you did.** Honor and relationships remember, and the world reacts visibly.
 3. **People over zombies.** The dead are the setting; the drama is the living.
 4. **Fast to play, deep to replay.** 30 s per scene, ~30 min per run, 6 endings, 3 backgrounds.
+5. **Story first (85:15).** It plays like a told story with a few heavy decisions, not like a game with a story attached. About 85% of what the player does is reading and continuing, 15% is choosing (D22). Nobody in the world has a word for the dead, so the player discovers the rules by watching (D23).
 
 ## 2. Player fantasy, tone, guardrails
 
@@ -19,7 +20,7 @@
 Scene (read) -> Choice (cost) -> Consequence (instant + echo later) -> Camp (recover / bond) -> next Scene
 ```
 
-- **Micro (30 s):** read 40-90 words, pick 2-4 options, see a toast ("Nora will remember that").
+- **Micro (30 s):** read 40-90 words, then usually tap Continue; about one scene in seven asks for a choice (2-4 options, then a toast like "Nora will remember that").
 - **Meso (5 min):** a scene chain ends in a bottleneck scene (all branches converge).
 - **Macro (30 min):** 5 chapters + prologue, Day 1 to Day 21, ending resolved from honor, alive party, flags.
 

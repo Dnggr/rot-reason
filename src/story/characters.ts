@@ -9,4 +9,5 @@ export const NPCS: Readonly<Record<string, NpcStart>> = {
   vera: { name: 'Warden Vera Kline', trust: 0, fear: 10 },
   silas: { name: 'Silas Crane', trust: 0, fear: 0 },
   biscuit: { name: 'Biscuit', trust: 0, fear: 0 },
+  dole: { name: 'Walt Dole', trust: 0, fear: 0 }, // Prologue neighbor in 3B, Biscuit's owner; not a companion
 }

@@ -43,7 +43,7 @@ src/
     flags.ts  characters.ts  backgrounds.ts  endings.ts  system.ts   (live since M1 s3; items.ts and factions.ts come when a scene needs them)
     honor.ts        DEEDS table: tag -> delta (live since M1 s2)
     traits.ts       TRAIT_BONUS: trait -> check bonus per attribute (live since M1 s2)
-    chapters/ ch0_prologue.ts  ch1_a.ts  ch1_b.ts  ...  index.ts (registry, lazy by chapter)
+    chapters/ prologue.ts  test.ts (until M4)  ch1_a.ts  ch1_b.ts  ...  index.ts (registry, lazy by chapter)
   ui/
     App.tsx         root: ErrorBoundary > story loading > Game (live since M2 s1)
     Game.tsx        picks the screen from useGame; playRoute -> fallback / ending / play
@@ -136,7 +136,7 @@ Actions (typed in `engine/types.ts`): `START(bg,name,seed)`, `CHOOSE(choice)` wh
 
 ## 8. Tooling scripts
 
-- `lint-story.ts` (CLI) + `lintCore/Graph/Refs/Walk.ts` (live since M1 s3): schema per scene, duplicate ids, missing targets, reachability, no path to an ending, `$resume` rules, ending ids, flag / character / deed tag / background references, plus style warnings (STORY_FORMAT §8). Exits non-zero on error; warnings are printed.
+- `lint-story.ts` (CLI) + `lintCore/Graph/Refs/Walk/Tone.ts` (live since M1 s3; `lintTone` since the intro: no "zombie" / "undead" in story text, story-share warning): schema per scene, duplicate ids, missing targets, reachability, no path to an ending, `$resume` rules, ending ids, flag / character / deed tag / background references, plus style warnings (STORY_FORMAT §8). Exits non-zero on error; warnings are printed.
 - `fuzz.ts` (CLI) + `fuzzRun.ts` (live since M1 s3): `npm run fuzz -- [runs=1000] [seed=1]` plays random games per background with a seeded bot. Fails on soft-locks (no enabled choice), loops (> 500 steps), invalid state (`gameStateSchema`), any ERROR log line, a fallback ending, or a replay of `seed + bg + name + history` that differs from the live run. Prints the failing `seed` and history. Endings never reached are printed as information (M6 turns that into a gate).
 - Coverage: `npm run coverage` (`@vitest/coverage-v8`, D16) fails under 90% line coverage on `src/engine`.
 - `rules-check.ts`: line limits, header-comment check, engine/story purity (golden rules 1 and 3), and fails if git tracks anything under `node_modules/` or `dist/` (`git ls-files`; skipped with a warning outside git; added M1 s1). Live since M0.

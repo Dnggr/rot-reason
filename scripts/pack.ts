@@ -10,7 +10,7 @@ const PRESETS: Record<string, { include: string[]; compress?: boolean }> = {
   docs: { include: ['docs/**', 'README.md'] },
   core: { include: [...BASE, ...CFG, 'docs/ARCHITECTURE.md', 'docs/STORY_FORMAT.md', 'src/engine/**', 'tests/**'] },
   story: {
-    include: [...BASE, 'docs/STORY_FORMAT.md', 'docs/STORYBOARD.md', 'docs/CHARACTERS.md', 'docs/HONOR.md', 'src/story/flags.ts', 'src/story/characters.ts'],
+    include: [...BASE, 'docs/STORY_FORMAT.md', 'docs/STORYBOARD.md', 'docs/CHARACTERS.md', 'docs/HONOR.md', 'src/story/flags.ts', 'src/story/characters.ts', 'src/story/chapters/prologue.ts'], // the intro is the voice reference
   },
   ui: { include: [...BASE, 'docs/UI_UX.md', 'docs/ARCHITECTURE.md', 'src/ui/**', 'src/engine/types.ts', 'src/engine/select.ts'] },
   bug: { include: [...BASE, 'docs/ARCHITECTURE.md'] }, // add the files from the debug log: npm run pack -- bug src/engine/honor.ts
@@ -29,7 +29,7 @@ const PRESETS: Record<string, { include: string[]; compress?: boolean }> = {
     include: [
       ...BASE, ...CFG, ...PACKING, 'docs/UI_UX.md', 'docs/ARCHITECTURE.md', 'vite.config.ts',
       'src/ui/**', 'src/debug/**', 'src/main.tsx', 'src/engine/types.ts', 'src/engine/reducer.ts', 'src/engine/flow.ts', 'src/engine/select.ts', 'src/engine/report.ts', 'src/engine/save.ts',
-      'src/story/index.ts', 'tests/ui/**', 'tests/engine/fixtures.ts', 'tests/engine/reducerHelpers.ts', 'tests/engine/reducer.test.ts',
+      'src/story/index.ts', 'tests/ui/**', 'tests/engine/testStory.ts', 'tests/engine/fixtures.ts', 'tests/engine/reducerHelpers.ts', 'tests/engine/reducer.test.ts',
     ],
   },
 }

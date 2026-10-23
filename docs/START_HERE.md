@@ -38,13 +38,14 @@ Vite 8 + React 19 + TypeScript 7 (strict) + Vitest 5 (+ `@vitest/coverage-v8`, a
 8. **No fake choices.** Every choice changes at least one of: honor, stat, flag, trust/fear, route.
 9. **Fix the root cause**, then add a test or fuzz case that would have caught it.
 10. **Keep docs short**, and keep them true (Rule 0).
+11. **Story first, and nobody has a word for it.** About 85% of scenes are narration (85:15, D22), and in-world nobody says "zombie" or "undead" (D23). `npm run lint:story` enforces both.
 
 ## Repo map
 
 ```
 docs/                 these files (read first, update last)
 src/engine/           pure logic: reducer (+ choose, flow, init), select, conditions, effects, honor, rng, echoes, checks, choices, bounds, endings, save (+ stateSchema), ids, log, report
-src/story/            data only: chapters/ (test chapter until M4), index (assembles the Story), characters, backgrounds, endings, flags, system, honor, traits
+src/story/            data only: chapters/ (prologue = the live intro; test chapter continues it until M4), index (assembles the Story), characters, backgrounds, endings, flags, system, honor, traits
 src/ui/               App, Game (screen router), strings, lockReason, toasts, names, storage, version; screens/ (Title, Background, Play, Ending); components/ (StatBar, HonorMeter, SceneView, ChoiceList/Button, Toast, ErrorFallback/Boundary, ReportButton); hooks/ (useGame + gameModel, useStory); styles/ (tokens, base, play)
 src/debug/            DebugPanel (?debug=1)                         [M2 s2]; the report builder is src/engine/report.ts
 scripts/              lint-story (+ lintCore/Graph/Refs/Walk), fuzz (+ fuzzRun), rules-check, docs-check, pack

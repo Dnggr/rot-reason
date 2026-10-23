@@ -43,7 +43,8 @@ Each milestone ends with: `npm run check` green, deployed preview on Vercel, `HA
 
 ### M4: Vertical slice (3-4 sessions)
 
-- [ ] Write Prologue + Ch1 (~30 scenes) with callbacks, echoes, honor lines
+- [x] Prologue part 1, the intro (23 scenes, `chapters/prologue.ts`), written early in a story pass (D22-D24)
+- [ ] Write Prologue part 2 (`p.street`, `p.gate`) + Ch1 (~30 scenes) with callbacks, echoes, honor lines; then delete the test chapter
 - [ ] Camp hub template; Biscuit, Nora, first Calloway cameo
 - [ ] Playtest 3 times (low / mid / high honor). Fix pacing
 - **DoD:** 10-15 min playable; fuzz clean; golden paths for 3 honor styles; at least 3 echoes planted for later.
@@ -120,6 +121,9 @@ Each milestone ends with: `npm run check` green, deployed preview on Vercel, `HA
 | D19 | `SaveData` gains `bg` and `name`; replay rebuilds a game from `seed + bg + name + history` ("scene:choice", "scene:>"); `makeSave` moves the checkpoint at `gate` scenes | Replay needs the start inputs even when the snapshot is unusable (ARCHITECTURE §6) | Accepted (M1 s3) |
 | D20 | The reason text of a locked choice is derived in the UI from its `lock` condition (`ui/lockReason.ts`); `ChoiceView` carries the condition; flags, secrets and nested conditions read "Locked" so a lock never spoils. No authored field (an optional `lockText` can be added if a scene needs custom wording) | Settles the M1 s3 question with no schema or story change; every UI_UX §5 example is derivable | Accepted (M2 s1) |
 | D21 | UI shell state: one `useGame` hook over a `useReducer` of `{ screen, game, checkpoint, toasts }` (`gameModel.uiReducer` wraps `reduce`); autosave runs after every state change on the play screen, synchronously (no debounce); the debug report builder lives in `engine/report.ts` (pure) so the error boundary can use it without reading `debug/` | No router or state library (D1); a save is about 15 KB so debouncing buys nothing and risks losing the last choice; `debug/` stays unread by other layers (ARCHITECTURE §1) | Accepted (M2 s1) |
+| D22 | Story first: the target is **85:15 story to game**. A chapter of 8+ scenes gets a lint warning when more than 15% of its scenes ask for a choice (`scripts/lintTone.ts`; it counts authored scenes, and `tests/prologue.test.ts` checks the real routes). Added to GAME_DESIGN (pillar 5), STORY_FORMAT §7-8, START_HERE rule 11. | The owner wants storytelling, suspense and thrill, "not a game at all". Narration scenes already exist (`next` + Continue), so no engine change. | Accepted (story pass) |
+| D23 | In-world nobody has a word for the dead who walk. "zombie" and "undead" in story text are a lint error. Characters say "the sick" / "them" until the Haven broadcast names "the Rot" (Day 1 night); Juno notices Haven had the name first (seed for `c5.truth`). The Background screen no longer asks "before the Rot" (now "before today"). | The player and the reader must be as confused as the protagonist (owner's idea). | Accepted (story pass) |
+| D24 | The intro is Prologue part 1 (`chapters/prologue.ts`, start scene `p.dream`) and hands over to the test chapter (`t.wake`) until M4 writes Prologue part 2 and Ch1. Tests that exercise the fixture start at `t.wake` through `tests/engine/testStory.ts`. `t.wake`, `t.echo`, `t.gate` got conditional lines for the intro's flags. Dole is a registered NPC (`dole`) so he can show as a silhouette. | Pulls the story forward without rewriting 100+ fixture tests; the fixture is deleted in M4 anyway. | Accepted (story pass) |
 
 ## Open questions (M0 did not depend on these; decide before M2/M4)
 
@@ -130,3 +134,4 @@ Each milestone ends with: `npm run check` green, deployed preview on Vercel, `HA
 5. **Rot/Reason:** keep both in v1, or ship Reason first and add Rot in M5? (Plan: Reason first.)
 6. **Length:** target a ~30 min run (plan) or longer (40-60 min)?
 7. ~~Stack confirmation~~ Resolved by starting M0 with D1-D6. Tell me if you want to change it.
+8. **Content budget at 85:15 (before M4):** STORYBOARD's chapters list ~7 key choices in ~22 scenes (about 30% choices). At 85:15 that becomes ~3 choices per chapter, or ~40 choices and ~220 narration scenes (a run of about 2 hours, against the ~30 minutes in pillar 4). Pick: fewer, heavier decisions (recommended), or a longer game.

@@ -10,21 +10,21 @@ import { BACKGROUNDS } from '../src/story/backgrounds'
 import { chapters } from '../src/story/chapters/index'
 import { ENDINGS } from '../src/story/endings'
 import { FLAGS } from '../src/story/flags'
-import { buildStory, loadStory, TABLES } from '../src/story/index'
+import { buildStory, loadStory, START_SCENE, TABLES } from '../src/story/index'
 import { SYSTEM_SCENES } from '../src/story/system'
 import { makeState } from './engine/fixtures'
+import { loadTestChapterStory } from './engine/testStory'
 const choose = (c: 'a' | 'b' | 'c' | 'd'): Action => ({ type: 'CHOOSE', choice: c })
 const go: Action = { type: 'CONTINUE' }
 async function play(bg: string, ...actions: Action[]): Promise<{ s: GameState; story: Story }> {
-  const story = await loadStory()
+  const story = await loadTestChapterStory()
   const start = reduce(makeState(), { type: 'START', bg, name: 'Ash', seed: 11 }, story)
   return { s: actions.reduce((s, a) => reduce(s, a, story), start), story }
 }
 describe('test chapter', () => {
-  it('lints with no errors and no warnings', async () => {
-    const mod = await chapters['test']?.()
-    const r = lintStory({ test: mod?.scenes ?? [] }, SYSTEM_SCENES, TABLES, FLAGS)
-    expect(r).toEqual({ errors: [], warnings: [] })
+  it('the whole story lints with no errors and no warnings', async () => {
+    const loaded = await Promise.all(Object.entries(chapters).map(async ([k, load]) => [k, (await load()).scenes] as const))
+    expect(lintStory(Object.fromEntries(loaded), SYSTEM_SCENES, TABLES, FLAGS)).toEqual({ errors: [], warnings: [] })
   })
   it('uses every effect kind and the check / lock / cost / echo / time / glitch features', async () => {
     const story = await loadStory()
@@ -103,6 +103,6 @@ describe('story assembly', () => {
   it('buildStory indexes scenes by id and carries the tables', () => {
     const s = buildStory(SYSTEM_SCENES)
     expect(Object.keys(s.scenes)).toEqual(['sys.missing', 'sys.error', 'sys.death'])
-    expect(s).toMatchObject({ start: 't.wake', endings: ENDINGS })
+    expect(s).toMatchObject({ start: START_SCENE, endings: ENDINGS })
   })
 })

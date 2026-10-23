@@ -5,10 +5,10 @@ import type { Story } from '../../src/engine/types'
 import { currentView } from '../../src/engine/select'
 import { autosave, backgroundCards, initialUi, newSeed, playRoute, savedGame, uiReducer, type UiAction, type UiState } from '../../src/ui/hooks/gameModel'
 import { memoryStore } from '../../src/ui/storage'
-import { loadStory } from '../../src/story/index'
+import { loadTestChapterStory } from '../engine/testStory'
 let story: Story
 beforeAll(async () => {
-  story = await loadStory()
+  story = await loadTestChapterStory()
 })
 const run = (ui: UiState, ...actions: UiAction[]): UiState => actions.reduce(uiReducer(story), ui)
 const START: UiAction = { type: 'START', bg: 'dockworker', name: 'Ash', seed: 7 }

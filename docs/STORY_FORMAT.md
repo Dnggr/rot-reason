@@ -118,12 +118,15 @@ Adding a new effect or condition kind = edit `engine/effects.ts` or `conditions.
 **Consequence budget:** per chapter, ≥ 3 echoes planted and ≥ 3 echoes paid.
 **Dead ends:** every `to` must exist; every scene must be reachable; every non-end scene must have an exit.
 **Reason glitch:** scenes may include `glitch: string` variants shown when `reason < 30`.
+**Story first (D22):** the target is 85:15 story to game. Most scenes are narration (`next`, a Continue tap); a scene that asks for a choice is the exception. Build suspense with sound, a wrong detail and a delay, not with a menu. Do not stack two choice scenes back to back.
+**No word for it (D23):** in-world nobody knows "zombie" or "undead" (lint error). Characters say "the sick", "them", "that thing" until the Haven broadcast names "the Rot" (Day 1 night). The player and the reader learn the rules by watching.
 
 ## 8. Linter checks (`npm run lint:story`)
 
 Schema (`engine/schema.ts`, rejects a scene before the graph is checked): unknown key, condition/effect with unknown kind or bad shape, scene without exactly one of `choices` / `next` / `end`, choice without exactly one of `to` / `check`, more than 4 choices, duplicate choice ids, choice text > 12 words, more than 3 `who`, `echo` without exactly one of `after` / `at`.
 Errors (graph and references, `scripts/lint*.ts`): duplicate id, id without a `.`, missing target (exits and echoes), unreachable scene, scene with no path to an ending, `$resume` outside an echo scene or an echo scene with another exit, unknown ending id, last ending rule with a condition, missing system scene, unknown flag / character / deed tag / background, plus any schema failure. (Items are not checked: there are none yet.)
-Warnings: flag set but never read, flag read but never set, reveal of a secret no scene holds, no honor tag in a chapter, scene text > 90 words, same outcome on all choices (fake choice), every choice has `if`/`lock` (possible soft-lock).
+Errors also: in-world text (scene text, glitch, choice text) contains "zombie" / "undead" (`lintTone.ts`, D23).
+Warnings: a chapter of 8+ scenes where more than 15% of scenes ask for a choice (story share under 85%, `lintTone.ts`, D22; the share counts authored scenes, so a route through branches can differ: `tests/prologue.test.ts` checks the real routes of the intro), flag set but never read, flag read but never set, reveal of a secret no scene holds, no honor tag in a chapter, scene text > 90 words, same outcome on all choices (fake choice), every choice has `if`/`lock` (possible soft-lock).
 
 ## 9. Authoring workflow with Claude
 

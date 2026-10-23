@@ -28,7 +28,7 @@ export const S = {
   toTitle: 'Title screen',
   nameLabel: 'Your name',
   defaultName: 'Ash',
-  chooseBackground: 'Who were you before the Rot?',
+  chooseBackground: 'Who were you before today?',
   trait: 'Trait',
   kit: 'Kit',
   kitEmpty: 'nothing',

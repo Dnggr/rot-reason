@@ -5,6 +5,8 @@ export const scenes: Scene[] = [
     id: 't.wake', who: ['nora'], mood: 'tense', on: [['set', 'test_started']],
     text: [
       'Sirens drag you out of sleep. Smoke leaks under the door, and someone knocks, slow and patient.',
+      { if: ['flag', 'dole_inside'], text: 'Behind you, the bathroom door knocks back, in time.' },
+      { if: ['flag', 'dole_out'], text: 'You think of Dole on the landing, and your stomach drops.' },
       'Through the peephole: a woman in scrubs and a stolen parka, hands raised, a heavy pack at her feet.',
       { if: ['bg', 'dockworker'], text: 'You know this stairwell blind. You have hauled worse than a stuck door.' },
       { if: ['bg', 'teacher'], text: 'You have talked down angrier voices than hers.' },
@@ -36,6 +38,7 @@ export const scenes: Scene[] = [
     id: 't.gate', tags: ['gate'], mood: 'calm', time: { day: 2, phase: 'dawn' },
     text: [
       'The bell stops. In the hush a loudspeaker repeats its promise: Pier 9, Day 21, six seats. Everyone around you stands still and listens.',
+      { if: ['flag', 'heard_haven'], text: 'You know that flat voice. It said these same words to you on the radio, in this same order, to the syllable.' },
       { if: ['party', 'brick'], text: 'Brick folds the corner of his page and says nothing.' },
       { if: ['tier', '<=', 'T2'], text: 'People step away from you. Nobody says why.' },
     ],
@@ -49,7 +52,10 @@ export const scenes: Scene[] = [
   {
     id: 't.echo', tags: ['echo'], mood: 'dread', on: [['stat', 'reason', -5]],
     text: [
-      'A gray figure detaches from the crowd: the neighbor from the third floor, still knocking on a lamppost as if it were a door. Nobody else seems to hear it.',
+      'A gray figure detaches from the crowd, knocking on a lamppost as if it were a door. Three slow knocks. A wait. Three more. Nobody else seems to hear it.',
+      { if: ['flag', 'dole_inside'], text: 'It is not Dole. You shut Dole in your bathroom. This is someone else, and it knocks the same way.' },
+      { if: ['flag', 'dole_out'], text: 'It is Dole, in the same slippers. He does not turn when you whisper his name.' },
+      { if: ['flag', 'dole_sent'], text: 'It is Dole, in his slippers, a long way from St. Brigid\'s.' },
       { if: ['party', 'nora'], text: 'Nora whispers, "Don\'t look at it. Don\'t answer."' },
     ],
     next: '$resume',
