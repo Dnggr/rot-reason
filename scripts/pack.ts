@@ -16,20 +16,13 @@ const PRESETS: Record<string, { include: string[]; compress?: boolean }> = {
   bug: { include: [...BASE, 'docs/ARCHITECTURE.md'] }, // add the files from the debug log: npm run pack -- bug src/engine/honor.ts
   chapter: { include: [...BASE, 'docs/STORY_FORMAT.md', 'docs/STORYBOARD.md', 'src/story/flags.ts'] }, // add: src/story/chapters/ch2*
   // ---- TASK PACKS: one per upcoming session, named <milestone><session> (START_HERE Rule 0.5). Delete when the milestone is done. ----
-  // M2 s1: UI shell part 1 (useGame hook, Title / Background / Play screens, ChoiceList, StatBar, HonorMeter, Toast, ErrorFallback)
-  m2s1: {
+  // M3 s1: social systems part 1 (trust / fear, party, companion approval table, secrets and the trust hit when one surfaces; the Journal is M3 s2)
+  m3s1: {
     include: [
-      ...BASE, ...CFG, ...PACKING, 'docs/UI_UX.md', 'docs/ARCHITECTURE.md', 'docs/HONOR.md',
-      'src/ui/**', 'src/main.tsx', 'src/engine/types.ts', 'src/engine/select.ts', 'src/engine/reducer.ts', 'src/engine/save.ts', 'src/engine/honor.ts',
-      'src/engine/endings.ts', 'src/engine/ids.ts', 'src/story/index.ts', 'src/story/backgrounds.ts', 'src/story/characters.ts', 'tests/smoke.test.ts',
-    ],
-  },
-  // M2 s2: UI shell part 2 (Settings, keyboard + typewriter, DebugPanel + DEBUG_* actions, M2 definition of done)
-  m2s2: {
-    include: [
-      ...BASE, ...CFG, ...PACKING, 'docs/UI_UX.md', 'docs/ARCHITECTURE.md', 'vite.config.ts',
-      'src/ui/**', 'src/debug/**', 'src/main.tsx', 'src/engine/types.ts', 'src/engine/reducer.ts', 'src/engine/flow.ts', 'src/engine/select.ts', 'src/engine/report.ts', 'src/engine/save.ts',
-      'src/story/index.ts', 'tests/ui/**', 'tests/engine/testStory.ts', 'tests/engine/fixtures.ts', 'tests/engine/reducerHelpers.ts', 'tests/engine/reducer.test.ts',
+      ...BASE, ...CFG, ...PACKING, 'docs/GAME_DESIGN.md', 'docs/HONOR.md', 'docs/CHARACTERS.md', 'docs/ARCHITECTURE.md', 'docs/STORY_FORMAT.md',
+      'src/engine/types.ts', 'src/engine/effects.ts', 'src/engine/honor.ts', 'src/engine/echoes.ts', 'src/engine/conditions.ts', 'src/engine/choose.ts', 'src/engine/flow.ts', 'src/engine/select.ts',
+      'src/story/characters.ts', 'src/story/honor.ts', 'src/story/flags.ts', 'src/story/index.ts',
+      'tests/engine/fixtures.ts', 'tests/engine/reducerHelpers.ts', 'tests/engine/storyFixture.ts', 'tests/engine/effects.test.ts', 'tests/engine/honor.test.ts', 'tests/engine/echoes.test.ts',
     ],
   },
 }

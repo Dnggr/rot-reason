@@ -1,6 +1,7 @@
 // ui/strings.ts — every UI label in one place (keeps translation and copy edits easy)
 import type { Odds } from '../engine/checks'
 import type { AttrKey, Mood, Phase, ResKey, StatKey, Tier, Tone } from '../engine/types'
+import type { Settings, TextSize } from './settings'
 const day = 'Day'
 const tier: Record<Tier, string> = { T1: 'Infamous', T2: 'Feared', T3: 'Unknown', T4: 'Respected', T5: 'Revered' }
 const tone: Record<Tone, string> = { mercy: 'Mercy', lie: 'Lie', threaten: 'Threaten', brave: 'Brave', quiet: 'Quiet', honest: 'Honest', cold: 'Cold' }
@@ -9,6 +10,13 @@ const res: Record<ResKey, string> = { food: 'Food', ammo: 'Ammo', meds: 'Meds' }
 const stat: Record<StatKey, string> = { hp: 'HP', reason: 'Reason', rot: 'Rot' }
 const attr: Record<AttrKey, string> = { grit: 'Grit', wits: 'Wits', heart: 'Heart' }
 const phase: Record<Phase, string> = { dawn: 'Dawn', day: 'Day', dusk: 'Dusk', night: 'Night' }
+const sizes: Record<TextSize, string> = { S: 'Small', M: 'Medium', L: 'Large', XL: 'Extra large' }
+const toggles: Record<Exclude<keyof Settings, 'textSize'>, { label: string; hint: string }> = {
+  soften: { label: 'Soften violence', hint: 'Used by scenes that have a softer version. None do yet.' },
+  reducedMotion: { label: 'Reduce motion', hint: 'No typing effect, pulses or flicker.' },
+  highContrast: { label: 'High contrast', hint: 'Brighter text and borders.' },
+  sound: { label: 'Sound', hint: 'Off by default. This build has no audio yet.' },
+}
 const mood: Record<Mood, string> = { calm: 'Calm', tense: 'Tense', dread: 'Dread', warm: 'Warm', glitch: 'Glitch' }
 // Ending titles (STORYBOARD §4). Companion epilogues will need authored text in src/story (M6).
 const endings: Record<string, string> = {
@@ -25,6 +33,15 @@ export const S = {
   begin: 'Begin',
   back: 'Back',
   menu: 'Menu',
+  settings: 'Settings',
+  textSize: 'Text size',
+  sizes, toggles,
+  resetSave: 'Reset saved game',
+  eraseSave: 'Erase the saved game? Tap again.',
+  noSaveToErase: 'There is no saved game to erase.',
+  resetFromTitle: 'To erase the saved game, open Settings from the title screen.',
+  settingsDamaged: 'Your settings could not be read, so the defaults are in use.',
+  settingsNotSaved: 'Could not save your settings.',
   toTitle: 'Title screen',
   nameLabel: 'Your name',
   defaultName: 'Ash',

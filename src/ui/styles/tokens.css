@@ -12,4 +12,12 @@
   --font-story: Georgia, 'Times New Roman', serif;
   --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --space: 8px;
+  --story-size: 18px; /* narration; Settings > Text size changes these three through <html data-text> */
+  --story-line: 1.55;
+  --ui-size: 16px; /* buttons, choices, cards; chips and notes scale from it */
 }
+:root[data-text='S'] { --story-size: 16px; --story-line: 1.5; --ui-size: 15px; }
+:root[data-text='L'] { --story-size: 21px; --story-line: 1.6; --ui-size: 18px; }
+:root[data-text='XL'] { --story-size: 24px; --story-line: 1.65; --ui-size: 20px; }
+/* Settings > High contrast: the same tokens, brighter (every pair is above 7:1 on --bg) */
+:root.hc { --bg: #000; --panel: #0a0a0a; --text: #fff; --muted: #d0d0c8; --rot: #b9d85c; --blood: #ff6a62; --honor: #ffd75e; --reason: #8ec9ff; --border: #9a9a90; }

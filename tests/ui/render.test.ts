@@ -73,15 +73,15 @@ describe('components', () => {
 })
 describe('screens', () => {
   it('TitleScreen: New game alone, with Continue (day, chapter, tier) when a save exists, and the warnings', () => {
-    expect(html(createElement(TitleScreen, { saved: { kind: 'none' }, persistent: true, onNew: noop, onContinue: noop }))).not.toContain('Continue')
+    expect(html(createElement(TitleScreen, { saved: { kind: 'none' }, persistent: true, onNew: noop, onContinue: noop, onSettings: noop }))).not.toContain('Continue')
     const played = [{ type: 'START', bg: 'dockworker', name: 'Ash', seed: 7 } as const].reduce(uiReducer(story), initialUi(story))
     const store = memoryStore()
     store.setItem('rr_save_v1', JSON.stringify({ v: 1, seed: 7, bg: 'dockworker', name: 'Ash', history: [], snapshot: played.game, checkpoint: null, savedAt: 1 }))
-    const out = html(createElement(TitleScreen, { saved: savedGame(store, story), persistent: false, onNew: noop, onContinue: noop }))
+    const out = html(createElement(TitleScreen, { saved: savedGame(store, story), persistent: false, onNew: noop, onContinue: noop, onSettings: noop }))
     expect(out).toContain('Continue')
     expect(out).toContain('Ash · Day 1 Dawn · Chapter t · Unknown')
     expect(out).toContain('blocks saving')
-    expect(html(createElement(TitleScreen, { saved: { kind: 'broken', errors: ['x'] }, persistent: true, onNew: noop, onContinue: noop }))).toContain('could not be loaded')
+    expect(html(createElement(TitleScreen, { saved: { kind: 'broken', errors: ['x'] }, persistent: true, onNew: noop, onContinue: noop, onSettings: noop }))).toContain('could not be loaded')
   })
   it('BackgroundScreen lists every background with attributes, trait, kit and hook', () => {
     const out = html(createElement(BackgroundScreen, { cards: backgroundCards(story), onBegin: noop, onBack: noop }))
@@ -94,7 +94,7 @@ describe('screens', () => {
   it('PlayScreen shows the opening scene: narration, who, and its choices with cost and odds', () => {
     const ui = [{ type: 'START', bg: 'dockworker', name: 'Ash', seed: 7 } as const].reduce(uiReducer(story), initialUi(story))
     const view = currentView(ui.game, story)
-    const out = html(createElement(PlayScreen, { view, hud: hudOf(ui.game), toasts: ['Honor +5'], toastSeq: 1, saveError: 'quota', onChoose: noop, onNext: noop, onMenu: noop }))
+    const out = html(createElement(PlayScreen, { view, hud: hudOf(ui.game), step: 0, typewriter: false, toasts: ['Honor +5'], toastSeq: 1, saveError: 'quota', onChoose: noop, onNext: noop, onMenu: noop, onSettings: noop }))
     expect(out).toContain('Sirens drag you out of sleep')
     expect(out).toContain('Nora')
     expect(out).toContain('-1 Food')
@@ -105,7 +105,7 @@ describe('screens', () => {
   it('PlayScreen shows Continue on a scene that only has `next`', () => {
     const view = currentView(makeState({ scene: 't.echo' }), story)
     expect(view.kind).toBe('next')
-    const out = html(createElement(PlayScreen, { view, hud: hudOf(makeState()), toasts: [], toastSeq: 0, saveError: undefined, onChoose: noop, onNext: noop, onMenu: noop }))
+    const out = html(createElement(PlayScreen, { view, hud: hudOf(makeState()), step: 0, typewriter: false, toasts: [], toastSeq: 0, saveError: undefined, onChoose: noop, onNext: noop, onMenu: noop, onSettings: noop }))
     expect(out).toContain('Continue')
   })
   it('EndingScreen shows the ending title, the epilogue text and the recap', () => {

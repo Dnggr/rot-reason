@@ -1,12 +1,15 @@
 // ui/storage.ts — the store behind saves: localStorage when it works, memory otherwise (private mode, blocked storage); `persistent` tells the UI to warn
 import type { KeyValueStore } from '../engine/save'
+export interface EraseStore extends KeyValueStore {
+  removeItem(key: string): void // Settings > Reset saved game
+}
 export interface Store {
-  store: KeyValueStore
+  store: EraseStore
   persistent: boolean
 }
-export function memoryStore(): KeyValueStore {
+export function memoryStore(): EraseStore {
   const m = new Map<string, string>()
-  return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => void m.set(k, v) }
+  return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => void m.set(k, v), removeItem: (k) => void m.delete(k) }
 }
 export function openStore(pick: () => Storage = () => window.localStorage): Store {
   try {

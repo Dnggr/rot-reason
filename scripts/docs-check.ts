@@ -1,10 +1,8 @@
 // scripts/docs-check.ts — "docs last" gate: HANDOFF updated with code changes, and a valid "Next pack" exists
 import { execSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
-
 const fails: string[] = []
 const warns: string[] = []
-
 function changedFiles(): string[] | null {
   try {
     const out = execSync('git status --porcelain', { encoding: 'utf8' })
@@ -16,7 +14,6 @@ function changedFiles(): string[] | null {
     return null
   }
 }
-
 function checkNextPack(): void {
   const handoff = existsSync('docs/HANDOFF.md') ? readFileSync('docs/HANDOFF.md', 'utf8') : ''
   const m = handoff.match(/^Next pack:\s*`npm run pack:([a-z][a-z0-9]*)`/m)
@@ -30,7 +27,6 @@ function checkNextPack(): void {
   const packTs = existsSync('scripts/pack.ts') ? readFileSync('scripts/pack.ts', 'utf8') : ''
   if (!new RegExp(`^\\s*${name}:\\s*\\{`, 'm').test(packTs)) fails.push(`scripts/pack.ts has no preset "${name}" (named in HANDOFF.md Next pack)`)
 }
-
 function checkDocsTouched(): void {
   const files = changedFiles()
   if (!files) return void warns.push('git not available: skipped the docs-changed check')
@@ -45,7 +41,6 @@ function checkDocsTouched(): void {
     warns.push('only HANDOFF.md changed. Did your change affect another doc?')
   }
 }
-
 checkNextPack()
 checkDocsTouched()
 for (const w of warns) console.warn(`docs:check WARN: ${w}`)

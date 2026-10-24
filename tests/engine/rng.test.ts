@@ -1,7 +1,6 @@
 // tests/engine/rng.test.ts — seeded rng: reference vector, determinism, purity, bounds, distribution
 import { describe, expect, it } from 'vitest'
 import { d6, initRng, nextFloat, nextInt } from '../../src/engine/rng'
-
 function floats(seed: number, n: number): number[] {
   let rng = initRng(seed)
   const out: number[] = []
@@ -12,7 +11,6 @@ function floats(seed: number, n: number): number[] {
   }
   return out
 }
-
 describe('rng', () => {
   it('matches the reference mulberry32 sequence for seed 12345', () => {
     expect(floats(12345, 4)).toEqual([0.9797282677609473, 0.3067522644996643, 0.484205421525985, 0.817934412509203])

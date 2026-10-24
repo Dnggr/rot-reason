@@ -1,0 +1,13 @@
+/* debug.css — the debug panel: a floating toggle and a bottom sheet. Loaded only with the panel (?debug=1 or dev). */
+.dbg { position: fixed; right: 8px; bottom: 8px; z-index: 100; font: 13px/1.4 var(--font-ui); color: var(--text); }
+.dbg-toggle { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--honor); border-radius: 6px; padding: 6px 10px; cursor: pointer; opacity: 0.85; }
+.dbg-body { position: fixed; left: 0; right: 0; bottom: 44px; max-height: 70vh; overflow: auto; background: var(--bg); border-top: 2px solid var(--honor); padding: 8px 12px; }
+.dbg-sec { margin-bottom: 12px; }
+.dbg-sec p { margin: 2px 0; overflow-wrap: anywhere; }
+.dbg-head { font-weight: 600; color: var(--honor); }
+.dbg-off { color: var(--blood); }
+.dbg pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.35 ui-monospace, Menlo, Consolas, monospace; max-height: 28vh; overflow: auto; background: var(--panel); padding: 6px; border: 1px solid var(--border); }
+.dbg-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; align-items: center; }
+.dbg-row input, .dbg-row select { width: auto; flex: 1 1 120px; font: 14px var(--font-ui); color: var(--text); background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 6px; }
+.dbg .btn { width: auto; min-height: 36px; margin-top: 0; padding: 4px 10px; font-size: 14px; }
+.dbg-note { display: block; }

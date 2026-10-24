@@ -7,7 +7,7 @@ const int = z.number().int()
 const within = (min: number, max: number) => int.min(min).max(max)
 const npc = z.strictObject({ alive: z.boolean(), trust: within(-100, 100), fear: within(0, 100) })
 const echo = z.strictObject({ scene: id, dueIn: z.exactOptional(within(0, 1000)), atChapter: z.exactOptional(id) })
-const entry = z.strictObject({ n: int, kind: z.enum(['SCENE', 'CHOICE', 'FX', 'HONOR', 'SECRET', 'ECHO', 'ERROR']), text: z.string() })
+const entry = z.strictObject({ n: int, kind: z.enum(['SCENE', 'CHOICE', 'FX', 'HONOR', 'SECRET', 'ECHO', 'ERROR', 'DEBUG']), text: z.string() })
 export const gameStateSchema: z.ZodType<GameState> = z.strictObject({
   v: int, seed: int, rng: int, name: z.string(), scene: id, chapter: id, day: within(1, 21),
   phase: z.enum(['dawn', 'day', 'dusk', 'night']),

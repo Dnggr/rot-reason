@@ -5,12 +5,12 @@ Goals, in order: **works, easy to debug, small, clean.**
 ## 1. Layers (one-way dependencies)
 
 ```
-story (data)  ->  engine (pure logic)  ->  ui (React)       debug/ may read all, nothing reads debug/
+story (data)  ->  engine (pure logic)  ->  ui (React)       debug/ may read all; only main.tsx imports it (lazily), see below
 ```
 
 - `story` imports nothing but its own types.
 - `engine` imports `story` types only. No DOM, no React, no `Date`, no `Math.random`, no storage (storage passed in as an interface). Story data tables (deeds, trait bonuses) are passed in by the caller, never imported (D14).
-- `ui` calls `engine` through one hook (`useGame`; `useStory` only loads the story). UI never mutates state, never reads story data directly except via selectors. The debug report builder is `engine/report.ts`, so the error boundary can use it without reading `debug/` (D21).
+- `ui` calls `engine` through one hook (`useGame`; `useStory` only loads the story). UI never mutates state, never reads story data directly except via selectors. The debug report builder is `engine/report.ts`, so the error boundary can use it without reading `debug/` (D21). `ui` never imports `debug/`: `main.tsx` loads the panel with a dynamic import in a dev build or with `?debug=1` and passes it to `<App debugPanel>` as a component; the contract is `ui/debugApi.ts` (D25).
 
 ## 2. Folder structure
 
@@ -38,6 +38,7 @@ src/
     select.ts       view selectors: currentView(state, story) -> View (each locked choice carries its `lock` condition), hudOf(state) -> Hud (live since M1 s3; lock and hudOf M2 s1)
     log.ts          LogLine, Applied, line, pushLog (200-entry ring buffer), formatEntry (live since M1 s2)
     report.ts       buildReport, reportText: the debug report JSON, pure (live since M2 s1)
+    debug.ts        debugJump, debugSet, debugRoll, rngForRoll: the DEBUG_* actions (live since M2 s2)
   story/
     index.ts        buildStory(scenes), loadStory(), TABLES (live since M1 s3)
     flags.ts  characters.ts  backgrounds.ts  endings.ts  system.ts   (live since M1 s3; items.ts and factions.ts come when a scene needs them)
@@ -48,11 +49,14 @@ src/
     App.tsx         root: ErrorBoundary > story loading > Game (live since M2 s1)
     Game.tsx        picks the screen from useGame; playRoute -> fallback / ending / play
     strings.ts  lockReason.ts  toasts.ts  names.ts  storage.ts  version.ts
-    screens/    TitleScreen  BackgroundScreen  PlayScreen  EndingScreen (live)   Camp  Journal  Settings (later)
+    settings.ts     Settings type, defaults, rr_settings_v1 read / write, applySettings (to <html>) (live since M2 s2)
+    typewriter.ts   pure: MS_PER_CHAR, totalChars, tick, splitLines    keys.ts  keyCommand: 1-4 / Space / J    vitals.ts  low HP / Reason thresholds
+    debugApi.ts     DebugApi + DebugPanelComponent: what the game hands the debug panel
+    screens/    TitleScreen  BackgroundScreen  PlayScreen  SettingsScreen  EndingScreen (live)   Camp  Journal (later)
     components/ StatBar  HonorMeter  SceneView  ChoiceList  ChoiceButton  Toast  ReportButton  ErrorFallback  ErrorBoundary (live)   CharacterCard (M3)
-    hooks/      useGame.ts  gameModel.ts (pure reducer, autosave, Continue, playRoute)  useStory.ts
-    styles/     tokens.css  base.css  play.css
-  debug/        DebugPanel.tsx   (M2 s2)
+    hooks/      useGame.ts  gameModel.ts (pure reducer, autosave, Continue, playRoute, rewind)  useStory.ts  useSettings.ts  useTypewriter.ts  useKeys.ts
+    styles/     tokens.css  base.css  play.css  motion.css
+  debug/        DebugPanel.tsx  StateView.tsx  Controls.tsx  forceRoll.ts  rrHandle.ts  debug.css   (live since M2 s2)
 scripts/        lint-story.ts  fuzz.ts  rules-check.ts  docs-check.ts  pack.ts
 tests/          engine/*.test.ts  ui/*.test.ts  golden/*.test.ts
 ```
@@ -99,7 +103,7 @@ UI re-renders from select.currentView(state, story)
 ```
 `chapter` is the chapter of the flow, not of `state.scene`: an echo scene from c4 shown during c2 leaves `chapter` at c2. CONTINUE (for `next` scenes) runs the same steps with no cost, check or fx. START builds the state (`init.startGame`) and enters `story.start`. LOAD restores a valid snapshot (`save.loadSave` does the replay and checkpoint fallbacks first). CAMP is a stub until M4.
 
-Actions (typed in `engine/types.ts`): `START(bg,name,seed)`, `CHOOSE(choice)` where `choice` is the choice id `a`-`d`, `CONTINUE` (for `next` scenes), `CAMP(action)`, `LOAD(save)`. `DEBUG_*` actions (debug build only) arrive with the DebugPanel in M2 s2.
+Actions (typed in `engine/types.ts`): `START(bg,name,seed)`, `CHOOSE(choice)` where `choice` is the choice id `a`-`d`, `CONTINUE` (for `next` scenes), `CAMP(action)`, `LOAD(save)`. `DEBUG_JUMP(scene)`, `DEBUG_SET(patch)` and `DEBUG_ROLL(roll)` (live, `engine/debug.ts`) are engine actions for the debug panel: each logs a `DEBUG` line, bad input is refused with a `DEBUG` line (never a throw), and `uiReducer(story, debug)` drops them unless the panel is mounted. `DEBUG_REWIND` is a UI action (`gameModel.rewind`, it replays history, which the engine cannot import without a cycle). A jump or set leaves `history` alone, so an edited run no longer replays; saves then use the snapshot, and rewind refuses with a log line. `LogEntry.kind` gained `DEBUG` (the state schema accepts it).
 
 ## 5. Anti-bug rules
 
@@ -128,10 +132,10 @@ Actions (typed in `engine/types.ts`): `START(bg,name,seed)`, `CHOOSE(choice)` wh
 
 ## 7. Debug tooling (`?debug=1` or dev build)
 
-- **DebugPanel:** current scene id, state tree, last 30 log lines, flags list.
-- **Controls:** jump to scene, set stat/honor/res/flag, set seed, force check result (pass/fail), rewind last choice, advance day.
-- **Copy debug report:** JSON with app version, seed, history, last 30 log lines, state, user note. Paste it into Claude with the files involved.
-- **Console handle (dev only):** `window.__rr = { state, dispatch, story }`.
+- **DebugPanel (live):** a floating Debug button opens a bottom sheet: current scene, chapter, day, seed / rng, flags, secrets, party, echoes (with their countdown), the state tree, the last 30 log lines. Loaded lazily (own chunk).
+- **Controls (live):** jump to any scene id; set hp / reason / rot / food / ammo / meds / honor / day to a number (clamped, rounded); set or clear a flag; Day +1; `rng seed` reseeds the roll stream (`state.rng`; `state.seed`, the start seed, stays so replays keep their meaning); Force pass / Force fail on a scene's check choices (`DEBUG_ROLL` makes the next d6 land on the face that gives that result, then picks the choice; `debug/forceRoll.ts` mirrors `resolveCheck`, tested against it); Rewind last step (only for an unedited run). Controls are off outside the play screen.
+- **Copy debug report:** JSON with app version, seed, history, last 30 log lines, state, user note (the panel has a note box). Paste it into Claude with the files involved. A run edited with the controls shows `DEBUG` lines in its log.
+- **Console handle:** `window.__rr = { state, dispatch, story }` while the panel is mounted (dev or `?debug=1`); `state` is read live; `dispatch` takes any UI action, including `DEBUG_*`.
 - **Log format (greppable):** `[012] SCENE c2.crypt | CHOICE b | FX honor mercy unseen -> +2 (h=14) | SECRET hart_wife | ECHO c4.hart_knows in 14`.
 
 ## 8. Tooling scripts
@@ -148,7 +152,8 @@ Actions (typed in `engine/types.ts`): `START(bg,name,seed)`, `CHOOSE(choice)` wh
 
 - Screens are components that take `view` (+ `hud`) and callbacks only. No game logic in components. `useGame` holds `{ screen, game, checkpoint, toasts }` in one `useReducer` (`gameModel.uiReducer` wraps `reduce` and adds navigation); the boundary's report ref is the one read-only use of `GameState` outside the hook.
 - Text is rendered from `view.text`; typewriter effect is cosmetic and skippable; the full text is in the DOM from the start (accessibility, tests).
-- Styles in 3 CSS files with CSS variables; no CSS-in-JS, no utility framework (saves tokens and bundle).
+- Styles in 4 CSS files (tokens, base, play, motion) plus `debug/debug.css` with the panel, all with CSS variables; no CSS-in-JS, no utility framework. Settings reach the page as `<html data-text="S|M|L|XL">` and the classes `hc`, `reduce-motion`, `soften` (`ui/settings.applySettings`); tokens and `motion.css` key off them. All animation is in `motion.css`.
+- `PlayScreen` owns the typewriter (`useTypewriter`, restarted by `step` = scenes played) and the keyboard (`useKeys` + `ui/keys.keyCommand`); a tap or key while text is typing only finishes it.
 - Images referenced by key from `place`/`who`; missing image -> placeholder, never an error.
 - Lazy-load chapters (`import('./chapters/ch2')`); initial bundle target < 150 KB gzip.
 

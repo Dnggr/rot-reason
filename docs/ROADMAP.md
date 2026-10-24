@@ -25,13 +25,14 @@ Each milestone ends with: `npm run check` green, deployed preview on Vercel, `HA
 - [x] `lint-story` (schema, graph, references) + `fuzz` working on the test story
 - **DoD met (M1 s3):** 100% line coverage on `src/engine` (`npm run coverage`, threshold 90); `npm run fuzz` 1,000 runs clean (seeds 1 and 99); replay of seed + bg + name + history equals the live run (tested, and checked on every fuzz run).
 
-### M2: UI shell (2 sessions) - session 1 DONE
+### M2: UI shell (2 sessions) - code DONE; the phone check below is the owner's
 
 - [x] Title, Background, Play, Ending screens; ChoiceList, StatBar, HonorMeter, Toast (M2 s1)
-- [ ] Settings screen (M2 s2)
+- [x] Settings screen (M2 s2): text size, soften violence (stored), reduce motion, high contrast, sound (stored), reset saved game
 - [x] Autosave/Continue, ErrorFallback, error boundary + Copy debug report (M2 s1)
-- [ ] DebugPanel (M2 s2)
-- [ ] Mobile layout (CSS is mobile-first, still to check on a phone), keyboard controls, text size (M2 s2)
+- [x] DebugPanel (M2 s2): state, log, jump / set / force-check / rewind through `DEBUG_*`, `window.__rr`, `?debug=1`, report with a note
+- [x] Keyboard controls (`1-4`, `Space`, `J`), text size, typewriter, low-HP / low-Reason visuals (M2 s2)
+- [ ] Check on a phone via the Vercel preview (owner): layout, text sizes, typewriter pace, high contrast
 - **DoD:** the test story is playable on a phone via Vercel preview; a deliberately broken scene shows fallback, not a blank screen.
 
 ### M3: Social systems (2 sessions)
@@ -124,6 +125,8 @@ Each milestone ends with: `npm run check` green, deployed preview on Vercel, `HA
 | D22 | Story first: the target is **85:15 story to game**. A chapter of 8+ scenes gets a lint warning when more than 15% of its scenes ask for a choice (`scripts/lintTone.ts`; it counts authored scenes, and `tests/prologue.test.ts` checks the real routes). Added to GAME_DESIGN (pillar 5), STORY_FORMAT §7-8, START_HERE rule 11. | The owner wants storytelling, suspense and thrill, "not a game at all". Narration scenes already exist (`next` + Continue), so no engine change. | Accepted (story pass) |
 | D23 | In-world nobody has a word for the dead who walk. "zombie" and "undead" in story text are a lint error. Characters say "the sick" / "them" until the Haven broadcast names "the Rot" (Day 1 night); Juno notices Haven had the name first (seed for `c5.truth`). The Background screen no longer asks "before the Rot" (now "before today"). | The player and the reader must be as confused as the protagonist (owner's idea). | Accepted (story pass) |
 | D24 | The intro is Prologue part 1 (`chapters/prologue.ts`, start scene `p.dream`) and hands over to the test chapter (`t.wake`) until M4 writes Prologue part 2 and Ch1. Tests that exercise the fixture start at `t.wake` through `tests/engine/testStory.ts`. `t.wake`, `t.echo`, `t.gate` got conditional lines for the intro's flags. Dole is a registered NPC (`dole`) so he can show as a silhouette. | Pulls the story forward without rewriting 100+ fixture tests; the fixture is deleted in M4 anyway. | Accepted (story pass) |
+| D25 | `DEBUG_JUMP` / `DEBUG_SET` / `DEBUG_ROLL` are engine actions in `engine/debug.ts`; `DEBUG_REWIND` is a UI action (`gameModel.rewind`, it replays history through `save.replay`, and `reducer` importing `save` would be a cycle). `uiReducer(story, debug)` drops all `DEBUG_*` unless the panel is mounted. The panel lives in `src/debug/`, is loaded lazily by `main.tsx` (dev or `?debug=1`) and handed to `<App debugPanel>`; `ui` never imports `debug/`. `LogEntry.kind` gains `DEBUG`. Force-check steers the rng (`DEBUG_ROLL`) instead of adding a force field to `GameState`. Rewind refuses a run that history no longer reproduces | Keeps the engine pure and saves unchanged; ARCHITECTURE §1 (nothing reads debug/) stays true in spirit; no new state shape | Accepted (M2 s2) |
+| D26 | UI behavior: the typewriter lives in `PlayScreen` (30 ms per character, `requestAnimationFrame`, whole text always in the DOM, tail made transparent); while it types, a tap or `1-4` only finishes it; `Space` finishes it, then continues a narration scene; Settings are stored in `rr_settings_v1` (strict schema, damaged -> defaults and a visible notice), applied to `<html>` as `data-text` and the classes `hc` / `reduce-motion` / `soften`; first run follows `prefers-reduced-motion`; Soften violence and Sound are stored only (nothing to soften or play until M7). No new dependency (Zod was already in) | Story-first pacing without losing accessibility or the double-tap safety; settings that are honest about what they do | Accepted (M2 s2) |
 
 ## Open questions (M0 did not depend on these; decide before M2/M4)
 

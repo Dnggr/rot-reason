@@ -1,0 +1,14 @@
+/* motion.css — every animation: typewriter reveal, softly eased choices, low-HP vignette, low-Reason flicker (UI_UX §7). Reduced motion (the setting or the device) switches them all off in one place at the bottom. */
+.tw-rest { opacity: 0; } /* not yet typed: still in the DOM (screen readers), only transparent, so the layout never jumps */
+.narration { cursor: default; }
+.actions .choice { animation: choice-in 0.35s ease both; }
+.actions .choice:nth-child(2) { animation-delay: 0.06s; }
+.actions .choice:nth-child(3) { animation-delay: 0.12s; }
+.actions .choice:nth-child(4) { animation-delay: 0.18s; }
+@keyframes choice-in { from { opacity: 0; transform: translateY(6px); } }
+.vignette { position: fixed; inset: 0; z-index: 5; pointer-events: none; box-shadow: inset 0 0 90px 14px rgba(163, 35, 31, 0.55); animation: hp-pulse 3.2s ease-in-out infinite; }
+@keyframes hp-pulse { 50% { opacity: 0.4; } }
+.lowreason .narration { text-shadow: 0 0 8px rgba(111, 143, 166, 0.35); animation: reason-flicker 7s steps(1) infinite; }
+@keyframes reason-flicker { 0%, 90%, 94%, 100% { opacity: 1; } 92% { opacity: 0.78; } 96% { opacity: 0.9; } }
+:root.reduce-motion *, :root.reduce-motion *::before, :root.reduce-motion *::after { animation: none !important; transition: none !important; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

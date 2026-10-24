@@ -1,7 +1,6 @@
 // engine/schema.ts — Zod schemas for story data (STORY_FORMAT); parse(scene) validates shape, the linter does the graph
 import { z } from 'zod'
 import type { Condition } from './types'
-
 const id = z.string().min(1)
 const cmp = z.enum(['>=', '<=', '>', '<', '=='])
 const num = z.number().finite()
@@ -10,7 +9,6 @@ const res = z.enum(['food', 'ammo', 'meds'])
 const attr = z.enum(['grit', 'wits', 'heart'])
 const phase = z.enum(['dawn', 'day', 'dusk', 'night'])
 const signed = z.string().regex(/^[+-].+/, "must start with '+' or '-'")
-
 export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
   z.union([
     z.tuple([z.literal('flag'), id]),
@@ -32,12 +30,10 @@ export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
     z.strictObject({ not: conditionSchema }),
   ]),
 )
-
 const echoSpec = z
   .strictObject({ scene: id, after: z.exactOptional(z.number().int().min(1)), at: z.exactOptional(id) })
   .refine((e) => (e.after === undefined) !== (e.at === undefined), "echo needs exactly one of 'after' or 'at'")
 const timeChange = z.strictObject({ day: z.exactOptional(z.number().int().min(1)), phase: z.exactOptional(phase) })
-
 export const effectSchema = z.union([
   z.tuple([z.literal('honor'), id, z.boolean()]),
   z.tuple([z.literal('stat'), stat, num]),
@@ -54,11 +50,9 @@ export const effectSchema = z.union([
   z.tuple([z.literal('echo'), echoSpec]),
   z.tuple([z.literal('time'), timeChange]),
 ])
-
 const fx = z.array(effectSchema)
 const branch = z.strictObject({ fx: z.exactOptional(fx), to: id })
 const words = (s: string): number => s.trim().split(/\s+/).length
-
 export const choiceSchema = z
   .strictObject({
     id: z.enum(['a', 'b', 'c', 'd']),
@@ -73,9 +67,7 @@ export const choiceSchema = z
     echo: z.exactOptional(echoSpec),
   })
   .refine((c) => (c.to === undefined) !== (c.check === undefined), "choice needs exactly one of 'to' or 'check'")
-
 const beat = z.union([z.string().min(1), z.strictObject({ if: conditionSchema, text: z.string().min(1) })])
-
 export const sceneSchema = z
   .strictObject({
     id,
@@ -94,5 +86,4 @@ export const sceneSchema = z
     glitch: z.exactOptional(z.string().min(1)),
   })
   .refine((s) => [s.choices, s.next, s.end].filter((x) => x !== undefined).length === 1, "scene needs exactly one of 'choices', 'next' or 'end'")
-
 export const scenesSchema = z.array(sceneSchema)

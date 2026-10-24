@@ -1,4 +1,4 @@
-// ui/screens/TitleScreen.tsx — New game / Continue (day, chapter, honor tier); a second tap confirms erasing an existing save
+// ui/screens/TitleScreen.tsx — New game / Continue (day, chapter, honor tier) / Settings; a second tap confirms erasing an existing save
 import { useState } from 'react'
 import type { Saved } from '../hooks/gameModel'
 import { S } from '../strings'
@@ -7,8 +7,9 @@ interface Props {
   persistent: boolean
   onNew: () => void
   onContinue: () => void
+  onSettings: () => void
 }
-export function TitleScreen({ saved, persistent, onNew, onContinue }: Props) {
+export function TitleScreen({ saved, persistent, onNew, onContinue, onSettings }: Props) {
   const [confirm, setConfirm] = useState(false)
   const hasSave = saved.kind === 'ok'
   const newGame = (): void => (hasSave && !confirm ? setConfirm(true) : onNew())
@@ -24,6 +25,7 @@ export function TitleScreen({ saved, persistent, onNew, onContinue }: Props) {
         </button>
       )}
       <button type="button" className={hasSave ? 'btn' : 'btn primary'} onClick={newGame}>{confirm ? S.eraseAndStart : S.newGame}</button>
+      <button type="button" className="btn" onClick={onSettings}>{S.settings}</button>
       {saved.kind === 'broken' && <p role="alert" className="notice">{S.saveBroken}</p>}
       {!persistent && <p role="alert" className="notice">{S.noStorage}</p>}
     </main>

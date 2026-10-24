@@ -44,10 +44,10 @@ Vite 8 + React 19 + TypeScript 7 (strict) + Vitest 5 (+ `@vitest/coverage-v8`, a
 
 ```
 docs/                 these files (read first, update last)
-src/engine/           pure logic: reducer (+ choose, flow, init), select, conditions, effects, honor, rng, echoes, checks, choices, bounds, endings, save (+ stateSchema), ids, log, report
+src/engine/           pure logic: reducer (+ choose, flow, init, debug), select, conditions, effects, honor, rng, echoes, checks, choices, bounds, endings, save (+ stateSchema), ids, log, report
 src/story/            data only: chapters/ (prologue = the live intro; test chapter continues it until M4), index (assembles the Story), characters, backgrounds, endings, flags, system, honor, traits
-src/ui/               App, Game (screen router), strings, lockReason, toasts, names, storage, version; screens/ (Title, Background, Play, Ending); components/ (StatBar, HonorMeter, SceneView, ChoiceList/Button, Toast, ErrorFallback/Boundary, ReportButton); hooks/ (useGame + gameModel, useStory); styles/ (tokens, base, play)
-src/debug/            DebugPanel (?debug=1)                         [M2 s2]; the report builder is src/engine/report.ts
+src/ui/               App, Game (screen router), strings, lockReason, toasts, names, storage, version, settings, typewriter, keys, vitals, debugApi; screens/ (Title, Background, Play, Settings, Ending); components/ (StatBar, HonorMeter, SceneView, ChoiceList/Button, Toast, ErrorFallback/Boundary, ReportButton); hooks/ (useGame + gameModel, useStory, useSettings, useTypewriter, useKeys); styles/ (tokens, base, play, motion)
+src/debug/            DebugPanel (+ StateView, Controls, forceRoll, rrHandle), loaded lazily by main.tsx in dev or with ?debug=1; nothing else imports it; the report builder is src/engine/report.ts
 scripts/              lint-story (+ lintCore/Graph/Refs/Walk), fuzz (+ fuzzRun), rules-check, docs-check, pack
 tests/                engine unit tests + per-chapter golden paths + tests/ui (UI logic, render smoke)
 public/               images (WebP), later audio
@@ -58,7 +58,8 @@ public/               images (WebP), later audio
 
 | Command | Does |
 |---|---|
-| `npm run dev` | local dev server |
+| `npm run dev` | local dev server (the debug panel is on) |
+| `?debug=1` on any URL | turns the debug panel on, also on the Vercel build |
 | `npm run check` | typecheck + lint:story + tests + rules (the gate) |
 | `npm run ready` | `check` + `docs:check` (run before every commit, changes uncommitted) |
 | `npm run build` | `check` + production build (Vercel runs this) |

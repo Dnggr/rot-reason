@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest'
 import type { ZodType } from 'zod'
 import { choiceSchema, conditionSchema, effectSchema, sceneSchema, scenesSchema } from '../../src/engine/schema'
 import type { Condition, Effect, Scene } from '../../src/engine/types'
-
 // the example from STORY_FORMAT §6, verbatim
 const contract = {
   id: 'c2.crypt',
@@ -23,7 +22,6 @@ const ok = (v: unknown, schema: ZodType = sceneSchema) => expect(schema.safePars
 const bad = (v: unknown, schema: ZodType = sceneSchema) => expect(schema.safeParse(v).success).toBe(false)
 const narration = { id: 'c1.a', text: 'Rain.', next: 'c1.b' }
 const choice = { id: 'a', text: 'Go.', to: 'c1.b' }
-
 describe('scene schema', () => {
   it('accepts the STORY_FORMAT contract example', () => ok(contract))
   it('output is assignable to the Scene type', () => {
@@ -57,7 +55,6 @@ describe('scene schema', () => {
     bad({ ...narration, who: ['a', 'b', 'c', 'd'] })
   })
 })
-
 describe('choice schema', () => {
   it('needs exactly one of to / check', () => {
     const check = { attr: 'wits', dc: 4, pass: { to: 'p' }, fail: { fx: [['stat', 'hp', -1]], to: 'f' } }
@@ -80,7 +77,6 @@ describe('choice schema', () => {
     ok({ ...choice, echo: { scene: 'x', at: 'c4' } }, choiceSchema)
   })
 })
-
 describe('condition schema', () => {
   const good: unknown[] = [
     ['flag', 'route_church'], ['honor', '>=', 21], ['tier', '>=', 'T4'], ['res', 'food', '>=', 2],
@@ -104,7 +100,6 @@ describe('condition schema', () => {
     bad({ all: [['flag', 'a']], not: ['flag', 'b'] }, conditionSchema)
   })
 })
-
 describe('effect schema', () => {
   const good: unknown[] = [
     ['honor', 'mercy', true], ['stat', 'hp', -1], ['res', 'food', -1], ['set', 'route_church'], ['clear', 'x'],

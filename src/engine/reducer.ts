@@ -1,5 +1,6 @@
 // engine/reducer.ts — reduce(state, action, story): the only state-changing path (ARCHITECTURE §4, §5); never throws
 import { choose, proceed } from './choose'
+import { debugJump, debugRoll, debugSet } from './debug'
 import { startGame } from './init'
 import { SYS_ERROR } from './ids'
 import { line, pushLog, type Applied } from './log'
@@ -16,6 +17,9 @@ function step(state: GameState, action: Action, story: Story): Applied {
       if (snapshot === undefined) return { state, log: [line('ERROR', 'ignored: LOAD snapshot is not a valid state for this story')] }
       return { state: snapshot, log: [line('FX', `loaded ${snapshot.scene}`)] }
     }
+    case 'DEBUG_JUMP': return debugJump(state, action.scene, story)
+    case 'DEBUG_SET': return debugSet(state, action.patch)
+    case 'DEBUG_ROLL': return debugRoll(state, action.roll)
   }
 }
 // A thrown error (for example a NaN reaching bounds.clamp) becomes an ERROR log line and the sys.error scene, never a blank screen.

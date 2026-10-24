@@ -1,12 +1,15 @@
-// ui/Game.tsx — picks the screen from useGame: title, background, play, ending, or the error fallback for a broken scene
+// ui/Game.tsx — picks the screen from useGame: title, background, settings, play, ending, or the error fallback; mounts the debug panel when main.tsx gave one
 import { useEffect, type RefObject } from 'react'
 import type { GameState, Story } from '../engine/types'
 import { ErrorFallback, type FallbackAction } from './components/ErrorFallback'
+import type { DebugPanelComponent } from './debugApi'
 import { playRoute } from './hooks/gameModel'
-import { useGame } from './hooks/useGame'
+import { useGame, type GameApi } from './hooks/useGame'
+import { useSettings, type SettingsApi } from './hooks/useSettings'
 import { BackgroundScreen } from './screens/BackgroundScreen'
 import { EndingScreen } from './screens/EndingScreen'
 import { PlayScreen } from './screens/PlayScreen'
+import { SettingsScreen } from './screens/SettingsScreen'
 import { TitleScreen } from './screens/TitleScreen'
 import type { Store } from './storage'
 import { S } from './strings'
@@ -14,14 +17,14 @@ interface Props {
   story: Story
   persist: Store
   stateRef: RefObject<GameState | undefined>
+  debugPanel?: DebugPanelComponent | undefined // only in dev or with ?debug=1
 }
-export function Game({ story, persist, stateRef }: Props) {
-  const g = useGame(story, persist)
-  useEffect(() => {
-    stateRef.current = g.game
-  }, [g.game, stateRef])
-  if (g.screen === 'title') return <TitleScreen saved={g.saved} persistent={g.persistent} onNew={g.openBackground} onContinue={g.resume} />
+function Screen({ g, s }: { g: GameApi; s: SettingsApi }) {
+  if (g.screen === 'title') return <TitleScreen saved={g.saved} persistent={g.persistent} onNew={g.openBackground} onContinue={g.resume} onSettings={g.openSettings} />
   if (g.screen === 'background') return <BackgroundScreen cards={g.cards} onBegin={g.start} onBack={g.toTitle} />
+  if (g.screen === 'settings') {
+    return <SettingsScreen settings={s.settings} damaged={s.damaged} saveError={s.saveError} canReset={g.from === 'title'} hasSave={g.saveExists} onChange={s.update} onReset={g.resetSave} onBack={g.back} />
+  }
   const v = g.view
   const route = playRoute(v)
   if (route === 'fallback') {
@@ -30,5 +33,21 @@ export function Game({ story, persist, stateRef }: Props) {
     return <ErrorFallback title={S.errorTitle} lines={v.lines.length > 0 ? v.lines : [S.errorMissing]} report={g.report} actions={actions} />
   }
   if (route === 'ending') return <EndingScreen view={v} hud={g.hud} onNew={g.openBackground} onTitle={g.toTitle} />
-  return <PlayScreen view={v} hud={g.hud} toasts={g.toasts} toastSeq={g.toastSeq} saveError={g.saveError} onChoose={g.choose} onNext={g.next} onMenu={g.toTitle} />
+  return (
+    <PlayScreen view={v} hud={g.hud} step={g.step} typewriter={!s.settings.reducedMotion} toasts={g.toasts} toastSeq={g.toastSeq} saveError={g.saveError}
+      onChoose={g.choose} onNext={g.next} onMenu={g.toTitle} onSettings={g.openSettings} />
+  )
+}
+export function Game({ story, persist, stateRef, debugPanel: Debug }: Props) {
+  const g = useGame(story, persist, Debug !== undefined)
+  const s = useSettings(persist.store)
+  useEffect(() => {
+    stateRef.current = g.game
+  }, [g.game, stateRef])
+  return (
+    <>
+      <Screen g={g} s={s} />
+      {Debug !== undefined && <Debug game={g.game} story={story} playing={g.screen === 'play'} dispatch={g.dispatch} report={g.report} />}
+    </>
+  )
 }
