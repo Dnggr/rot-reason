@@ -33,6 +33,7 @@ export const S = {
   begin: 'Begin',
   back: 'Back',
   menu: 'Menu',
+  choicesTitle: 'Choices',
   settings: 'Settings',
   textSize: 'Text size',
   sizes, toggles,

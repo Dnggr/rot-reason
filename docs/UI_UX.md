@@ -3,10 +3,10 @@
 **Principle:** the story is the interface. Fast to read, one-thumb to play, clear about cost before the click.
 
 ## 1. Target
-Mobile portrait first (360-430 px wide). Desktop = same layout centered, max width 560 px. Works offline after first load (PWA later).
+Mobile portrait first (360-430 px wide), one column. From 900 px up the Title and Play screens use the full-width stage layout of §3. Background, Settings, Ending and error screens stay a centered 560 px column. Works offline after first load (PWA later).
 
 ## 2. Screens
-Live: Title (New game, Continue, Settings; a second tap confirms erasing a save), Background, Play (Menu and Settings links under the choices), Settings (M2 s2), Ending, ErrorFallback. Next: Journal (M3), Camp (M4).
+Live: Title (Continue, New game, Settings in a left column over a backdrop; a second tap confirms erasing a save), Background, Play (stage layout, §3; Menu and Settings top-right on wide screens, at the bottom on narrow ones), Settings (M2 s2), Ending, ErrorFallback. Next: Journal (M3), Camp (M4).
 
 | Screen | Purpose | Key elements |
 |---|---|---|
@@ -18,33 +18,47 @@ Live: Title (New game, Continue, Settings; a second tap confirms erasing a save)
 | Ending | Epilogue | Ending title, one card per companion fate, stats recap, Share/Restart |
 | Settings | Comfort | Text size S/M/L/XL, soften violence, reduce motion, high contrast, sound, reset saved game. Opens from Title or Play and goes back there; Reset appears only when opened from Title. Changes apply at once and are saved (`rr_settings_v1`). A first run follows the device's reduced-motion preference |
 
-## 3. Play layout (portrait)
+## 3. Stage layout (owner's sketches, 2026-10-24)
+One full-screen **backdrop** per screen, with the UI laid over it (a visual-novel stage). Same DOM everywhere; CSS decides: a grid at 900 px and wider, one column below.
+
+**Title** (all sizes): backdrop `title`; the title, tagline and the buttons (Continue, New game, Settings) stacked in a left column at the bottom-left.
 ```
-+------------------------------+
-| D7 Dusk   HP ***--  Reason 72|   top bar: day, phase, vitals
-| Food 3  Ammo 1  Meds 0       |   resource chips
-| [====|====] Respected        |   honor meter (split)
-+------------------------------+
-|                              |
-|   [ scene art / silhouettes ]|   ~30% height, placeholder until art
-|   (Nora)  (Brick)            |
-+------------------------------+
-| The crypt door is warm.      |   narration (serif), tap = skip typing
-| Something knocks, slow...    |
-|                              |
-| Toast: Nora will remember.   |   auto-dismiss 2.5 s
-+------------------------------+
-| [Mercy] End her suffering    |   choices, thumb zone
-| [Honest] Tell everyone       |   chips: tone tag, cost, odds
-| [Quiet] Walk away            |
-| [locked] Persuade (needs ..) |   disabled with the reason shown
-+------------------------------+
-|  Journal   Party   Menu      |
-+------------------------------+
++------------------------------------------------------+
+|                 [ backdrop: title ]                  |
+|                                                      |
+|  Rot & Reason                                        |
+|  Every choice costs something.                       |
+|  [ Continue ]                                        |
+|  [ New game ]                                        |
+|  [ Settings ]                                        |
++------------------------------------------------------+
 ```
 
+**Play, wide (>= 900 px):**
+```
++------------------------------------------------------+
+| [HUD: Day Phase  HP  Reason         ]    Menu Settings|
+| [      Food Ammo Meds, honor meter  ]                |
+| (toasts)        [ backdrop: place ]                  |
+|                                                      |
+| +--------+   +------------------+  +---- CHOICES ---+|
+| |portrait|   | PLACE            |  | 1 Quiet  ...   ||
+| | (who)  |   | narration text,  |  | 2 Brave  ...   ||
+| |        |   | typewriter       |  | 3 Cold   ...   ||
+| +--------+   | [Continue]       |  +----------------+|
+|              +------------------+                    |
++------------------------------------------------------+
+```
+`next` scenes have no Choices panel: Continue sits inside the text box. `end` and `error` scenes use the Ending screen and the fallback.
+
+**Play, narrow (< 900 px):** one column: HUD, portrait row, text box, toasts, Choices panel (thumb zone), Menu / Settings at the bottom. The backdrop fills the whole page behind it.
+
+**Backdrop:** a gradient placeholder; an optional WebP at `public/bg/<place>.webp` (Play, keyed by the scene's `place`) or `public/bg/title.webp` (Title) is drawn over it. A missing file shows only the gradient, never an error. Keep each file at 80 KB or less (§10).
+
+**Portrait:** one silhouette per id in the scene's `who` (the first is the largest on wide screens); it becomes an illustration later (§6 art pipeline).
+
 ## 4. Components (small, dumb)
-Live: `StatBar` (top bar and resource chips), `HonorMeter`, `SceneView` (art placeholder and narration; `revealed` drives the typewriter), `ChoiceList`, `ChoiceButton` (shows its 1-4 key), `Toast`, `ReportButton`, `ErrorFallback`, `ErrorBoundary`, and `SettingsScreen`. Planned: `PartyCard`, `CharacterCard`, `TierBanner` (M3). Each ≤ 80 lines, props in, events out.
+Live: `Backdrop` (full-screen background layer), `StatBar` (vitals and resource chips), `HonorMeter`, `SceneView` (backdrop, portrait and the text box with the place caption and narration; `revealed` drives the typewriter; children, such as Continue, go inside the text box), `ChoiceList`, `ChoiceButton` (shows its 1-4 key), `Toast`, `ReportButton`, `ErrorFallback`, `ErrorBoundary`, and `SettingsScreen`. Planned: `PartyCard`, `CharacterCard`, `TierBanner` (M3). Each ≤ 80 lines, props in, events out.
 
 ## 5. Choice button spec
 - Tone tag chip (left), text, right chips: cost (`-2 Food`), odds word (`Risky` / `Even` / `Likely`), lock icon.
@@ -98,7 +112,7 @@ Live: `StatBar` (top bar and resource chips), `HonorMeter`, `SceneView` (art pla
 - All actions reachable by keyboard; focus order top-bar -> text -> choices.
 
 ## 10. Performance
-- No images in v1. Later: lazy-load art for next scene, WebP, ≤ 80 KB.
+- No images shipped yet: the backdrops are gradients; `/bg/<name>.webp` files are picked up when they exist (§3). Later: lazy-load art for the next scene, WebP, ≤ 80 KB.
 - Initial JS < 150 KB gzip; chapters code-split.
 - Typewriter uses `requestAnimationFrame`, not `setInterval` per char. The debug panel is a separate lazy chunk (about 2 KB gzip); the initial JS is about 111 KB gzip.
 

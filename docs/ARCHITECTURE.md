@@ -53,9 +53,9 @@ src/
     typewriter.ts   pure: MS_PER_CHAR, totalChars, tick, splitLines    keys.ts  keyCommand: 1-4 / Space / J    vitals.ts  low HP / Reason thresholds
     debugApi.ts     DebugApi + DebugPanelComponent: what the game hands the debug panel
     screens/    TitleScreen  BackgroundScreen  PlayScreen  SettingsScreen  EndingScreen (live)   Camp  Journal (later)
-    components/ StatBar  HonorMeter  SceneView  ChoiceList  ChoiceButton  Toast  ReportButton  ErrorFallback  ErrorBoundary (live)   CharacterCard (M3)
+    components/ Backdrop  StatBar  HonorMeter  SceneView  ChoiceList  ChoiceButton  Toast  ReportButton  ErrorFallback  ErrorBoundary (live)   CharacterCard (M3)
     hooks/      useGame.ts  gameModel.ts (pure reducer, autosave, Continue, playRoute, rewind)  useStory.ts  useSettings.ts  useTypewriter.ts  useKeys.ts
-    styles/     tokens.css  base.css  play.css  motion.css
+    styles/     tokens.css  base.css  play.css  stage.css (backdrop, HUD, portrait, text box, Choices panel, Title column; wide grid)  motion.css
   debug/        DebugPanel.tsx  StateView.tsx  Controls.tsx  forceRoll.ts  rrHandle.ts  debug.css   (live since M2 s2)
 scripts/        lint-story.ts  fuzz.ts  rules-check.ts  docs-check.ts  pack.ts
 tests/          engine/*.test.ts  ui/*.test.ts  golden/*.test.ts
@@ -152,9 +152,9 @@ Actions (typed in `engine/types.ts`): `START(bg,name,seed)`, `CHOOSE(choice)` wh
 
 - Screens are components that take `view` (+ `hud`) and callbacks only. No game logic in components. `useGame` holds `{ screen, game, checkpoint, toasts }` in one `useReducer` (`gameModel.uiReducer` wraps `reduce` and adds navigation); the boundary's report ref is the one read-only use of `GameState` outside the hook.
 - Text is rendered from `view.text`; typewriter effect is cosmetic and skippable; the full text is in the DOM from the start (accessibility, tests).
-- Styles in 4 CSS files (tokens, base, play, motion) plus `debug/debug.css` with the panel, all with CSS variables; no CSS-in-JS, no utility framework. Settings reach the page as `<html data-text="S|M|L|XL">` and the classes `hc`, `reduce-motion`, `soften` (`ui/settings.applySettings`); tokens and `motion.css` key off them. All animation is in `motion.css`.
+- Styles in 5 CSS files (tokens, base, play, stage, motion) plus `debug/debug.css` with the panel, all with CSS variables; no CSS-in-JS, no utility framework. Settings reach the page as `<html data-text="S|M|L|XL">` and the classes `hc`, `reduce-motion`, `soften` (`ui/settings.applySettings`); tokens and `motion.css` key off them. All animation is in `motion.css`.
 - `PlayScreen` owns the typewriter (`useTypewriter`, restarted by `step` = scenes played) and the keyboard (`useKeys` + `ui/keys.keyCommand`); a tap or key while text is typing only finishes it.
-- Images referenced by key from `place`/`who`; missing image -> placeholder, never an error.
+- Images referenced by key from `place`/`who`; missing image -> placeholder, never an error. `Backdrop` sets the CSS variable `--bg-img` to `url(/bg/<name>.webp)` (name stripped to letters, digits, `_`, `-`) over a gradient, so a missing file only leaves the gradient. `SceneView` renders as `display: contents` so its backdrop, portrait and text box are grid items of `.play` (`stage.css`).
 - Lazy-load chapters (`import('./chapters/ch2')`); initial bundle target < 150 KB gzip.
 
 ## 10. Deploy (Vercel)

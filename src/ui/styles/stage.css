@@ -1,0 +1,38 @@
+/* stage.css — the full-screen stage (UI_UX §3): backdrop layer, HUD top-left, portrait bottom-left, text box bottom-center, Choices panel right; Title menu on the left. Mobile stacks the same pieces in one column. */
+.stage, .play { position: relative; isolation: isolate; }
+.backdrop { position: absolute; inset: 0; z-index: 0; pointer-events: none; background-color: var(--bg); background-image: var(--bg-img, none), radial-gradient(120% 80% at 50% 0%, #20241d 0%, var(--bg) 70%); background-size: cover; background-position: center; }
+.backdrop::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), transparent 30%, transparent 55%, rgba(0, 0, 0, 0.6)); }
+.hud, .portrait, .textbox, .panel, .play-links, .toasts, .title-menu, .play > .notice { position: relative; z-index: 1; }
+.scene { display: contents; }
+.hud, .textbox, .panel { background: color-mix(in srgb, var(--panel) 84%, transparent); border: 1px solid var(--border); border-radius: 10px; }
+.hud { padding: var(--space) calc(var(--space) * 1.5); display: flex; flex-direction: column; gap: var(--space); }
+.hud .chips { margin-top: 0; }
+.textbox { padding: calc(var(--space) * 2); margin-top: auto; }
+.textbox .narration { margin-top: 0; }
+.textbox .place { display: block; margin-bottom: var(--space); font: 12px var(--font-ui); color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+.textbox .actions { margin-top: var(--space); }
+.portrait { display: flex; align-items: flex-end; gap: calc(var(--space) * 2); }
+.sil { font: 13px var(--font-ui); color: var(--muted); padding: 28px 14px 6px; min-width: 72px; text-align: center; border-radius: 45% 45% 0 0; background: color-mix(in srgb, var(--bg) 90%, transparent); border: 1px solid var(--border); }
+.panel { padding: calc(var(--space) * 1.5); }
+.panel h2 { margin: 0 0 var(--space); font: 600 13px var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.stage.title { max-width: none; min-height: 100dvh; display: flex; flex-direction: column; justify-content: flex-end; padding: 6dvh 6vw; }
+.title-menu { width: min(440px, 100%); }
+.title-menu h1 { font-size: clamp(2rem, 6vw, 3.25rem); line-height: 1.05; margin-bottom: var(--space); text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7); }
+.title-menu .tagline { margin-bottom: calc(var(--space) * 2); text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7); }
+.title-menu .btn { background: color-mix(in srgb, var(--panel) 88%, transparent); }
+@media (min-width: 900px) {
+  .play { max-width: none; min-height: 100dvh; padding: 20px 28px 28px; gap: 12px 24px; display: grid; grid-template-columns: minmax(200px, 24vw) minmax(0, 1fr) minmax(280px, 30vw); grid-template-rows: auto auto 1fr auto; grid-template-areas: 'hud hud links' 'toast toast .' '. . .' 'portrait text panel'; }
+  .hud { grid-area: hud; justify-self: start; min-width: 380px; }
+  .play-links { grid-area: links; justify-self: end; align-self: start; }
+  .play-links .btn { width: auto; }
+  .toasts { grid-area: toast; align-self: start; }
+  .portrait { grid-area: portrait; align-self: end; }
+  .portrait .sil:first-child { min-height: min(38dvh, 340px); min-width: 180px; padding-top: 60px; }
+  .textbox { grid-area: text; align-self: end; margin-top: 0; }
+  .panel { grid-area: panel; align-self: end; }
+  .play > .notice { grid-column: 2; }
+}
+@media (max-width: 899px) {
+  .portrait .sil { padding-top: 20px; min-width: 64px; }
+  .play-links { justify-content: center; }
+}

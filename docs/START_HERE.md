@@ -24,7 +24,7 @@ Paste this file first in any new Claude chat, then `HANDOFF.md`, then a repomix 
 
 ## Stack (decided; change only via the decision log in ROADMAP.md)
 
-Vite 8 + React 19 + TypeScript 7 (strict) + Vitest 5 (+ `@vitest/coverage-v8`, added in M1 s3, D16). Plain CSS variables. localStorage saves. No router, no state library (`useReducer`). Chapters lazy-loaded. Zod 4 (added in M1 s1, D12) validates story data in `engine/schema.ts`. **Node ≥ 22.12** (Vitest 5 requires it; Vite 8 alone needs 20.19+). Use `nvm install 22 && nvm use 22`.
+Vite 8 + React 19 + TypeScript 7 (strict) + Vitest 5 (+ `@vitest/coverage-v8`, added in M1 s3, D16). Plain CSS variables (5 files in `src/ui/styles`). localStorage saves. No router, no state library (`useReducer`). Chapters lazy-loaded. Zod 4 (added in M1 s1, D12) validates story data in `engine/schema.ts`. **Node ≥ 22.12** (Vitest 5 requires it; Vite 8 alone needs 20.19+). Use `nvm install 22 && nvm use 22`.
 
 ## Golden rules
 
@@ -46,7 +46,7 @@ Vite 8 + React 19 + TypeScript 7 (strict) + Vitest 5 (+ `@vitest/coverage-v8`, a
 docs/                 these files (read first, update last)
 src/engine/           pure logic: reducer (+ choose, flow, init, debug), select, conditions, effects, honor, rng, echoes, checks, choices, bounds, endings, save (+ stateSchema), ids, log, report
 src/story/            data only: chapters/ (prologue = the live intro; test chapter continues it until M4), index (assembles the Story), characters, backgrounds, endings, flags, system, honor, traits
-src/ui/               App, Game (screen router), strings, lockReason, toasts, names, storage, version, settings, typewriter, keys, vitals, debugApi; screens/ (Title, Background, Play, Settings, Ending); components/ (StatBar, HonorMeter, SceneView, ChoiceList/Button, Toast, ErrorFallback/Boundary, ReportButton); hooks/ (useGame + gameModel, useStory, useSettings, useTypewriter, useKeys); styles/ (tokens, base, play, motion)
+src/ui/               App, Game (screen router), strings, lockReason, toasts, names, storage, version, settings, typewriter, keys, vitals, debugApi; screens/ (Title, Background, Play, Settings, Ending); components/ (Backdrop, StatBar, HonorMeter, SceneView, ChoiceList/Button, Toast, ErrorFallback/Boundary, ReportButton); hooks/ (useGame + gameModel, useStory, useSettings, useTypewriter, useKeys); styles/ (tokens, base, play, stage, motion)
 src/debug/            DebugPanel (+ StateView, Controls, forceRoll, rrHandle), loaded lazily by main.tsx in dev or with ?debug=1; nothing else imports it; the report builder is src/engine/report.ts
 scripts/              lint-story (+ lintCore/Graph/Refs/Walk), fuzz (+ fuzzRun), rules-check, docs-check, pack
 tests/                engine unit tests + per-chapter golden paths + tests/ui (UI logic, render smoke)

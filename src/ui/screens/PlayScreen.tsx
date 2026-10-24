@@ -1,4 +1,4 @@
-// ui/screens/PlayScreen.tsx — the game: vitals, honor, scene with typewriter, toasts, choices or Continue (UI_UX §3). Mood class tints the page; low HP / Reason add a vignette / flicker (§7).
+// ui/screens/PlayScreen.tsx — the stage (UI_UX §3): HUD top-left, Menu / Settings top-right, portrait bottom-left, text box bottom-center (Continue lives there), Choices panel on the right. Mood class tints the page; low HP / Reason add a vignette / flicker (§7).
 import type { Hud, View } from '../../engine/select'
 import type { ChoiceId } from '../../engine/types'
 import { ChoiceList } from '../components/ChoiceList'
@@ -37,18 +37,27 @@ export function PlayScreen({ view, hud, step, typewriter, toasts, toastSeq, save
   return (
     <>
       <div className={mood}>
-        <StatBar hud={hud} />
-        <HonorMeter honor={hud.honor} tier={hud.tier} />
-        <SceneView view={view} revealed={tw.done ? undefined : tw.count} onSkip={tw.done ? undefined : tw.skip} />
+        <header className="hud">
+          <StatBar hud={hud} />
+          <HonorMeter honor={hud.honor} tier={hud.tier} />
+        </header>
+        <SceneView view={view} revealed={tw.done ? undefined : tw.count} onSkip={tw.done ? undefined : tw.skip}>
+          {view.kind !== 'choices' && (
+            <div className="actions" key={step}>
+              <button type="button" className="btn primary" onClick={next}>{S.continue}</button>
+            </div>
+          )}
+        </SceneView>
         <Toast lines={toasts} seq={toastSeq} />
         {saveError !== undefined && <p role="alert" className="notice">{S.saveFailed}</p>}
-        <div className="actions" key={step}>
-          {view.kind === 'choices' ? (
-            <ChoiceList choices={view.choices} onPick={choose} />
-          ) : (
-            <button type="button" className="btn primary" onClick={next}>{S.continue}</button>
-          )}
-        </div>
+        {view.kind === 'choices' && (
+          <aside className="panel" aria-label={S.choicesTitle}>
+            <h2>{S.choicesTitle}</h2>
+            <div className="actions" key={step}>
+              <ChoiceList choices={view.choices} onPick={choose} />
+            </div>
+          </aside>
+        )}
         <div className="play-links">
           <button type="button" className="btn link" onClick={onMenu}>{S.menu}</button>
           <button type="button" className="btn link" onClick={onSettings}>{S.settings}</button>

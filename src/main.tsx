@@ -6,6 +6,7 @@ import type { DebugPanelComponent } from './ui/debugApi'
 import './ui/styles/tokens.css'
 import './ui/styles/base.css'
 import './ui/styles/play.css'
+import './ui/styles/stage.css'
 import './ui/styles/motion.css'
 const root = document.getElementById('root')
 if (!root) throw new Error('#root missing in index.html')

@@ -39,10 +39,6 @@ input, textarea { width: 100%; font: var(--ui-size) var(--font-ui); color: var(-
 .honor-fill.neg { background: var(--blood); }
 .honor-mid { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--muted); }
 .honor-label { min-width: 84px; text-align: right; color: var(--muted); }
-.art { position: relative; min-height: 22vh; margin-top: var(--space); display: flex; flex-direction: column; justify-content: flex-end; padding: var(--space); border: 1px solid var(--border); border-radius: 8px; background: linear-gradient(180deg, var(--panel), var(--bg)); }
-.place { position: absolute; top: var(--space); left: var(--space); font: 12px var(--font-ui); color: var(--muted); text-transform: capitalize; }
-.who { display: flex; gap: calc(var(--space) * 2); flex-wrap: wrap; }
-.sil { font: 13px var(--font-ui); color: var(--muted); padding: 24px 12px 4px; border-radius: 40% 40% 0 0; background: var(--bg); border: 1px solid var(--border); }
 .narration { font-family: var(--font-story); font-size: var(--story-size); line-height: var(--story-line); margin-top: calc(var(--space) * 2); }
 .narration p { margin: 0 0 var(--space); }
 .toasts { min-height: 28px; }
