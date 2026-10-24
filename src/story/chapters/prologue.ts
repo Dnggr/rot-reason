@@ -121,8 +121,11 @@ export const scenes: Scene[] = [
   {
     id: 'p.dole', mood: 'tense', place: 'front_door', who: ['dole'],
     text: [
-      '"Hey, it\'s Walt, 3B." His voice is wet and too bright. "A man got me on the stairs. I hit him with my keys, hard, and he just kept—"',
-      '"I\'m burning up. I just need to sit down somewhere." He leans his forehead on the door and, without noticing, knocks again. Three slow ones. Polite. Patient.',
+      { say: 'dole', text: '"Hey, it\'s Walt, 3B."' },
+      'His voice is wet and too bright.',
+      { say: 'dole', text: '"A man got me on the stairs. I hit him with my keys, hard, and he just kept—"' },
+      { say: 'dole', text: '"I\'m burning up. I just need to sit down somewhere."' },
+      'He leans his forehead on the door and, without noticing, knocks again. Three slow ones. Polite. Patient.',
       { if: ['party', 'biscuit'], text: 'Under the table, a thin, steady whine. It is not a happy sound.' },
     ],
     choices: [
@@ -136,14 +139,17 @@ export const scenes: Scene[] = [
     text: [
       'You slide the bolt. Dole comes in sideways, like a man crossing a boat, and points at the bathroom. You walk him there.',
       'He sits on the edge of the tub and runs the cold tap over his head. He talks: his late wife\'s recipes, Biscuit\'s bad hip, the hospital wristband on the man from the stairs.',
-      '"I\'ll just rest a minute," he says. You pull the door to, for his dignity, and sit outside it with your back to the wall.',
+      { say: 'dole', text: '"I\'ll just rest a minute."' },
+      'You pull the door to, for his dignity, and sit outside it with your back to the wall.',
     ],
     next: 'p.hours',
   },
   {
     id: 'p.dole_out', mood: 'dread', place: 'front_door', who: ['dole'],
     text: [
-      '"I understand," Dole says, in the voice of a man who does not. "You\'ve been sick too. I heard you coughing."',
+      { say: 'dole', text: '"I understand."' },
+      'He says it in the voice of a man who does not.',
+      { say: 'dole', text: '"You\'ve been sick too. I heard you coughing."' },
       'You listen to him slide down the other side of your door until he is sitting on the landing.',
       { if: ['party', 'biscuit'], text: 'Under the table Biscuit makes a sound you have never heard from a dog. He does not go to the door.' },
       'After a while he stops talking. You do not hear him leave.',
@@ -153,8 +159,12 @@ export const scenes: Scene[] = [
   {
     id: 'p.dole_sent', mood: 'calm', place: 'front_door', who: ['dole'],
     text: [
-      '"St. Brigid\'s," he repeats, as if you had handed him a password. "Sure. That\'s smart." He wipes his face with his good hand.',
-      { if: ['party', 'biscuit'], text: '"If you\'ve got my dog, keep him till I\'m back. He likes the heel of a sandwich." He laughs, and it turns into a cough.' },
+      { say: 'dole', text: '"St. Brigid\'s."' },
+      'He repeats it as if you had handed him a password.',
+      { say: 'dole', text: '"Sure. That\'s smart."' },
+      'He wipes his face with his good hand.',
+      { if: ['party', 'biscuit'], say: 'dole', text: '"If you\'ve got my dog, keep him till I\'m back. He likes the heel of a sandwich."' },
+      { if: ['party', 'biscuit'], text: 'He laughs, and it turns into a cough.' },
       'You listen to him go: the slippers, the stairwell door, his weight on the first step. Then nothing. You wait for the second step.',
     ],
     next: 'p.hours',
@@ -215,9 +225,9 @@ export const scenes: Scene[] = [
     id: 'p.voice', mood: 'tense', place: 'bedroom', who: ['juno'],
     text: [
       'A girl breaks in over the loop, young and dry and out of breath.',
-      '"That was the recording. Same eleven seconds since four a.m. I\'m not on it. I\'m on top of it, which is illegal."',
-      '"If you can hear me: don\'t ring anything, start anything, or shout. Whatever they are, they follow noise. I don\'t have a word for them. Nobody does."',
-      '"But the recording does. \'The Rot.\' That man had a name ready before any of us had a problem. Think about that, then sleep."',
+      { say: 'juno', text: '"That was the recording. Same eleven seconds since four a.m. I\'m not on it. I\'m on top of it, which is illegal."' },
+      { say: 'juno', text: '"If you can hear me: don\'t ring anything, start anything, or shout. Whatever they are, they follow noise. I don\'t have a word for them. Nobody does."' },
+      { say: 'juno', text: '"But the recording does. \'The Rot.\' That man had a name ready before any of us had a problem. Think about that, then sleep."' },
     ],
     next: 'p.radio',
   },

@@ -17,10 +17,12 @@ export function flatten(c: Condition): Condition[] {
 }
 // Every condition tuple in a scene: beat conditions, choice `if` and `lock`.
 export function conditionsOf(scene: Scene): Condition[] {
-  const beats = typeof scene.text === 'string' ? [] : scene.text.flatMap((b) => (typeof b === 'string' ? [] : [b.if]))
+  const beats = typeof scene.text === 'string' ? [] : scene.text.flatMap((b) => (typeof b === 'string' || b.if === undefined ? [] : [b.if]))
   const choices = (scene.choices ?? []).flatMap((c) => [c.if, c.lock].filter((x): x is Condition => x !== undefined))
   return [...beats, ...choices].flatMap(flatten)
 }
+// Every character that speaks a line in a scene (`say` beats).
+export const speakersOf = (scene: Scene): string[] => (typeof scene.text === 'string' ? [] : scene.text.flatMap((b) => (typeof b !== 'string' && 'say' in b ? [b.say] : [])))
 // Where a scene can go next: choice targets, check branch targets, `next`.
 export function exitsOf(scene: Scene): string[] {
   const out = (scene.choices ?? []).flatMap((c) => (c.check ? [c.check.pass.to, c.check.fail.to] : c.to === undefined ? [] : [c.to]))

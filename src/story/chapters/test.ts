@@ -56,7 +56,7 @@ export const scenes: Scene[] = [
       { if: ['flag', 'dole_inside'], text: 'It is not Dole. You shut Dole in your bathroom. This is someone else, and it knocks the same way.' },
       { if: ['flag', 'dole_out'], text: 'It is Dole, in the same slippers. He does not turn when you whisper his name.' },
       { if: ['flag', 'dole_sent'], text: 'It is Dole, in his slippers, a long way from St. Brigid\'s.' },
-      { if: ['party', 'nora'], text: 'Nora whispers, "Don\'t look at it. Don\'t answer."' },
+      { if: ['party', 'nora'], say: 'nora', text: '"Don\'t look at it. Don\'t answer."' },
     ],
     next: '$resume',
   },

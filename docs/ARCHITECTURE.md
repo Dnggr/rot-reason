@@ -35,7 +35,7 @@ src/
     rng.ts          seeded mulberry32, pure: `nextFloat(rng) -> {value, rng}`, `nextInt`, `d6`, `initRng(seed)` (live since M1 s1)
     save.ts         makeSave, migrate, replay, loadSave, readSave / writeSave (storage injected) (live since M1 s3)
     stateSchema.ts  Zod schema for GameState and the save envelope, validState (live since M1 s3)
-    select.ts       view selectors: currentView(state, story) -> View (each locked choice carries its `lock` condition), hudOf(state) -> Hud (live since M1 s3; lock and hudOf M2 s1)
+    select.ts       view selectors: currentView(state, story) -> View (`lines` = all text; `beats` = each line with its `say` speaker; each locked choice carries its `lock` condition), hudOf(state) -> Hud (live since M1 s3; lock and hudOf M2 s1; beats D28)
     log.ts          LogLine, Applied, line, pushLog (200-entry ring buffer), formatEntry (live since M1 s2)
     report.ts       buildReport, reportText: the debug report JSON, pure (live since M2 s1)
     debug.ts        debugJump, debugSet, debugRoll, rngForRoll: the DEBUG_* actions (live since M2 s2)
@@ -51,11 +51,12 @@ src/
     strings.ts  lockReason.ts  toasts.ts  names.ts  storage.ts  version.ts
     settings.ts     Settings type, defaults, rr_settings_v1 read / write, applySettings (to <html>) (live since M2 s2)
     typewriter.ts   pure: MS_PER_CHAR, totalChars, tick, splitLines    keys.ts  keyCommand: 1-4 / Space / J    vitals.ts  low HP / Reason thresholds
+    turns.ts        pure: turnsOf(beats) -> Turn[] (a run of narration, or of one character's lines; D28)
     debugApi.ts     DebugApi + DebugPanelComponent: what the game hands the debug panel
     screens/    TitleScreen  BackgroundScreen  PlayScreen  SettingsScreen  EndingScreen (live)   Camp  Journal (later)
-    components/ Backdrop  StatBar  HonorMeter  SceneView  ChoiceList  ChoiceButton  Toast  ReportButton  ErrorFallback  ErrorBoundary (live)   CharacterCard (M3)
-    hooks/      useGame.ts  gameModel.ts (pure reducer, autosave, Continue, playRoute, rewind)  useStory.ts  useSettings.ts  useTypewriter.ts  useKeys.ts
-    styles/     tokens.css  base.css  play.css  stage.css (backdrop, HUD, portrait, text box, Choices panel, Title column; wide grid)  motion.css
+    components/ Backdrop  StatBar  HonorMeter  SceneView  Dock  Lines  ChoiceList  ChoiceButton  Toast  ReportButton  ErrorFallback  ErrorBoundary (live)   CharacterCard (M3)
+    hooks/      useGame.ts  gameModel.ts (pure reducer, autosave, Continue, playRoute, rewind)  useStory.ts  useSettings.ts  useTypewriter.ts  useTurn.ts  useKeys.ts
+    styles/     tokens.css  base.css  play.css  stage.css (backdrop, HUD, story, dock with portrait / spoken line / Choices panel, Title column; wide grid)  motion.css
   debug/        DebugPanel.tsx  StateView.tsx  Controls.tsx  forceRoll.ts  rrHandle.ts  debug.css   (live since M2 s2)
 scripts/        lint-story.ts  fuzz.ts  rules-check.ts  docs-check.ts  pack.ts
 tests/          engine/*.test.ts  ui/*.test.ts  golden/*.test.ts
@@ -140,7 +141,7 @@ Actions (typed in `engine/types.ts`): `START(bg,name,seed)`, `CHOOSE(choice)` wh
 
 ## 8. Tooling scripts
 
-- `lint-story.ts` (CLI) + `lintCore/Graph/Refs/Walk/Tone.ts` (live since M1 s3; `lintTone` since the intro: no "zombie" / "undead" in story text, story-share warning): schema per scene, duplicate ids, missing targets, reachability, no path to an ending, `$resume` rules, ending ids, flag / character / deed tag / background references, plus style warnings (STORY_FORMAT §8). Exits non-zero on error; warnings are printed.
+- `lint-story.ts` (CLI) + `lintCore/Graph/Refs/Walk/Tone.ts` (live since M1 s3; `lintTone` since the intro: no "zombie" / "undead" in story text, story-share warning): schema per scene, duplicate ids, missing targets, reachability, no path to an ending, `$resume` rules, ending ids, flag / character (`who`, `say`, conditions, effects) / deed tag / background references, plus style warnings (STORY_FORMAT §8). Exits non-zero on error; warnings are printed.
 - `fuzz.ts` (CLI) + `fuzzRun.ts` (live since M1 s3): `npm run fuzz -- [runs=1000] [seed=1]` plays random games per background with a seeded bot. Fails on soft-locks (no enabled choice), loops (> 500 steps), invalid state (`gameStateSchema`), any ERROR log line, a fallback ending, or a replay of `seed + bg + name + history` that differs from the live run. Prints the failing `seed` and history. Endings never reached are printed as information (M6 turns that into a gate).
 - Coverage: `npm run coverage` (`@vitest/coverage-v8`, D16) fails under 90% line coverage on `src/engine`.
 - `rules-check.ts`: line limits, header-comment check, engine/story purity (golden rules 1 and 3), and fails if git tracks anything under `node_modules/` or `dist/` (`git ls-files`; skipped with a warning outside git; added M1 s1). Live since M0.
@@ -151,10 +152,10 @@ Actions (typed in `engine/types.ts`): `START(bg,name,seed)`, `CHOOSE(choice)` wh
 ## 9. UI rules
 
 - Screens are components that take `view` (+ `hud`) and callbacks only. No game logic in components. `useGame` holds `{ screen, game, checkpoint, toasts }` in one `useReducer` (`gameModel.uiReducer` wraps `reduce` and adds navigation); the boundary's report ref is the one read-only use of `GameState` outside the hook.
-- Text is rendered from `view.text`; typewriter effect is cosmetic and skippable; the full text is in the DOM from the start (accessibility, tests).
+- Text is rendered from `view.beats` (`view.lines` is the same text without speakers); the scene is read turn by turn (`ui/turns.ts`, `useTurn`, D28); the typewriter effect is cosmetic and skippable; the full text of the turn being read is in the DOM from the start (accessibility, tests).
 - Styles in 5 CSS files (tokens, base, play, stage, motion) plus `debug/debug.css` with the panel, all with CSS variables; no CSS-in-JS, no utility framework. Settings reach the page as `<html data-text="S|M|L|XL">` and the classes `hc`, `reduce-motion`, `soften` (`ui/settings.applySettings`); tokens and `motion.css` key off them. All animation is in `motion.css`.
-- `PlayScreen` owns the typewriter (`useTypewriter`, restarted by `step` = scenes played) and the keyboard (`useKeys` + `ui/keys.keyCommand`); a tap or key while text is typing only finishes it.
-- Images referenced by key from `place`/`who`; missing image -> placeholder, never an error. `Backdrop` sets the CSS variable `--bg-img` to `url(/bg/<name>.webp)` (name stripped to letters, digits, `_`, `-`) over a gradient, so a missing file only leaves the gradient. `SceneView` renders as `display: contents` so its backdrop, portrait and text box are grid items of `.play` (`stage.css`).
+- `PlayScreen` owns the turn (`useTurn`, restarted by `step` = scenes played), the typewriter (`useTypewriter`, restarted by each turn) and the keyboard (`useKeys` + `ui/keys.keyCommand`); a tap or key while text is typing only finishes it. The choices and their keys exist on the last turn only.
+- Images referenced by key from `place` and the speaking character (`say`); missing image -> placeholder, never an error. `Backdrop` sets the CSS variable `--bg-img` to `url(/bg/<name>.webp)` (name stripped to letters, digits, `_`, `-`) over a gradient, so a missing file only leaves the gradient. `SceneView` renders as `display: contents` so its backdrop and story text are grid items of `.play`; `Dock` (portrait, spoken line, Choices panel) is its own grid item, rendered only while a character talks or choices are offered (`stage.css`).
 - Lazy-load chapters (`import('./chapters/ch2')`); initial bundle target < 150 KB gzip.
 
 ## 10. Deploy (Vercel)

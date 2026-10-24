@@ -13,7 +13,7 @@ export function EndingScreen({ view, hud, onNew, onTitle }: Props) {
     <main className={`shell ending mood-${view.mood ?? 'calm'}`}>
       <p className="muted">{S.theEnd}</p>
       <h1>{S.ending(view.ending ?? '')}</h1>
-      <SceneView view={{ lines: view.lines, who: [], place: undefined }} />
+      <SceneView place={undefined} now={{ who: undefined, lines: view.lines }} />
       <section aria-label={S.recap}>
         <h2>{S.recap}</h2>
         <dl className="recap">

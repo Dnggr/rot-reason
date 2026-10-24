@@ -91,12 +91,12 @@ describe('screens', () => {
     expect(out).toContain('You know Pier 9')
     expect(out).toContain('placeholder="Ash"')
   })
-  it('PlayScreen shows the opening scene: narration, who, and its choices with cost and odds', () => {
+  it('PlayScreen shows the opening scene: narration and its choices with cost and odds (nobody talks, so no portrait)', () => {
     const ui = [{ type: 'START', bg: 'dockworker', name: 'Ash', seed: 7 } as const].reduce(uiReducer(story), initialUi(story))
     const view = currentView(ui.game, story)
     const out = html(createElement(PlayScreen, { view, hud: hudOf(ui.game), step: 0, typewriter: false, toasts: ['Honor +5'], toastSeq: 1, saveError: 'quota', onChoose: noop, onNext: noop, onMenu: noop, onSettings: noop }))
     expect(out).toContain('Sirens drag you out of sleep')
-    expect(out).toContain('Nora')
+    expect(out).not.toContain('class="portrait"')
     expect(out).toContain('-1 Food')
     expect(out).toContain('Honor +5')
     expect(out).toContain('Could not save')

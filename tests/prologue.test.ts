@@ -22,6 +22,16 @@ function tour(story: Story, bg: string, seed: number, picks: Picks): GameState {
 const story = await loadStory()
 const share = (s: GameState): number => s.history.filter((h) => h.endsWith(':>')).length / s.history.length
 const scenesPlayed = (s: GameState): string[] => s.history.map((h) => h.slice(0, h.indexOf(':')))
+describe('the intro: who talks (UI_UX §3)', () => {
+  const who = (scene: string): (string | undefined)[] => currentView(makeState({ scene }), story).beats.map((b) => b.say)
+  it('Dole speaks his own lines at the door, with narration between them', () => {
+    expect(who('p.dole')).toEqual(['dole', undefined, 'dole', 'dole', undefined])
+    expect(currentView(makeState({ scene: 'p.dole' }), story).beats[0]?.text).toBe('"Hey, it\'s Walt, 3B."')
+  })
+  it('Juno speaks the three lines on the radio after the narration', () => {
+    expect(who('p.voice')).toEqual([undefined, 'juno', 'juno', 'juno'])
+  })
+})
 describe('the intro: pacing (D22)', () => {
   it('starts at p.dream and hands over to t.wake', () => {
     expect(story.start).toBe('p.dream')

@@ -73,6 +73,8 @@ describe('lintStory: references', () => {
     expect(has(lint(one([['kill', 'ghost']])).errors, 'unknown character ghost')).toBe(true)
     expect(has(lint([{ ...base[0], who: ['ghost'] } as Scene, base[1] as Scene]).errors, 'c1.a who: unknown character ghost')).toBe(true)
     expect(has(lint(one([], [{ if: { any: [['party', 'ghost']] }, text: 'x' }])).errors, 'unknown character ghost')).toBe(true)
+    expect(has(lint(one([], [{ say: 'ghost', text: '"Boo."' }])).errors, 'c1.a say: unknown character ghost')).toBe(true)
+    expect(lint(one([], [{ say: 'nora', text: '"Hi."' }, { say: 'nora', if: ['flag', 'known'], text: '"Hello."' }])).errors).toEqual([])
     expect(has(lint(one([['honor', 'sneeze', true]])).errors, 'unknown deed tag sneeze')).toBe(true)
     expect(has(lint(one([], [{ if: ['bg', 'astronaut'], text: 'x' }])).errors, 'unknown background astronaut')).toBe(true)
   })

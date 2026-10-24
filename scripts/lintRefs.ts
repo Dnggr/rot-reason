@@ -1,7 +1,7 @@
 // scripts/lintRefs.ts — reference checks: flags, characters, deed tags, backgrounds, secrets, plus the style warnings
 import { SYS_SCENES } from '../src/engine/ids'
 import type { Scene, Story } from '../src/engine/types'
-import { conditionsOf, effectsOf, flatten, wordCount } from './lintWalk'
+import { conditionsOf, effectsOf, flatten, speakersOf, wordCount } from './lintWalk'
 const unique = <T>(xs: T[]): T[] => [...new Set(xs)]
 export function lintRefs(story: Story, flags: Readonly<Record<string, string>>, errors: string[], warnings: string[]): void {
   const scenes = Object.values(story.scenes).filter((s) => !SYS_SCENES.includes(s.id))
@@ -18,6 +18,7 @@ export function lintRefs(story: Story, flags: Readonly<Record<string, string>>, 
   }
   for (const s of scenes) {
     for (const w of s.who ?? []) npcs(`${s.id} who`, w)
+    for (const w of speakersOf(s)) npcs(`${s.id} say`, w)
     for (const c of conditionsOf(s)) {
       if ('all' in c || 'any' in c || 'not' in c) continue
       if (c[0] === 'flag') flag(s.id, c[1], readers)

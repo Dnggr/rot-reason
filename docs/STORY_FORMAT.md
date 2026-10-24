@@ -15,8 +15,8 @@ One file per chapter part, ≤ 400 lines. Files export `scenes: Scene[]` (a plai
 | Field | Required | Meaning |
 |---|---|---|
 | `id` | yes | unique |
-| `text` | yes | `string` or `Beat[]`. Beat = `string` or `{ if, text }` for conditional lines |
-| `who` | no | characters on screen (portraits), max 3 |
+| `text` | yes | `string` or `Beat[]`. Beat = `string`, `{ if, text }` for a conditional line, or `{ say, text, if? }` for a line a character speaks (see below) |
+| `who` | no | characters present in the scene, max 3 (checked by the linter; the stage draws a portrait only for the character speaking a `say` line) |
 | `place` | no | background key (`"church_nave"`) |
 | `mood` | no | `calm`, `tense`, `dread`, `warm`, `glitch` (drives UI style) |
 | `on` | no | effects applied on entering the scene |
@@ -26,6 +26,15 @@ One file per chapter part, ≤ 400 lines. Files export `scenes: Scene[]` (a plai
 | `time` | no | `{ day?, phase? }` clock change, applied when the player leaves the scene |
 | `glitch` | no | text shown instead of `text` when Reason is under 30 |
 | `tags` | no | `camp`, `gate`, `hub`, `echo` (used by tooling) |
+
+### Spoken lines (`say`, D28)
+
+A `say` beat is one line spoken by a character: `{ say: 'dole', text: '"I just need to sit down."' }`, optionally with `if`. `say` is a character id from `characters.ts` (unknown id = lint error; it need not be in `who`). `text` carries its own quotation marks.
+
+- The Play stage reads a scene turn by turn: beats with no `say` (narration) go in the middle of the screen; a `say` beat shows in the bottom dock with that character's portrait, and stays in the middle text, under their name, once the player moves on. Neighbouring beats with the same speaker form one turn (a speaker's three paragraphs are one Continue).
+- Write a mixed line as separate beats: `'"I understand," Dole says, in the voice of a man who does not. "You\'ve been sick too."'` becomes `{ say: 'dole', text: '"I understand."' }`, then the narration `'He says it in the voice of a man who does not.'`, then another `say` beat.
+- Speakers who are not characters (a recording, a voice on the phone, "the foreman") stay ordinary narration beats.
+- The choices show on the scene's last turn only, so end a choice scene on the beat the player answers, whether it is narration or speech.
 
 ## 3. Choice
 
@@ -123,8 +132,8 @@ Adding a new effect or condition kind = edit `engine/effects.ts` or `conditions.
 
 ## 8. Linter checks (`npm run lint:story`)
 
-Schema (`engine/schema.ts`, rejects a scene before the graph is checked): unknown key, condition/effect with unknown kind or bad shape, scene without exactly one of `choices` / `next` / `end`, choice without exactly one of `to` / `check`, more than 4 choices, duplicate choice ids, choice text > 12 words, more than 3 `who`, `echo` without exactly one of `after` / `at`.
-Errors (graph and references, `scripts/lint*.ts`): duplicate id, id without a `.`, missing target (exits and echoes), unreachable scene, scene with no path to an ending, `$resume` outside an echo scene or an echo scene with another exit, unknown ending id, last ending rule with a condition, missing system scene, unknown flag / character / deed tag / background, plus any schema failure. (Items are not checked: there are none yet.)
+Schema (`engine/schema.ts`, rejects a scene before the graph is checked): unknown key, condition/effect with unknown kind or bad shape, scene without exactly one of `choices` / `next` / `end`, choice without exactly one of `to` / `check`, more than 4 choices, duplicate choice ids, choice text > 12 words, more than 3 `who`, a `say` beat without `text` or with an empty `say`, `echo` without exactly one of `after` / `at`.
+Errors (graph and references, `scripts/lint*.ts`): duplicate id, id without a `.`, missing target (exits and echoes), unreachable scene, scene with no path to an ending, `$resume` outside an echo scene or an echo scene with another exit, unknown ending id, last ending rule with a condition, missing system scene, unknown flag / character (in `who`, `say`, conditions and effects) / deed tag / background, plus any schema failure. (Items are not checked: there are none yet.)
 Errors also: in-world text (scene text, glitch, choice text) contains "zombie" / "undead" (`lintTone.ts`, D23).
 Warnings: a chapter of 8+ scenes where more than 15% of scenes ask for a choice (story share under 85%, `lintTone.ts`, D22; the share counts authored scenes, so a route through branches can differ: `tests/prologue.test.ts` checks the real routes of the intro), flag set but never read, flag read but never set, reveal of a secret no scene holds, no honor tag in a chapter, scene text > 90 words, same outcome on all choices (fake choice), every choice has `if`/`lock` (possible soft-lock).
 

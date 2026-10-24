@@ -1,33 +1,35 @@
-// ui/components/SceneView.tsx — the stage pieces of a scene: backdrop, portrait (who), and the text box (place caption + narration + optional children). The full text is always in the DOM (UI_UX §9); `revealed` only makes the tail transparent (typewriter).
+// ui/components/SceneView.tsx — the middle of the stage (UI_UX §3): backdrop plus the story text. Narration and, once a character has talked, their lines stay here in order; `children` (Continue) go under the text.
 import type { ReactNode } from 'react'
-import type { View } from '../../engine/select'
 import { shortName } from '../names'
-import { splitLines } from '../typewriter'
+import type { Turn } from '../turns'
 import { Backdrop } from './Backdrop'
+import { Lines } from './Lines'
 interface Props {
-  view: Pick<View, 'lines' | 'who' | 'place'>
-  revealed?: number | undefined // characters shown so far; undefined = all
-  onSkip?: (() => void) | undefined // tapping the narration finishes the typing
-  children?: ReactNode // extra content inside the text box (the Continue button of a `next` scene)
+  place: string | undefined
+  done?: readonly Turn[] // turns already read: narration, and speech with the speaker's name
+  now?: Turn | undefined // the turn being read, shown here only when it is narration (a speech turn is in the Dock)
+  revealed?: number | undefined // characters of `now` shown so far; undefined = all
+  onSkip?: (() => void) | undefined // tapping the text finishes the typing
+  children?: ReactNode
 }
-export function SceneView({ view, revealed, onSkip, children }: Props) {
-  const parts = revealed === undefined ? view.lines.map((l) => ({ shown: l, rest: '' })) : splitLines(view.lines, revealed)
+export function SceneView({ place, done = [], now, revealed, onSkip, children }: Props) {
   return (
     <section className="scene">
-      <Backdrop name={view.place} />
-      {view.who.length > 0 && (
-        <div className="portrait" aria-hidden="true">
-          {view.who.map((id) => (
-            <span key={id} className="sil">{shortName(id)}</span>
-          ))}
-        </div>
-      )}
-      <div className="textbox">
-        {view.place !== undefined && <span className="place">{view.place.replaceAll('_', ' ')}</span>}
+      <Backdrop name={place} />
+      <div className="story">
+        {place !== undefined && <span className="place">{place.replaceAll('_', ' ')}</span>}
         <div className="narration" aria-live="polite" onClick={onSkip}>
-          {parts.map((p, i) => (
-            <p key={i}>{p.shown}{p.rest !== '' && <span className="tw-rest">{p.rest}</span>}</p>
-          ))}
+          {done.map((t, i) =>
+            t.who === undefined ? (
+              <Lines key={i} lines={t.lines} />
+            ) : (
+              <div key={i} className="said">
+                <span className="by">{shortName(t.who)}</span>
+                <Lines lines={t.lines} />
+              </div>
+            ),
+          )}
+          {now !== undefined && <Lines lines={now.lines} revealed={revealed} />}
         </div>
         {children}
       </div>

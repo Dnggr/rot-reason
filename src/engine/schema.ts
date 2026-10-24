@@ -67,7 +67,11 @@ export const choiceSchema = z
     echo: z.exactOptional(echoSpec),
   })
   .refine((c) => (c.to === undefined) !== (c.check === undefined), "choice needs exactly one of 'to' or 'check'")
-const beat = z.union([z.string().min(1), z.strictObject({ if: conditionSchema, text: z.string().min(1) })])
+const beat = z.union([
+  z.string().min(1),
+  z.strictObject({ if: conditionSchema, text: z.string().min(1) }),
+  z.strictObject({ say: id, if: z.exactOptional(conditionSchema), text: z.string().min(1) }),
+])
 export const sceneSchema = z
   .strictObject({
     id,

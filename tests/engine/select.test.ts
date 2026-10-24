@@ -24,6 +24,14 @@ describe('currentView', () => {
     expect(v.lines).toEqual(['plain line', 'seen line'])
     expect(currentView(makeState({ scene: 'c1.a' }), story).lines).toEqual(['plain line'])
   })
+  it('gives each line with its speaker (`say`), keeps the conditions, and `lines` is the same text', () => {
+    const talk: Scene = { id: 'c1.t', next: 'c1.a', text: ['narration', { say: 'nora', text: '"Hi."' }, { if: ['flag', 'seen'], say: 'nora', text: '"Seen."' }, { if: ['flag', 'seen'], text: 'seen line' }] }
+    const st = makeStory([talk])
+    const v = currentView(makeState({ scene: 'c1.t', flags: { seen: true } }), st)
+    expect(v.beats).toEqual([{ text: 'narration', say: undefined }, { text: '"Hi."', say: 'nora' }, { text: '"Seen."', say: 'nora' }, { text: 'seen line', say: undefined }])
+    expect(v.lines).toEqual(v.beats.map((b) => b.text))
+    expect(currentView(makeState({ scene: 'c1.t' }), st).beats.map((b) => b.text)).toEqual(['narration', '"Hi."'])
+  })
   it('low reason shows the glitch text instead', () => {
     expect(currentView(makeState({ scene: 'c1.a', stats: { hp: 5, reason: 29, rot: 0 } }), story).lines).toEqual(['the walls breathe'])
     expect(currentView(makeState({ scene: 'c1.a', stats: { hp: 5, reason: 30, rot: 0 } }), story).lines).toHaveLength(1)

@@ -5,7 +5,7 @@ Mobile-first zombie story game. Read, choose, live with it. Every choice costs s
 - **Genre:** choice-driven survival story (inspired by *Life in Adventure*)
 - **Platform:** web, deployed on Vercel
 - **Stack:** Vite + React + TypeScript, data-driven story engine
-- **Status:** M1 engine core done; M2 UI shell code done (screens, autosave, Continue, error fallback, Settings, keyboard, typewriter, DebugPanel at `?debug=1`); the phone check is the owner's. The Title and Play screens now use the stage layout from the owner's sketches (backdrop, HUD, portrait, text box, Choices panel). See `docs/HANDOFF.md` for the newest state.
+- **Status:** M1 engine core done; M2 UI shell code done (screens, autosave, Continue, error fallback, Settings, keyboard, typewriter, DebugPanel at `?debug=1`); the phone check is the owner's. The Title and Play screens use the stage layout from the owner's sketches: the story in the middle, and a bottom dock (portrait, spoken line, Choices) only while a character talks. See `docs/HANDOFF.md` for the newest state.
 
 ## Rule 0 (for humans and AI)
 **Read `/docs` first. After you change or fix anything, update `/docs` to match.** Details: `docs/START_HERE.md`.

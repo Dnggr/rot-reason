@@ -6,7 +6,7 @@
 Mobile portrait first (360-430 px wide), one column. From 900 px up the Title and Play screens use the full-width stage layout of §3. Background, Settings, Ending and error screens stay a centered 560 px column. Works offline after first load (PWA later).
 
 ## 2. Screens
-Live: Title (Continue, New game, Settings in a left column over a backdrop; a second tap confirms erasing a save), Background, Play (stage layout, §3; Menu and Settings top-right on wide screens, at the bottom on narrow ones), Settings (M2 s2), Ending, ErrorFallback. Next: Journal (M3), Camp (M4).
+Live: Title (Continue, New game, Settings in a left column over a backdrop; a second tap confirms erasing a save), Background, Play (stage layout, §3: the story in the middle, a bottom dock only while a character talks or choices are offered; Menu and Settings top-right on wide screens, at the bottom on narrow ones), Settings (M2 s2), Ending, ErrorFallback. Next: Journal (M3), Camp (M4).
 
 | Screen | Purpose | Key elements |
 |---|---|---|
@@ -39,32 +39,43 @@ One full-screen **backdrop** per screen, with the UI laid over it (a visual-nove
 +------------------------------------------------------+
 | [HUD: Day Phase  HP  Reason         ]    Menu Settings|
 | [      Food Ammo Meds, honor meter  ]                |
-| (toasts)        [ backdrop: place ]                  |
+| (toasts)                                             |
+|                      PLACE                           |
+|     The story, in the middle: narration, and what    |
+|     each character said, once they have said it      |
+|                    [ Continue ]                     |
 |                                                      |
-| +--------+   +------------------+  +---- CHOICES ---+|
-| |portrait|   | PLACE            |  | 1 Quiet  ...   ||
-| | (who)  |   | narration text,  |  | 2 Brave  ...   ||
-| |        |   | typewriter       |  | 3 Cold   ...   ||
-| +--------+   | [Continue]       |  +----------------+|
-|              +------------------+                    |
+| +------------------ dock (only when ... ) ---------+ |
+| | +--------+  +------------------+  +-- CHOICES --+ | |
+| | |portrait|  | NAME             |  | 1 Quiet ... | | |
+| | |(speaker)|  | their line,      |  | 2 Brave ... | | |
+| | |        |  | typewriter       |  | 3 Cold  ... | | |
+| | +--------+  | [Continue]       |  +-------------+ | |
+| |             +------------------+                  | |
+| +--------------------------------------------------+ |
 +------------------------------------------------------+
 ```
-`next` scenes have no Choices panel: Continue sits inside the text box. `end` and `error` scenes use the Ending screen and the fallback.
+**Reading a scene, turn by turn (D28).** `ui/turns.ts` groups a scene's beats into turns: a run of narration, or a run of lines by one character (`say`, STORY_FORMAT §2). Continue moves to the next turn; from the last turn it leaves the scene (`next` scenes), or the Choices panel appears (choice scenes).
+- **Narration turn:** typed in the middle; no dock; Continue sits under the text.
+- **Speech turn:** the dock appears: the speaker's portrait on the left, their line typed in the text box (Continue inside it). Nobody else's portrait is shown, and `who` alone no longer draws one.
+- **After they talked:** when the player moves on, the line stays in the middle text under the speaker's name, so the middle is the running record of the scene.
+- **Choices:** shown on the last turn only, in the dock's right-hand panel. If nobody talks on that turn, the dock holds only the Choices panel, so a choice is never hidden.
+- `end` and `error` scenes use the Ending screen and the fallback.
 
-**Play, narrow (< 900 px):** one column: HUD, portrait row, text box, toasts, Choices panel (thumb zone), Menu / Settings at the bottom. The backdrop fills the whole page behind it.
+**Play, narrow (< 900 px):** one column: HUD, the story (fills the space), toasts, the dock (portrait row, text box, Choices panel: thumb zone), Menu / Settings at the bottom. The backdrop fills the whole page behind it.
 
 **Backdrop:** a gradient placeholder; an optional WebP at `public/bg/<place>.webp` (Play, keyed by the scene's `place`) or `public/bg/title.webp` (Title) is drawn over it. A missing file shows only the gradient, never an error. Keep each file at 80 KB or less (§10).
 
-**Portrait:** one silhouette per id in the scene's `who` (the first is the largest on wide screens); it becomes an illustration later (§6 art pipeline).
+**Portrait:** one silhouette for the character who is talking (`say`), with their name; it becomes an illustration later (§6 art pipeline).
 
 ## 4. Components (small, dumb)
-Live: `Backdrop` (full-screen background layer), `StatBar` (vitals and resource chips), `HonorMeter`, `SceneView` (backdrop, portrait and the text box with the place caption and narration; `revealed` drives the typewriter; children, such as Continue, go inside the text box), `ChoiceList`, `ChoiceButton` (shows its 1-4 key), `Toast`, `ReportButton`, `ErrorFallback`, `ErrorBoundary`, and `SettingsScreen`. Planned: `PartyCard`, `CharacterCard`, `TierBanner` (M3). Each ≤ 80 lines, props in, events out.
+Live: `Backdrop` (full-screen background layer), `StatBar` (vitals and resource chips), `HonorMeter`, `SceneView` (backdrop and the story text in the middle: finished turns, with a speaker's name on what they said, plus the narration turn being read; `revealed` drives the typewriter; children, such as Continue, go under the text), `Dock` (the speaker's portrait, their line in a text box with Continue inside, and the Choices panel), `Lines` (typed paragraphs), `ChoiceList`, `ChoiceButton` (shows its 1-4 key), `Toast`, `ReportButton`, `ErrorFallback`, `ErrorBoundary`, and `SettingsScreen`. Planned: `PartyCard`, `CharacterCard`, `TierBanner` (M3). Each ≤ 80 lines, props in, events out.
 
 ## 5. Choice button spec
 - Tone tag chip (left), text, right chips: cost (`-2 Food`), odds word (`Risky` / `Even` / `Likely`), lock icon.
 - Locked: shows why. `select.currentView` gives `enabled`, `why: 'lock' | 'cost'` and, for a lock, the `lock` condition; `ui/lockReason.ts` words it (D20, no authored field): trait -> "Needs Medic"; honor / stat / attr / res / day -> "Honor 21+", "Honor -21 or lower"; tier -> "Respected or higher"; trust -> "Needs Nora's trust"; fear -> "Brick must fear you"; party -> "Needs Nora with you"; alive -> "Juno must be alive"; flag, secret, bg and all / any / not -> "Locked" (a flag name would spoil). Unaffordable: cost chip plus "Not enough". The button uses `aria-disabled`, not `disabled`, so the reason stays readable by screen readers. If a scene ever needs custom wording, add an optional `lockText` to `Choice` (not built).
 - Min tap target 48 px; spacing 8 px; max 4 buttons.
-- Keyboard (live, `ui/keys.ts`): `1-4` pick that choice (locked ones do nothing); `Space` finishes the typing, then continues a narration scene; `J` is reserved for the Journal (M3, does nothing yet). Keys do nothing inside a text field, with ctrl / meta / alt, on key repeat, and `Space` leaves a focused button to press itself. The choice buttons show their number on devices with a keyboard.
+- Keyboard (live, `ui/keys.ts`): `1-4` pick that choice (locked ones do nothing; they work once the choices show, on the last turn); `Space` finishes the typing, then goes to the next turn, and from the last turn continues a narration scene (it does nothing once the choices show); `J` is reserved for the Journal (M3, does nothing yet). Keys do nothing inside a text field, with ctrl / meta / alt, on key repeat, and `Space` leaves a focused button to press itself. The choice buttons show their number on devices with a keyboard.
 - While the text is still typing, a tap on a choice or Continue, or a `1-4` key, only finishes the typing; the next one acts. A double tap cannot run past a scene unread.
 - Confirm step only for irreversible high-impact choices (kill, betray): press and hold 400 ms or second tap. Not built: it needs a scene flag (M3+).
 
@@ -89,7 +100,7 @@ Live: `Backdrop` (full-screen background layer), `StatBar` (vitals and resource 
 - **Art pipeline:** v1 silhouettes (SVG/CSS) -> v2 AI or commissioned illustrations in WebP ≤ 80 KB each, 16:9 crop, keyed by `place`/`who`.
 
 ## 7. Juice (cheap and meaningful)
-- Typewriter text (live, `MS_PER_CHAR` = 30 in `ui/typewriter.ts`, requestAnimationFrame): the whole text is in the DOM at once and the unshown tail is only made transparent, so layout never jumps and screen readers get it all. Tap the narration, press `Space`, or tap a choice or Continue to finish it. Off with Reduce motion. Choice buttons ease in, one after the other (live).
+- Typewriter text (live, `MS_PER_CHAR` = 30 in `ui/typewriter.ts`, requestAnimationFrame): the whole text of the turn being read is in the DOM at once and the unshown tail is only made transparent, so layout never jumps and screen readers get it all. Tap the narration, press `Space`, or tap a choice or Continue to finish it. Off with Reduce motion. Choice buttons ease in, one after the other (live).
 - Low HP (live, hp 2 or less): a red vignette pulse over the screen. Low Reason (live, under 30): a faint glow and flicker on the narration. Both stop pulsing with Reduce motion (the vignette stays, still). Not built: text jitter on random words, whisper lines, a disabled option labeled wrong. (The `glitch` text swap is in the engine.)
 - Honor tier change: full-screen banner for 2 s.
 - Toasts (live, `ui/toasts.ts`, built from the state diff, max 5, 2.5 s): "Honor +5", "-1 HP", "-1 Food", "Brick will remember that". The deed tag is not shown (the diff has none).
@@ -108,7 +119,7 @@ Live: `Backdrop` (full-screen background layer), `StatBar` (vitals and resource 
 - No color-only meaning (icons + labels for stats and tiers).
 - `prefers-reduced-motion` honored (CSS media query in `motion.css`, and it sets the first-run default); the in-app Reduce motion also switches off the typewriter. All animation lives in `motion.css`, behind one switch.
 - Focus is not moved on a scene change: the choices are rebuilt, so focus falls back to the page and `1-4` / `Space` keep working; Tab starts again from the top.
-- Full text is in DOM immediately (screen readers); `aria-live="polite"` on the scene region.
+- The full text of the turn being read is in the DOM immediately (screen readers); later turns are added as the player continues; `aria-live="polite"` on the story and the spoken line.
 - All actions reachable by keyboard; focus order top-bar -> text -> choices.
 
 ## 10. Performance

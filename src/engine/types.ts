@@ -55,7 +55,10 @@ export type Effect =
   | readonly ['echo', EchoSpec]
   | readonly ['time', TimeChange]
 // ---- Scene (STORY_FORMAT §2, §3) ----
-export type Beat = string | { readonly if: Condition; readonly text: string }
+export type Beat =
+  | string
+  | { readonly if: Condition; readonly text: string }
+  | { readonly say: string; readonly text: string; readonly if?: Condition } // a line spoken by the character `say` (STORY_FORMAT §2, UI_UX §3)
 export interface CheckBranch {
   fx?: readonly Effect[]
   to: SceneId

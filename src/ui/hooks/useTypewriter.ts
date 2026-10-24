@@ -1,4 +1,4 @@
-// ui/hooks/useTypewriter.ts — reveals the narration a few characters per frame (requestAnimationFrame, UI_UX §10); skippable; disabled means all at once
+// ui/hooks/useTypewriter.ts — reveals one turn's text a few characters per frame (requestAnimationFrame, UI_UX §10); skippable; disabled means all at once
 import { useCallback, useEffect, useState } from 'react'
 import { tick, totalChars } from '../typewriter'
 export interface Typewriter {
@@ -7,15 +7,15 @@ export interface Typewriter {
   skip(): void
 }
 interface St {
-  step: number // which scene this count belongs to
+  step: number | string // which scene (and turn) this count belongs to
   count: number
   carry: number
 }
-export function useTypewriter(lines: readonly string[], step: number, enabled: boolean): Typewriter {
+export function useTypewriter(lines: readonly string[], step: number | string, enabled: boolean): Typewriter {
   const total = totalChars(lines)
   const [st, setSt] = useState<St>({ step, count: 0, carry: 0 })
   const fresh = st.step !== step
-  if (fresh) setSt({ step, count: 0, carry: 0 }) // a new scene starts from zero (React re-renders at once)
+  if (fresh) setSt({ step, count: 0, carry: 0 }) // a new scene or turn starts from zero (React re-renders at once)
   const count = !enabled ? total : fresh ? 0 : Math.min(st.count, total)
   const done = count >= total
   useEffect(() => {

@@ -47,11 +47,11 @@ describe('SettingsScreen', () => {
 })
 describe('typewriter markup', () => {
   it('SceneView keeps the whole text in the DOM and hides only the tail', () => {
-    const view = { lines: ['Hello', 'World'], who: [], place: undefined }
-    const mid = html(createElement(SceneView, { view, revealed: 3 }))
+    const now = { who: undefined, lines: ['Hello', 'World'] }
+    const mid = html(createElement(SceneView, { place: undefined, now, revealed: 3 }))
     expect(mid).toContain('<p>Hel<span class="tw-rest">lo</span></p>')
     expect(mid).toContain('<p><span class="tw-rest">World</span></p>')
-    const full = html(createElement(SceneView, { view }))
+    const full = html(createElement(SceneView, { place: undefined, now }))
     expect(full).toContain('<p>Hello</p>')
     expect(full).not.toContain('tw-rest')
   })

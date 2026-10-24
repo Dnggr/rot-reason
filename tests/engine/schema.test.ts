@@ -29,6 +29,12 @@ describe('scene schema', () => {
     expect(s.id).toBe('c2.crypt')
     expect(scenesSchema.parse([narration])).toHaveLength(1)
   })
+  it('accepts a spoken beat (`say`) with or without a condition, and rejects a malformed one', () => {
+    ok({ ...narration, text: ['Rain.', { say: 'nora', text: '"Hi."' }, { say: 'nora', if: ['flag', 'x'], text: '"Hi."' }] })
+    bad({ ...narration, text: [{ say: '', text: '"Hi."' }] })
+    bad({ ...narration, text: [{ say: 'nora' }] })
+    bad({ ...narration, text: [{ say: 'nora', text: '"Hi."', extra: 1 }] })
+  })
   it('accepts narration, end and gate scenes', () => {
     ok(narration)
     ok({ id: 'c5.end', text: 'Fin.', end: 'beacon' })
