@@ -6,6 +6,7 @@ import { currentView, hudOf, type Hud, type View } from '../../engine/select'
 import type { ChoiceId, GameState, Story } from '../../engine/types'
 import { S } from '../strings'
 import type { Store } from '../storage'
+import type { ReadChunk } from '../turns'
 import { APP_VERSION } from '../version'
 import { autosave, backgroundCards, eraseSave, hasSave, initialUi, newSeed, savedGame, uiReducer, type BackgroundCard, type Saved, type Screen, type UiAction } from './gameModel'
 export interface GameApi {
@@ -17,6 +18,7 @@ export interface GameApi {
   hud: Hud
   toasts: readonly string[]
   toastSeq: number
+  read: readonly ReadChunk[] // scenes already read, shown above the current one
   cards: readonly BackgroundCard[]
   saved: Saved // what Continue would load (only read on the title screen)
   saveExists: boolean // for Settings > Reset saved game
@@ -50,7 +52,7 @@ export function useGame(story: Story, persist: Store, debug: boolean = false): G
   const view = useMemo(() => currentView(ui.game, story), [ui.game, story])
   const { checkpoint, game } = ui
   return {
-    screen: ui.screen, from: ui.from, step: game.history.length, game, view, hud: hudOf(game), toasts: ui.toasts, toastSeq: ui.seq, cards, saved, saveExists, persistent: persist.persistent, saveError,
+    screen: ui.screen, from: ui.from, step: game.history.length, game, view, hud: hudOf(game), toasts: ui.toasts, toastSeq: ui.seq, read: ui.read, cards, saved, saveExists, persistent: persist.persistent, saveError,
     canRestartChapter: checkpoint !== null,
     openBackground: () => dispatch({ type: 'SCREEN', screen: 'background' }),
     openSettings: () => dispatch({ type: 'SCREEN', screen: 'settings' }),

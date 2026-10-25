@@ -1,4 +1,4 @@
-/* stage.css — the full-screen stage (UI_UX §3): backdrop layer, HUD top-left, Menu / Settings top-right, the story text in the middle, and a bottom dock (portrait, spoken line, Choices) that exists only while a character talks or choices are offered; Title menu on the left. Mobile stacks the same pieces in one column. */
+/* stage.css — the full-screen stage (UI_UX §3): backdrop layer, HUD top-left, Menu / Settings top-right, the story in the middle as a scrolling web-novel page, and a bottom dock (portrait, spoken line, Choices) that exists only while a character talks or choices are offered; Title menu on the left. Mobile stacks the same pieces in one column. */
 .stage, .play { position: relative; isolation: isolate; }
 .backdrop { position: absolute; inset: 0; z-index: 0; pointer-events: none; background-color: var(--bg); background-image: var(--bg-img, none), radial-gradient(120% 80% at 50% 0%, #20241d 0%, var(--bg) 70%); background-size: cover; background-position: center; }
 .backdrop::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), transparent 30%, transparent 55%, rgba(0, 0, 0, 0.6)); }
@@ -7,8 +7,13 @@
 .hud, .textbox, .panel { background: color-mix(in srgb, var(--panel) 84%, transparent); border: 1px solid var(--border); border-radius: 10px; }
 .hud { padding: var(--space) calc(var(--space) * 1.5); display: flex; flex-direction: column; gap: var(--space); }
 .hud .chips { margin-top: 0; }
-.story { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; padding: calc(var(--space) * 2) 0; text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85); }
-.story .narration, .textbox .narration { margin-top: 0; }
+.play { height: 100dvh; min-height: 0; }
+.story { flex: 1 1 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85); scrollbar-width: thin; }
+.story-flow { margin-block: auto; padding: calc(var(--space) * 2) 0; } /* auto margins centre a short page and still let a long one scroll */
+.read { opacity: 0.7; margin-bottom: calc(var(--space) * 2); }
+.picked { margin: 0 0 var(--space); color: var(--honor); font-style: italic; }
+.picked::before { content: '\25B8  '; }
+.story .narration, .textbox .narration, .story .read p:first-child { margin-top: 0; }
 .story .actions { margin-top: calc(var(--space) * 2); }
 .place { display: block; margin-bottom: var(--space); font: 12px var(--font-ui); color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
 .said { margin: 0 0 var(--space); padding-left: calc(var(--space) * 1.5); border-left: 3px solid var(--honor); }
@@ -26,13 +31,13 @@
 .title-menu .tagline { margin-bottom: calc(var(--space) * 2); text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7); }
 .title-menu .btn { background: color-mix(in srgb, var(--panel) 88%, transparent); }
 @media (min-width: 900px) {
-  .play { max-width: none; min-height: 100dvh; padding: 20px 28px 28px; gap: 12px 24px; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto 1fr auto; grid-template-areas: 'hud links' 'toast toast' 'story story' 'dock dock'; }
+  .play { max-width: none; height: 100dvh; padding: 20px 28px 28px; gap: 12px 24px; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto minmax(0, 1fr) auto; grid-template-areas: 'hud links' 'toast toast' 'story story' 'dock dock'; }
   .hud { grid-area: hud; justify-self: start; min-width: 380px; }
   .play-links { grid-area: links; justify-self: end; align-self: start; }
   .play-links .btn { width: auto; }
   .toasts { grid-area: toast; align-self: start; }
   .play > .notice { grid-area: toast; align-self: start; justify-self: end; }
-  .story { grid-area: story; justify-self: center; align-self: center; width: min(100%, 52rem); }
+  .story { grid-area: story; justify-self: center; align-self: stretch; width: min(100%, 52rem); }
   .story .actions .btn { width: min(100%, 260px); margin-inline: auto; }
   .dock { grid-area: dock; display: grid; grid-template-columns: minmax(200px, 24vw) minmax(0, 1fr) minmax(280px, 30vw); align-items: end; gap: 12px 24px; padding: 18px 24px; }
   .dock .portrait { grid-column: 1; grid-row: 1; }

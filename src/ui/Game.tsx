@@ -34,7 +34,7 @@ function Screen({ g, s }: { g: GameApi; s: SettingsApi }) {
   }
   if (route === 'ending') return <EndingScreen view={v} hud={g.hud} onNew={g.openBackground} onTitle={g.toTitle} />
   return (
-    <PlayScreen view={v} hud={g.hud} step={g.step} typewriter={!s.settings.reducedMotion} toasts={g.toasts} toastSeq={g.toastSeq} saveError={g.saveError}
+    <PlayScreen view={v} hud={g.hud} step={g.step} typewriter={!s.settings.reducedMotion} toasts={g.toasts} toastSeq={g.toastSeq} read={g.read} saveError={g.saveError}
       onChoose={g.choose} onNext={g.next} onMenu={g.toTitle} onSettings={g.openSettings} />
   )
 }

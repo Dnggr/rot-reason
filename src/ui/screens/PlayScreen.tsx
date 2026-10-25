@@ -11,7 +11,7 @@ import { useKeys } from '../hooks/useKeys'
 import { useTurn } from '../hooks/useTurn'
 import { useTypewriter } from '../hooks/useTypewriter'
 import { S } from '../strings'
-import { turnsOf } from '../turns'
+import { turnsOf, type ReadChunk } from '../turns'
 import { isLowHp, isLowReason } from '../vitals'
 interface Props {
   view: View
@@ -20,6 +20,7 @@ interface Props {
   typewriter: boolean // false with reduced motion
   toasts: readonly string[]
   toastSeq: number
+  read?: readonly ReadChunk[] // scenes already read, kept above this one (web-novel page)
   saveError: string | undefined
   onChoose: (id: ChoiceId) => void
   onNext: () => void
@@ -27,7 +28,7 @@ interface Props {
   onSettings: () => void
 }
 const nothing = (): void => undefined
-export function PlayScreen({ view, hud, step, typewriter, toasts, toastSeq, saveError, onChoose, onNext, onMenu, onSettings }: Props) {
+export function PlayScreen({ view, hud, step, typewriter, toasts, toastSeq, read = [], saveError, onChoose, onNext, onMenu, onSettings }: Props) {
   const turns = turnsOf(view.beats)
   const t = useTurn(step, turns.length)
   const now = turns[t.turn]
@@ -64,7 +65,7 @@ export function PlayScreen({ view, hud, step, typewriter, toasts, toastSeq, save
           <StatBar hud={hud} />
           <HonorMeter honor={hud.honor} tier={hud.tier} />
         </header>
-        <SceneView place={view.place} done={turns.slice(0, t.turn)} now={speaker === undefined ? now : undefined} revealed={revealed} onSkip={onSkip}>
+        <SceneView place={view.place} read={read} done={turns.slice(0, t.turn)} now={speaker === undefined ? now : undefined} revealed={revealed} onSkip={onSkip}>
           {speaker === undefined && goOn}
         </SceneView>
         <Toast lines={toasts} seq={toastSeq} />

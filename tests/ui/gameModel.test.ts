@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { SAVE_KEY, makeSave } from '../../src/engine/save'
 import type { Story } from '../../src/engine/types'
 import { currentView } from '../../src/engine/select'
-import { autosave, backgroundCards, initialUi, newSeed, playRoute, savedGame, uiReducer, type UiAction, type UiState } from '../../src/ui/hooks/gameModel'
+import { MAX_READ, autosave, backgroundCards, initialUi, newSeed, playRoute, savedGame, uiReducer, type UiAction, type UiState } from '../../src/ui/hooks/gameModel'
 import { memoryStore } from '../../src/ui/storage'
 import { loadTestChapterStory } from '../engine/testStory'
 let story: Story
@@ -32,6 +32,33 @@ describe('uiReducer', () => {
     expect(ui.game.scene).toBe('t.street')
     expect(ui.toasts).toEqual(['Honor +5', '-1 Food', 'Nora will remember that'])
     expect(run(ui, { type: 'SCREEN', screen: 'title' }).toasts).toEqual([])
+  })
+  it('keeps each scene the player leaves as a page above the next one, with the choice taken', () => {
+    const ui = run(initialUi(story), START, a)
+    expect(ui.read).toHaveLength(1)
+    expect(ui.read[0]?.turns.flatMap((t) => t.lines).join(' ')).toContain('Sirens')
+    expect(ui.read[0]?.picked).toBeTypeOf('string')
+    expect(ui.read[0]?.picked).toBe(currentView(run(initialUi(story), START).game, story).choices.find((c) => c.id === 'a')?.text)
+    const two = run(ui, d)
+    expect(two.read.map((c) => c.key)).toEqual([...new Set(two.read.map((c) => c.key))]) // unique keys
+    expect(two.read).toHaveLength(2)
+  })
+  it('the page survives Menu and Settings, but START, LOAD and a rejected click start or leave it fresh', () => {
+    const ui = run(initialUi(story), START, a)
+    expect(run(ui, { type: 'SCREEN', screen: 'settings' }).read).toHaveLength(1)
+    expect(run(ui, { type: 'SCREEN', screen: 'title' }, START).read).toEqual([])
+    expect(run(ui, { type: 'CONTINUE' }).read).toHaveLength(1) // t.street is a choice scene: Continue is ignored, no new page
+    expect(run(initialUi(story), START).read).toEqual([])
+  })
+  it('never keeps more than MAX_READ pages', () => {
+    let ui = run(initialUi(story), START)
+    const view = (u: UiState) => currentView(u.game, story)
+    for (let i = 0; i < 400 && view(ui).kind !== 'end'; i++) {
+      const v = view(ui)
+      ui = run(ui, v.kind === 'choices' ? { type: 'CHOOSE', choice: v.choices.find((c) => c.enabled)?.id ?? 'a' } : { type: 'CONTINUE' })
+      expect(ui.read.length).toBeLessThanOrEqual(MAX_READ)
+    }
+    expect(ui.read.length).toBeGreaterThan(0)
   })
   it('a gate scene becomes the checkpoint', () => {
     const ui = run(initialUi(story), START, a, d)

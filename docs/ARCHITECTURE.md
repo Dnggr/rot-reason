@@ -51,7 +51,7 @@ src/
     strings.ts  lockReason.ts  toasts.ts  names.ts  storage.ts  version.ts
     settings.ts     Settings type, defaults, rr_settings_v1 read / write, applySettings (to <html>) (live since M2 s2)
     typewriter.ts   pure: MS_PER_CHAR, totalChars, tick, splitLines    keys.ts  keyCommand: 1-4 / Space / J    vitals.ts  low HP / Reason thresholds
-    turns.ts        pure: turnsOf(beats) -> Turn[] (a run of narration, or of one character's lines; D28)
+    turns.ts        pure: turnsOf(beats) -> Turn[] (a run of narration, or of one character's lines); ReadChunk (a scene already read; D28)
     debugApi.ts     DebugApi + DebugPanelComponent: what the game hands the debug panel
     screens/    TitleScreen  BackgroundScreen  PlayScreen  SettingsScreen  EndingScreen (live)   Camp  Journal (later)
     components/ Backdrop  StatBar  HonorMeter  SceneView  Dock  Lines  ChoiceList  ChoiceButton  Toast  ReportButton  ErrorFallback  ErrorBoundary (live)   CharacterCard (M3)

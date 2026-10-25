@@ -41,8 +41,9 @@ One full-screen **backdrop** per screen, with the UI laid over it (a visual-nove
 | [      Food Ammo Meds, honor meter  ]                |
 | (toasts)                                             |
 |                      PLACE                           |
-|     The story, in the middle: narration, and what    |
-|     each character said, once they have said it      |
+|   The story as one scrolling web-novel page:         |
+|   scenes already read stay above (dimmed), then      |
+|   this scene's narration and what characters said    |
 |                    [ Continue ]                     |
 |                                                      |
 | +------------------ dock (only when ... ) ---------+ |
@@ -58,7 +59,8 @@ One full-screen **backdrop** per screen, with the UI laid over it (a visual-nove
 **Reading a scene, turn by turn (D28).** `ui/turns.ts` groups a scene's beats into turns: a run of narration, or a run of lines by one character (`say`, STORY_FORMAT §2). Continue moves to the next turn; from the last turn it leaves the scene (`next` scenes), or the Choices panel appears (choice scenes).
 - **Narration turn:** typed in the middle; no dock; Continue sits under the text.
 - **Speech turn:** the dock appears: the speaker's portrait on the left, their line typed in the text box (Continue inside it). Nobody else's portrait is shown, and `who` alone no longer draws one.
-- **After they talked:** when the player moves on, the line stays in the middle text under the speaker's name, so the middle is the running record of the scene.
+- **After they talked:** when the player moves on, the line stays in the middle text under the speaker's name, so the middle is the running record.
+- **Web-novel page (D28):** the middle never clears. Each scene the player leaves stays above the new one (dimmed), followed by the choice taken, shown as an italic line; the place caption is repeated only when the place changes. The page scrolls inside the middle area (HUD and dock stay put) and jumps to the newest text on every turn (smooth, instant with reduced motion). The page holds the last 30 scenes of the session and is not saved: Continue from the title starts a fresh page at the current scene.
 - **Choices:** shown on the last turn only, in the dock's right-hand panel. If nobody talks on that turn, the dock holds only the Choices panel, so a choice is never hidden.
 - `end` and `error` scenes use the Ending screen and the fallback.
 

@@ -1,4 +1,4 @@
-/* motion.css — every animation: typewriter reveal, softly eased choices, low-HP vignette, low-Reason flicker (UI_UX §7). Reduced motion (the setting or the device) switches them all off in one place at the bottom. */
+/* motion.css — every animation: typewriter reveal, smooth scroll of the story, softly eased choices, low-HP vignette, low-Reason flicker (UI_UX §7). Reduced motion (the setting or the device) switches them all off in one place at the bottom. */
 .tw-rest { opacity: 0; } /* not yet typed: still in the DOM (screen readers), only transparent, so the layout never jumps */
 .narration { cursor: default; }
 .actions .choice { animation: choice-in 0.35s ease both; }
@@ -12,3 +12,6 @@
 @keyframes reason-flicker { 0%, 90%, 94%, 100% { opacity: 1; } 92% { opacity: 0.78; } 96% { opacity: 0.9; } }
 :root.reduce-motion *, :root.reduce-motion *::before, :root.reduce-motion *::after { animation: none !important; transition: none !important; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+.story { scroll-behavior: smooth; }
+:root.reduce-motion .story { scroll-behavior: auto; }
+@media (prefers-reduced-motion: reduce) { .story { scroll-behavior: auto; } }

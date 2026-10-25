@@ -72,6 +72,21 @@ describe('Play stage', () => {
     expect(out.indexOf('class="textbox"')).toBeLessThan(out.indexOf('class="panel"'))
   })
 })
+describe('SceneView: the page', () => {
+  it('shows scenes already read above this one, with the choice taken, and a place caption only when the place changes', () => {
+    const read = [
+      { key: 1, place: 'hallway', turns: [{ who: undefined, lines: ['First scene.'] }], picked: 'Open the door.' },
+      { key: 2, place: 'hallway', turns: [{ who: 'dole', lines: ['"Hi."'] }], picked: undefined },
+    ]
+    const out = html(createElement(SceneView, { place: 'stairs', read, now: { who: undefined, lines: ['Now.'] } }))
+    const at = (s: string): number => out.indexOf(s)
+    expect(at('First scene.')).toBeLessThan(at('Open the door.'))
+    expect(at('Open the door.')).toBeLessThan(at('Dole'))
+    expect(at('Dole')).toBeLessThan(at('Now.'))
+    expect(out.match(/class="place"/g)).toHaveLength(2) // hallway once, then stairs
+    expect(out).toContain('class="picked"')
+  })
+})
 describe('SceneView', () => {
   it('keeps what a character said in the story text, with their name, after they talked', () => {
     const done = [{ who: 'dole', lines: ['"Hey."'] }, { who: undefined, lines: ['He knocks.'] }]
