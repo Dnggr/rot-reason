@@ -4,6 +4,7 @@ import type { Condition } from './types'
 const id = z.string().min(1)
 const cmp = z.enum(['>=', '<=', '>', '<', '=='])
 const num = z.number().finite()
+const whole = z.number().int() // effect deltas stay whole numbers, or the state would fail its own schema (stateSchema.ts)
 const stat = z.enum(['hp', 'reason', 'rot'])
 const res = z.enum(['food', 'ammo', 'meds'])
 const attr = z.enum(['grit', 'wits', 'heart'])
@@ -36,12 +37,12 @@ const echoSpec = z
 const timeChange = z.strictObject({ day: z.exactOptional(z.number().int().min(1)), phase: z.exactOptional(phase) })
 export const effectSchema = z.union([
   z.tuple([z.literal('honor'), id, z.boolean()]),
-  z.tuple([z.literal('stat'), stat, num]),
-  z.tuple([z.literal('res'), res, num]),
+  z.tuple([z.literal('stat'), stat, whole]),
+  z.tuple([z.literal('res'), res, whole]),
   z.tuple([z.literal('set'), id]),
   z.tuple([z.literal('clear'), id]),
-  z.tuple([z.literal('trust'), id, num]),
-  z.tuple([z.literal('fear'), id, num]),
+  z.tuple([z.literal('trust'), id, whole]),
+  z.tuple([z.literal('fear'), id, whole]),
   z.tuple([z.literal('party'), signed]),
   z.tuple([z.literal('kill'), id]),
   z.tuple([z.literal('trait'), signed]),

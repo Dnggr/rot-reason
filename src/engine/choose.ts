@@ -48,7 +48,7 @@ export function choose(state: GameState, id: ChoiceId, story: Story): Applied {
     list = [...list, ...(branch.fx ?? [])]
     to = branch.to
   }
-  const fx = applyAll(list, s, story.deeds)
+  const fx = applyAll(list, s, story.deeds, story.social)
   s = fx.state
   log.push(...fx.log)
   if (choice.echo !== undefined) {

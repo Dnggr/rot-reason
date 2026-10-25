@@ -1,5 +1,6 @@
 // story/index.ts — assembles the Story the engine runs: chapters + system scenes + data tables
 import type { Scene, Story, StoryTables } from '../engine/types'
+import { SOCIAL } from './approval'
 import { BACKGROUNDS } from './backgrounds'
 import { chapters } from './chapters/index'
 import { NPCS } from './characters'
@@ -8,7 +9,7 @@ import { DEEDS } from './honor'
 import { SYSTEM_SCENES } from './system'
 import { TRAIT_BONUS } from './traits'
 export const START_SCENE = 'p.dream' // the Prologue intro; it ends by handing over to the test chapter (t.wake) until M4
-export const TABLES: StoryTables = { start: START_SCENE, deeds: DEEDS, traitBonus: TRAIT_BONUS, backgrounds: BACKGROUNDS, npcs: NPCS, endings: ENDINGS }
+export const TABLES: StoryTables = { start: START_SCENE, deeds: DEEDS, traitBonus: TRAIT_BONUS, backgrounds: BACKGROUNDS, npcs: NPCS, endings: ENDINGS, social: SOCIAL }
 export function buildStory(scenes: readonly Scene[]): Story {
   return { ...TABLES, scenes: Object.fromEntries(scenes.map((s) => [s.id, s])) }
 }

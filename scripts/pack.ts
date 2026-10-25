@@ -25,6 +25,14 @@ const PRESETS: Record<string, { include: string[]; compress?: boolean }> = {
       'tests/engine/fixtures.ts', 'tests/engine/reducerHelpers.ts', 'tests/engine/storyFixture.ts', 'tests/engine/effects.test.ts', 'tests/engine/honor.test.ts', 'tests/engine/echoes.test.ts',
     ],
   },
+  // M3 s2: Journal (Deeds, People), Party cards, tier banners (the UI side of the social systems)
+  m3s2: {
+    include: [
+      ...BASE, ...PACKING, 'docs/UI_UX.md', 'docs/HONOR.md', 'docs/CHARACTERS.md', 'docs/ARCHITECTURE.md', 'docs/GAME_DESIGN.md',
+      'src/ui/**', 'src/engine/types.ts', 'src/engine/select.ts', 'src/engine/relations.ts', 'src/engine/effects.ts', 'src/engine/honor.ts', 'src/engine/save.ts', 'src/engine/migrations.ts', 'src/engine/stateSchema.ts', 'src/engine/init.ts',
+      'src/story/approval.ts', 'src/story/characters.ts', 'tests/ui/**', 'tests/engine/fixtures.ts', 'tests/engine/social.test.ts',
+    ],
+  },
 }
 const [name, ...extra] = process.argv.slice(2)
 const preset = name ? PRESETS[name] : undefined

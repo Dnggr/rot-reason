@@ -1,4 +1,4 @@
-// ui/toasts.ts — toast lines from a state diff: honor, vitals, resources, who will remember (UI_UX §7); pure
+// ui/toasts.ts — toast lines from a state diff: honor, vitals, resources, who will remember, who joins or leaves (UI_UX §7); pure
 import { RES_KEYS } from '../engine/choices'
 import type { GameState, StatKey } from '../engine/types'
 import { shortName } from './names'
@@ -13,7 +13,9 @@ export function diffToasts(prev: GameState, next: GameState): string[] {
   for (const k of RES_KEYS) if (next.res[k] !== prev.res[k]) out.push(`${signed(next.res[k] - prev.res[k])} ${S.res[k]}`)
   for (const [id, n] of Object.entries(next.npc)) {
     const p = prev.npc[id]
-    if (p !== undefined && (p.trust !== n.trust || p.fear !== n.fear)) out.push(S.remember(shortName(id)))
+    if (p !== undefined && (p.trust !== n.trust || n.fear > p.fear)) out.push(S.remember(shortName(id))) // a fear that only faded (chapter change) is not a reaction to you
   }
+  for (const id of next.party) if (!prev.party.includes(id)) out.push(S.joins(shortName(id)))
+  for (const id of prev.party) if (!next.party.includes(id) && next.npc[id]?.alive !== false) out.push(S.leaves(shortName(id))) // a death is not leaving
   return out.slice(0, MAX_TOASTS)
 }

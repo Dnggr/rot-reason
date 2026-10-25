@@ -131,3 +131,9 @@ describe('effect schema', () => {
     bad(['time', { phase: 'noon' }], effectSchema)
   })
 })
+describe('effect deltas are whole numbers', () => {
+  it('rejects a fractional stat, res, trust or fear change, accepts whole ones', () => {
+    for (const e of [['stat', 'hp', -0.5], ['res', 'food', 1.5], ['trust', 'nora', 2.5], ['fear', 'brick', 0.1]]) bad(e, effectSchema)
+    for (const e of [['stat', 'hp', -1], ['res', 'food', 2], ['trust', 'nora', -25], ['fear', 'brick', 5]]) ok(e, effectSchema)
+  })
+})

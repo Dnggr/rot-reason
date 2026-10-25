@@ -50,6 +50,15 @@ describe('test chapter', () => {
     expect(currentView(end, story)).toMatchObject({ kind: 'end', ending: 'lighthouse' })
     expect(end.history).toEqual(['t.wake:a', 't.street:d', 't.gate:b', 't.echo:>'])
   })
+  it('golden path: threatening Brick with Nora beside you costs Nora trust (approval table, D29)', async () => {
+    const ammo: Action = { type: 'DEBUG_SET', patch: { kind: 'res', key: 'ammo', value: 1 } } // no background starts with both Food (t.wake a) and Ammo (t.street a)
+    const { s } = await play('dockworker', choose('a'), ammo, choose('a'))
+    // share with Nora: she is not in the party yet when the deed lands, so only the authored +10 counts (10 -> 20); intimidate then makes her flinch (-5)
+    expect(s.party).toEqual(['nora', 'brick'])
+    expect(s.npc['nora']?.trust).toBe(15)
+    expect(s.npc['brick']).toMatchObject({ trust: 0, fear: 20 }) // Brick joined after the deed: no reaction, and his fear is authored
+    expect(s.log.map((e) => e.text)).toContain('nora reacts to intimidate: trust -5 -> 15')
+  })
   it('golden path: steal, confess, leave everyone -> secret surfaces -> Rot Within', async () => {
     const { s, story } = await play('mechanic', choose('b'), choose('b'), choose('c'))
     // steal -6 unseen: -3 now, -3 owed; reveal pays -3; honest +2; abandon -10

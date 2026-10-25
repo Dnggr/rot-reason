@@ -13,7 +13,7 @@ export function debugJump(state: GameState, scene: SceneId, story: Story): Appli
   const log = [line('DEBUG', `jump ${state.scene} -> ${scene}`)]
   let s: GameState = { ...state, resume: null }
   if (!isSys(scene) && chapterOf(scene) !== s.chapter) {
-    const c = changeChapter(s, chapterOf(scene))
+    const c = changeChapter(s, chapterOf(scene), story.social)
     s = c.state
     log.push(...c.log)
   }

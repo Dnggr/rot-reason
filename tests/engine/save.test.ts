@@ -1,5 +1,6 @@
 // tests/engine/save.test.ts — makeSave checkpoints, migrate, validState, replay, loadSave fallbacks, storage, and replay determinism
 import { describe, expect, it } from 'vitest'
+import { SAVE_VERSION } from '../../src/engine/init'
 import { reduce } from '../../src/engine/reducer'
 import { loadSave, makeSave, migrate, MIGRATIONS, readSave, replay, SAVE_KEY, writeSave, type KeyValueStore } from '../../src/engine/save'
 import { gameStateSchema, validState } from '../../src/engine/stateSchema'
@@ -37,7 +38,25 @@ describe('makeSave', () => {
     const gate = makeSave(atGate, null, story, 5)
     expect(gate.checkpoint).toEqual(atGate)
     expect(makeSave(play(a, cont), gate.checkpoint, story, 6).checkpoint).toEqual(atGate)
-    expect(gate).toMatchObject({ v: 1, seed: 3, bg: 'dockworker', name: 'Ash', history: ['c1.a:a'], savedAt: 5 })
+    expect(gate).toMatchObject({ v: SAVE_VERSION, seed: 3, bg: 'dockworker', name: 'Ash', history: ['c1.a:a'], savedAt: 5 })
+  })
+})
+describe('migrate v1 -> v2 (owedTags, D29)', () => {
+  const v1State = (): Record<string, unknown> => {
+    const { owedTags: _dropped, ...rest } = play(a, cont)
+    return { ...rest, v: 1, secrets: ['x'], owed: { x: -3 } }
+  }
+  const v1Save = (): Record<string, unknown> => ({ v: 1, seed: 3, bg: 'dockworker', name: 'Ash', history: ['c1.a:a', 'c1.b:>'], snapshot: v1State(), checkpoint: v1State(), savedAt: 5 })
+  it('adds an empty owedTags to the snapshot and the checkpoint and stamps both versions', () => {
+    const m = migrate(v1Save())
+    expect(m['v']).toBe(2)
+    expect(m['snapshot']).toMatchObject({ v: 2, owedTags: {}, secrets: ['x'], owed: { x: -3 } })
+    expect(m['checkpoint']).toMatchObject({ v: 2, owedTags: {} })
+  })
+  it('keeps a missing checkpoint missing, and a v1 save loads through loadSave as a valid state', () => {
+    expect(migrate({ ...v1Save(), checkpoint: null })['checkpoint']).toBeNull()
+    const r = loadSave(v1Save(), story)
+    expect(r.ok && r.via).toBe('snapshot')
   })
 })
 describe('migrate', () => {

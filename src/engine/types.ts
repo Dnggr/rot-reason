@@ -107,15 +107,14 @@ export interface Background {
   res: Record<ResKey, number> // starting kit
   hook?: string // one line for the Background screen (CHARACTERS.md "Unique hook")
 }
-export interface NpcStart {
-  name: string
-  trust: number
-  fear: number
-}
+export interface NpcStart { name: string; trust: number; fear: number }
 export interface EndingRule {
   id: string
   if?: Condition // no condition = always matches (the last rule)
 }
+// Companion approval (HONOR §5, D29): npc id -> deed tag -> trust change, and when a companion walks out (trust at or below `leaveTrust` and fear under `fearHolds`).
+export type ApprovalTable = Readonly<Record<string, Readonly<Record<string, number>>>>
+export interface Social { approval: ApprovalTable; leaveTrust: number; fearHolds: number }
 export interface StoryTables {
   start: SceneId
   deeds: DeedTable
@@ -123,16 +122,13 @@ export interface StoryTables {
   backgrounds: Readonly<Record<string, Background>>
   npcs: Readonly<Record<string, NpcStart>>
   endings: readonly EndingRule[] // first match wins
+  social: Social
 }
 export interface Story extends StoryTables {
   scenes: Readonly<Record<SceneId, Scene>>
 }
 // ---- Runtime (ARCHITECTURE §3, §4, §6): JSON-serializable, no functions, no class instances ----
-export interface NpcState {
-  alive: boolean
-  trust: number
-  fear: number
-}
+export interface NpcState { alive: boolean; trust: number; fear: number }
 export interface EchoEntry {
   scene: SceneId
   dueIn?: number
@@ -161,6 +157,7 @@ export interface GameState {
   flags: Record<string, true>
   secrets: string[] // secret ids still held (not yet revealed)
   owed: Record<string, number> // secret id -> honor still owed when it surfaces (HONOR §3 witness rule)
+  owedTags: Record<string, string[]> // secret id -> the unwitnessed deed tags it hides: the party reacts to them when it surfaces (D29)
   party: string[]
   npc: Record<string, NpcState>
   echoes: EchoEntry[]

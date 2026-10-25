@@ -1,6 +1,6 @@
 // tests/engine/storyFixture.ts — tiny hand-built stories for reducer, select and save tests (not the real story)
 import type { Scene, Story } from '../../src/engine/types'
-import { deeds } from './fixtures'
+import { deeds, social } from './fixtures'
 export const sys: Scene[] = [
   { id: 'sys.missing', text: 'missing', end: 'sys_error' },
   { id: 'sys.error', text: 'error', end: 'sys_error' },
@@ -8,7 +8,7 @@ export const sys: Scene[] = [
 ]
 export function makeStory(scenes: Scene[], over: Partial<Story> = {}): Story {
   return {
-    start: scenes[0]?.id ?? 'c1.a', deeds, traitBonus: { Bruiser: { grit: 2 } },
+    start: scenes[0]?.id ?? 'c1.a', deeds, social, traitBonus: { Bruiser: { grit: 2 } },
     backgrounds: { dockworker: { name: 'Dockworker', attr: { grit: 4, wits: 2, heart: 3 }, trait: 'Hauler', stats: { hp: 5, reason: 80, rot: 0 }, res: { food: 1, ammo: 0, meds: 0 } } },
     npcs: { nora: { name: 'Nora', trust: 10, fear: 20 }, brick: { name: 'Brick', trust: 0, fear: 5 } },
     endings: [{ id: 'good', if: ['honor', '>=', 5] }, { id: 'plain' }],

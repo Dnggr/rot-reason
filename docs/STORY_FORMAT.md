@@ -80,10 +80,11 @@ Shape rules (enforced by `engine/schema.ts`): `party` and `trait` values start w
 Runtime rules (`engine/effects.ts`, `applyAll` applies a list in order):
 
 - Numbers are clamped (hp 0-5, reason/rot 0-100, res 0-9, trust -100..100, fear 0..100, day 1-21). `time` sets absolute values.
-- `party` holds at most 3 and a joiner must be a known npc. `trust`, `fear`, `kill` on an unknown npc, an unknown deed tag or a missing `+`/`-` are ERROR log lines and change nothing.
+- `party` holds at most 3 and a joiner must be a known npc **who is alive** (a dead one is an ERROR). `trust`, `fear`, `kill` on an unknown npc, an unknown deed tag or a missing `+`/`-` are ERROR log lines and change nothing. `stat`, `res`, `trust` and `fear` take whole numbers (a fraction is a schema error, so the state always passes its own schema).
 - `echo` `after: N`: N scenes play normally, then the echo fires at the next transition. `at: 'c4'`: due while the chapter is `c4`.
 - Unwitnessed deeds: put `['honor', tag, false]` before `['secret', id]` in the same list. The secret then owes the rest of the deed and pays it on `['reveal', id]`. A secret with no deed before it owes nothing. A remainder with no secret after it is forfeited and logged.
-- The `reveal` trust hit is authored as a `['trust', id, n]` effect (the companion approval table arrives in M3).
+- **Companion approval (D29).** A *witnessed* `['honor', tag, true]` moves the trust of every companion in the party at that moment by `story/approval.ts` (HONOR §5; scaled by the same repeat factor as the honor). An unwitnessed deed moves nobody; the tag is kept with its secret, and `['reveal', id]` makes the companions in the party *then* react to it in full. So do not author a `trust` effect for what the table already does; author `trust` for relationship beats the table cannot know (a confession to the victim, a promise). Order matters: put `['party','+id']` after the deed if the new companion did not see it.
+- **Walk-out (D29).** At the end of every effect list, and when a chapter starts, a companion in the party whose trust is -30 or lower and whose fear is under 60 leaves it (log line, no flag). Fear 60+ keeps them until it fades. Perks you gave them (a trait) are not removed: author the `['trait','-X']` where the story knows they left (open, ROADMAP M3 bug list).
 
 Flow rules (`engine/choose.ts`, `flow.ts`, `reducer.ts`):
 

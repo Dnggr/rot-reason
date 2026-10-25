@@ -30,7 +30,7 @@ describe('uiReducer', () => {
   it('CHOOSE turns what changed into toasts', () => {
     const ui = run(initialUi(story), START, a)
     expect(ui.game.scene).toBe('t.street')
-    expect(ui.toasts).toEqual(['Honor +5', '-1 Food', 'Nora will remember that'])
+    expect(ui.toasts).toEqual(['Honor +5', '-1 Food', 'Nora will remember that', 'Nora joins you'])
     expect(run(ui, { type: 'SCREEN', screen: 'title' }).toasts).toEqual([])
   })
   it('keeps each scene the player leaves as a page above the next one, with the choice taken', () => {

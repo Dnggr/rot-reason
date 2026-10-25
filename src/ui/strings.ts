@@ -72,6 +72,8 @@ export const S = {
   chapter: (c: string): string => `Chapter ${c}`,
   dayPhase: (d: number, p: Phase): string => `${day} ${d} ${phase[p]}`,
   remember: (who: string): string => `${who} will remember that`,
+  joins: (who: string): string => `${who} joins you`,
+  leaves: (who: string): string => `${who} leaves you`,
   hpLabel: (n: number, max: number): string => `HP ${n} of ${max}`,
   ending: (id: string): string => endings[id] ?? id,
   lock: {

@@ -116,4 +116,4 @@ In data (`src/story/backgrounds.ts`) the hook is an optional one-line `hook` str
 | Calloway | trust < -10 and Haven truth is revealed | trust < -30 | pragmatic path (survives, no bond needed) |
 
 ## Relationship thresholds (global)
-`trust ≥ 30` unlocks a **bond scene** at camp (gives a perk upgrade and a backstory reveal). `trust ≤ -30` unlocks a **conflict scene**. `fear ≥ 60` unlocks "compliance" lines but no bond scene.
+`trust ≥ 30` unlocks a **bond scene** at camp (gives a perk upgrade and a backstory reveal). `trust ≤ -30` unlocks a **conflict scene**; until those scenes exist (M5), a companion at that line **walks out of the party** unless fear holds them (engine, M3 s1: `story/approval.ts` `SOCIAL`). `fear ≥ 60` unlocks "compliance" lines but no bond scene, and keeps a distrustful companion with you.

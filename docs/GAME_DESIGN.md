@@ -38,7 +38,7 @@ Scene (read) -> Choice (cost) -> Consequence (instant + echo later) -> Camp (rec
 | Rot | 0-100 | Infection of a bitten character (Nora, optionally you). Ticking clock | Later (M5) |
 | Day / Phase | 1-21 / Dawn-Day-Dusk-Night | Night raises danger; Day 21 = ship leaves | MVP |
 | Echoes | queue | Delayed consequences | MVP |
-| Secrets | set | Unwitnessed deeds that can surface later | M3 |
+| Secrets | set | Unwitnessed deeds that can surface later; the party's trust hit comes with them | M3 (engine live since M3 s1) |
 
 **Checks (no combat system).** `roll = d6 (seeded) + attribute + trait bonus` vs `DC`. A tie passes (`total >= DC`). Trait bonuses live in `src/story/traits.ts` (Bruiser: Grit +2, Signal: Wits +1); `resolveCheck` adds the bonus of every trait the player holds. `select.currentView` gives each check choice an odds word: Risky (2 or fewer of 6 faces win), Even (3), Likely (4 or more); the UI never hides the cost of failure. Violence is resolved by choice plus check, not a combat screen.
 
@@ -46,11 +46,11 @@ Scene (read) -> Choice (cost) -> Consequence (instant + echo later) -> Camp (rec
 
 **Camp hub (safe scenes).** Eat, rest (+Reason), talk to a companion (bond scene if trust threshold met), plan the route. Camp scenes are templates fed by data, not hand-written each time.
 
-**Party.** Max 3 companions at once (enforced in `engine/effects.ts`). Each has a perk, an opinion of your tags, and a leave/betray threshold.
+**Party.** Max 3 companions at once (enforced in `engine/relations.ts`; the dead cannot join). Each has a perk, an opinion of your tags (the approval table, HONOR §5: they react to deeds they see, and to secrets when they surface) and a walk-out line (trust -30, unless fear 60+ holds them). Betrayal thresholds and conflict scenes come with the bond scenes (M5).
 
 **Echoes.** A choice can schedule a future scene (`after N scenes` or `at chapter X`). This is the main consequence engine.
 
-**Secrets.** An unwitnessed deed is stored as a secret; it can surface later (a witness, a diary, a confession) and then applies its full honor and trust cost.
+**Secrets.** An unwitnessed deed is stored as a secret; it can surface later (a witness, a diary, a confession) and then applies its full honor cost, and the companions with you at that moment react to it (trust, by the approval table).
 
 ## 5. Choice design rules (writers and Claude must follow)
 

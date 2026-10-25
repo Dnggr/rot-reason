@@ -17,18 +17,20 @@ story (data)  ->  engine (pure logic)  ->  ui (React)       debug/ may read all;
 ```
 src/
   engine/
-    types.ts        GameState, Action, SaveData, LogEntry, Scene, Choice, Effect, Condition types (live since M1 s1)
+    types.ts        GameState, Action, SaveData, LogEntry, Scene, Choice, Effect, Condition types; `Social` (approval table + walk-out line) in StoryTables (live since M1 s1; Social, owedTags M3 s1)
     schema.ts       Zod schemas for story data: Condition, Effect, Choice, Scene (live since M1 s1)
     reducer.ts      reduce(state, action, story) -> state   (the only state change path; never throws) (live since M1 s3)
     choose.ts       CHOOSE / CONTINUE: validate, tick, cost, check, fx, cap, time, advance (live since M1 s3)
     flow.ts         advance / enter: $resume, missing target, death, chapter change, echo take, `on` effects (live since M1 s3)
-    init.ts         startGame(story, bg, name, seed), SAVE_VERSION (live since M1 s3)
+    init.ts         startGame(story, bg, name, seed), SAVE_VERSION (2 since M3 s1) (live since M1 s3)
     choices.ts      status(choice, state): hidden / locked / broke / open (live since M1 s3)
     ids.ts          SYS_* scene ids, RESUME, chapterOf, findScene (live since M1 s3)
     bounds.ts       clamp + the value ranges; throws on NaN/Infinity (live since M1 s2)
     conditions.ts   evaluate(cond, state) -> boolean (live since M1 s2)
-    effects.ts      apply(effect, state, deeds) -> {state, log, owed?}; applyAll(list, state, deeds) (live since M1 s2)
-    honor.ts        tierOf, applyDeed, capScene, surface (live since M1 s2)
+    effects.ts      apply(effect, state, deeds, social?) -> {state, log, owed?, deed?}; applyAll(list, state, deeds, social?): pairs unwitnessed deeds with the next `secret`, reveal makes the party react, ends with the walk-out check (live since M1 s2; social M3 s1)
+    relations.ts    shift (trust / fear), party (join / leave; the dead cannot join), react (companion approval of a deed), walkouts, NO_SOCIAL, PARTY_MAX (live since M3 s1, D29)
+    honor.ts        tierOf, applyDeed (returns the deed and its repeat factor), capScene, surface, repeatFactor, roundAway (live since M1 s2)
+    migrations.ts   save upgrades, one function per version step: v1to2 adds `owedTags` (live since M3 s1)
     checks.ts       resolveCheck(attr, dc, state, traitBonus) -> {state, roll, bonus, total, pass, log} (live since M1 s2)
     echoes.ts       schedule, tick, due, take (live since M1 s2)
     endings.ts      resolveEnding(state, rules), AUTO / DEATH / SYS ending ids (live since M1 s3)
@@ -43,6 +45,7 @@ src/
     index.ts        buildStory(scenes), loadStory(), TABLES (live since M1 s3)
     flags.ts  characters.ts  backgrounds.ts  endings.ts  system.ts   (live since M1 s3; items.ts and factions.ts come when a scene needs them)
     honor.ts        DEEDS table: tag -> delta (live since M1 s2)
+    approval.ts     APPROVAL (companion x deed tag -> trust change, the HONOR §5 table at 5 per +) and SOCIAL (APPROVAL + the walk-out line: trust -30, held by fear 60) (live since M3 s1, D29)
     traits.ts       TRAIT_BONUS: trait -> check bonus per attribute (live since M1 s2)
     chapters/ prologue.ts  test.ts (until M4)  ch1_a.ts  ch1_b.ts  ...  index.ts (registry, lazy by chapter)
   ui/
@@ -76,6 +79,7 @@ GameState {
   honor: number
   flags: Record<string, true>     secrets: string[]               // secret ids still held
   owed: Record<secretId, number>  // honor still owed when that secret surfaces (HONOR §3)
+  owedTags: Record<secretId, string[]> // the unwitnessed deed tags a secret hides: the party reacts to them on reveal (D29)
   party: string[]
   npc: Record<id, { alive, trust, fear }>
   echoes: { scene, dueIn?: number, atChapter?: string }[]
@@ -94,10 +98,10 @@ No functions, no class instances, no Dates in state.
 UI click -> dispatch({type:'CHOOSE', choice}) -> reduce(state, action, story)
   -> 1 validate action against current scene: choice exists, `if` shown, `lock` true, cost affordable
        (stale clicks are ignored and logged as ERROR; they are not in history)
-  -> 2 echoes.tick, pay cost, resolveCheck (seeded), applyAll(choice fx + check branch fx) in order, schedule choice.echo
+  -> 2 echoes.tick, pay cost, resolveCheck (seeded), applyAll(choice fx + check branch fx) in order (a witnessed deed also moves the trust of the companions in the party by the approval table; a `reveal` does the same for the deeds the secret hid; the list ends with the walk-out check), schedule choice.echo
   -> 3 capScene (net honor change per scene within ±25), then the departing scene's `time`, then push history
   -> 4 advance: resolve `$resume` / missing target / hp 0 (-> sys.death); on a chapter change reset deedCount
-       and fade fear by 5; echoes.take (a due echo replaces the target, `resume` remembers it); enter the scene:
+       and fade fear by 5 (a companion that fear was holding may then walk out); echoes.take (a due echo replaces the target, `resume` remembers it); enter the scene:
        applyAll(`on`) under its own capScene, hp 0 check
   -> 5 pushLog; the UI autosaves (save.makeSave)
 UI re-renders from select.currentView(state, story)
@@ -129,7 +133,7 @@ Actions (typed in `engine/types.ts`): `START(bg,name,seed)`, `CHOOSE(choice)` wh
 - `makeSave(state, checkpoint, story, savedAt)` moves the checkpoint to the current state whenever the scene is tagged `gate`. Never autosave a state parked on `sys.error`.
 - Storage is injected as `KeyValueStore { getItem, setItem }`; `readSave` returns `undefined` when nothing is stored and an error result (never a throw) for bad JSON.
 - Autosave after every state change on the play screen (`useGame` effect -> `gameModel.autosave`; synchronous, no debounce, D21). A failed write shows a notice, never a throw. Continue reads the save with `readSave` on the title screen; an unreadable save shows a notice and New game. `ui/storage.ts` falls back to memory when localStorage is blocked, and the Title warns. Manual slots later (M5).
-- `migrate(v)` functions are small and tested with fixture saves.
+- `migrate(v)` functions are small and tested with fixture saves. `SAVE_VERSION` is 2 (M3 s1): `migrations.v1to2` gives a v1 snapshot and checkpoint an empty `owedTags`, so a v1 save loads; a held secret from a v1 run then pays its honor on reveal but causes no trust hit.
 
 ## 7. Debug tooling (`?debug=1` or dev build)
 

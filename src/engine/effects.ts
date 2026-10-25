@@ -1,41 +1,39 @@
 // engine/effects.ts — apply(effect, state): the closed effect vocabulary (STORY_FORMAT §5); pure, returns new state + log lines
-import { clamp, DAY_RANGE, FEAR_RANGE, RES_RANGE, STAT_RANGE, TRUST_RANGE, type Range } from './bounds'
+import { clamp, DAY_RANGE, FEAR_RANGE, RES_RANGE, STAT_RANGE, TRUST_RANGE } from './bounds'
 import { npcOf } from './conditions'
 import { schedule } from './echoes'
 import { applyDeed, surface } from './honor'
 import { line, signed, type Applied, type LogLine } from './log'
-import type { DeedTable, Effect, GameState } from './types'
-export const PARTY_MAX = 3
+import { NO_SOCIAL, PARTY_MAX, party, react, shift, signedList, walkouts } from './relations'
+import type { DeedTable, Effect, GameState, Social } from './types'
+export { PARTY_MAX }
 const ok = (state: GameState, text: string): Applied => ({ state, log: [line('FX', text)] })
 const fail = (state: GameState, text: string): Applied => ({ state, log: [line('ERROR', text)] })
-function shift(s: GameState, id: string, key: 'trust' | 'fear', delta: number, range: Range): Applied {
-  const n = npcOf(s, id)
-  if (n === undefined) return fail(s, `${key} ${id}: unknown npc`)
-  const v = clamp(n[key] + delta, range)
-  return ok({ ...s, npc: { ...s.npc, [id]: { ...n, [key]: v } } }, `${key} ${id} ${signed(delta)} -> ${v}`)
-}
-// '+id' / '-id' lists (party, traits): returns the new list, or undefined when the sign is missing
-function signedList(list: readonly string[], spec: string): string[] | undefined {
-  const name = spec.slice(1)
-  if (spec.startsWith('+')) return list.includes(name) ? [...list] : [...list, name]
-  if (spec.startsWith('-')) return list.filter((x) => x !== name)
-  return undefined
-}
-function party(s: GameState, spec: string): Applied {
-  const id = spec.slice(1)
-  const next = signedList(s.party, spec)
-  if (next === undefined) return fail(s, `party ${spec}: must start with + or -`)
-  if (spec.startsWith('+') && npcOf(s, id) === undefined) return fail(s, `party ${spec}: unknown npc`)
-  if (next.length > PARTY_MAX) return fail(s, `party ${spec}: party is full (${PARTY_MAX})`)
-  return ok({ ...s, party: next }, `party ${spec}`)
-}
 function trait(s: GameState, spec: string): Applied {
   const next = signedList(s.traits, spec)
   return next === undefined ? fail(s, `trait ${spec}: must start with + or -`) : ok({ ...s, traits: next }, `trait ${spec}`)
 }
-export function apply(e: Effect, s: GameState, deeds: DeedTable): Applied {
+// A secret comes out: its owed honor applies (honor.surface), then the party reacts to every deed it hid, in full (D29).
+function reveal(s: GameState, id: string, social: Social): Applied {
+  const tags = s.secrets.includes(id) ? (s.owedTags[id] ?? []) : []
+  const r = surface(s, id)
+  let cur = r.state
+  const log = [...r.log]
+  for (const tag of tags) {
+    const seen = react(cur, tag, 1, social)
+    cur = seen.state
+    log.push(...seen.log)
+  }
+  return { state: cur, log }
+}
+export function apply(e: Effect, s: GameState, deeds: DeedTable, social: Social = NO_SOCIAL): Applied {
   switch (e[0]) {
-    case 'honor': return applyDeed(s, e[1], e[2], 1, deeds)
+    case 'honor': {
+      const r = applyDeed(s, e[1], e[2], 1, deeds)
+      if (r.deed === undefined || !r.deed.witnessed) return r // unwitnessed: nobody reacts until the secret surfaces
+      const seen = react(r.state, e[1], r.deed.factor, social)
+      return { ...r, state: seen.state, log: [...r.log, ...seen.log] }
+    }
     case 'stat': {
       const v = clamp(s.stats[e[1]] + e[2], STAT_RANGE[e[1]])
       return ok({ ...s, stats: { ...s.stats, [e[1]]: v } }, `stat ${e[1]} ${signed(e[2])} -> ${v}`)
@@ -63,7 +61,7 @@ export function apply(e: Effect, s: GameState, deeds: DeedTable): Applied {
       if (s.secrets.includes(e[1])) return ok(s, `secret ${e[1]} already held`)
       return { state: { ...s, secrets: [...s.secrets, e[1]] }, log: [line('SECRET', `hold ${e[1]}`)] }
     }
-    case 'reveal': return surface(s, e[1])
+    case 'reveal': return reveal(s, e[1], social)
     case 'echo': return schedule(s, e[1])
     case 'time': {
       const day = e[1].day === undefined ? s.day : clamp(e[1].day, DAY_RANGE)
@@ -73,23 +71,27 @@ export function apply(e: Effect, s: GameState, deeds: DeedTable): Applied {
     default: return fail(s, `unknown effect ${JSON.stringify(e)}`)
   }
 }
-// Applies a list in order. An unwitnessed deed's remainder is owed to the next `secret` in the same list (deed first, then secret);
-// a remainder with no secret after it is forfeited (logged).
-export function applyAll(list: readonly Effect[] | undefined, state: GameState, deeds: DeedTable): Applied {
+// Applies a list in order. An unwitnessed deed's remainder and tag are held by the next `secret` in the same list (deed first, then secret, D15, D29):
+// the secret then owes the honor and hides the deed until `reveal`. A deed with no secret after it is forfeited (logged). Companions who no longer stand you walk out at the end.
+export function applyAll(list: readonly Effect[] | undefined, state: GameState, deeds: DeedTable, social: Social = NO_SOCIAL): Applied {
   let cur = state
   const log: LogLine[] = []
   let held = 0
+  let hidden: string[] = []
   for (const e of list ?? []) {
-    const r = apply(e, cur, deeds)
+    const r = apply(e, cur, deeds, social)
     cur = r.state
     log.push(...r.log)
     held += r.owed ?? 0
-    if (e[0] === 'secret' && held !== 0) {
-      cur = { ...cur, owed: { ...cur.owed, [e[1]]: (cur.owed[e[1]] ?? 0) + held } }
-      log.push(line('SECRET', `${e[1]} owes ${signed(held)} honor on reveal`))
+    if (r.deed !== undefined && !r.deed.witnessed) hidden = [...hidden, r.deed.tag]
+    if (e[0] === 'secret' && (held !== 0 || hidden.length > 0)) {
+      cur = { ...cur, owed: held === 0 ? cur.owed : { ...cur.owed, [e[1]]: (cur.owed[e[1]] ?? 0) + held }, owedTags: { ...cur.owedTags, [e[1]]: [...(cur.owedTags[e[1]] ?? []), ...hidden] } }
+      log.push(line('SECRET', `${e[1]} hides ${hidden.join(', ')} and owes ${signed(held)} honor on reveal`))
       held = 0
+      hidden = []
     }
   }
-  if (held !== 0) log.push(line('HONOR', `unwitnessed remainder ${signed(held)} forfeited: no secret after the deed`))
-  return { state: cur, log }
+  if (hidden.length > 0) log.push(line('HONOR', `unwitnessed ${hidden.join(', ')} (remainder ${signed(held)}) forfeited: no secret after the deed`))
+  const out = walkouts(cur, social)
+  return { state: out.state, log: [...log, ...out.log] }
 }

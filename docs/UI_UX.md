@@ -105,7 +105,7 @@ Live: `Backdrop` (full-screen background layer), `StatBar` (vitals and resource 
 - Typewriter text (live, `MS_PER_CHAR` = 30 in `ui/typewriter.ts`, requestAnimationFrame): the whole text of the turn being read is in the DOM at once and the unshown tail is only made transparent, so layout never jumps and screen readers get it all. Tap the narration, press `Space`, or tap a choice or Continue to finish it. Off with Reduce motion. Choice buttons ease in, one after the other (live).
 - Low HP (live, hp 2 or less): a red vignette pulse over the screen. Low Reason (live, under 30): a faint glow and flicker on the narration. Both stop pulsing with Reduce motion (the vignette stays, still). Not built: text jitter on random words, whisper lines, a disabled option labeled wrong. (The `glitch` text swap is in the engine.)
 - Honor tier change: full-screen banner for 2 s.
-- Toasts (live, `ui/toasts.ts`, built from the state diff, max 5, 2.5 s): "Honor +5", "-1 HP", "-1 Food", "Brick will remember that". The deed tag is not shown (the diff has none).
+- Toasts (live, `ui/toasts.ts`, built from the state diff, max 5, 2.5 s): "Honor +5", "-1 HP", "-1 Food", "Brick will remember that" (trust changed, or fear went up; a fear that only faded at a chapter change says nothing), "Nora joins you" / "Nora leaves you" (party diff; a death is not a leaving). The deed tag is not shown (the diff has none).
 - Haptics on mobile (`navigator.vibrate`) for danger beats, behind the setting.
 - Sound (later): ambient bed per mood, 3 stingers (danger, loss, relief). Muted by default until user taps.
 

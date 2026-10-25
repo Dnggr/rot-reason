@@ -2,26 +2,32 @@
 
 ## Status
 
-- **Phase:** M2 (UI shell) code DONE, plus two UI side sessions (stage layout D27; story in the middle with a speaker dock D28, below). M2 closes when the owner has checked the definition of done on a phone. Next: M3 (social systems), session 1.
-- **Deployed:** https://rotandreason.vercel.app/ (auto-deploys on push to `main`). It shows the older layout until this is pushed. **Not checked on a phone yet.**
-- **Last verified:** in a repo rebuilt from the pack on Node 22.22: `npm install`, `npm run typecheck` ok, `npm run test` 369 tests green (355 + 14 new), `npm run rules` ok, `npm run lint:story` ok (0 errors, 0 warnings), `npx vite build` ok (initial JS about 111 KB gzip, as before), `npm run fuzz` clean. **Not checked:** the new layout in a real browser (the sandbox has none, so no screenshot was taken; markup and behavior are covered by render tests), a real phone, the typewriter pace, screen readers.
+- **Phase:** M3 session 1 (social systems part 1) code DONE. Next: M3 session 2 (Journal, Party cards, tier banners). M2 still closes when the owner has checked the definition of done on a phone.
+- **Deployed:** https://rotandreason.vercel.app/ (auto-deploys on push to `main`). It shows the older layout until the D27 / D28 work is pushed. **Not checked on a phone yet.**
+- **Last verified:** in a repo rebuilt from the pack on Node 22.22: `npm install`, `npm run typecheck` ok, `npm run test` 395 tests green (369 + 26 new), `npm run rules` ok, `npm run lint:story` ok (0 errors, 0 warnings), `npm run fuzz` 1000 runs clean on seeds 1 and 99, `npm run coverage` 100% lines on `src/engine`. **Not checked:** `npm run ready` end to end (the rebuilt repo has no git, so `docs:check` skipped its "code changed" test and only checked the Next pack line), the live site, a browser, a phone. Note: the pack strips blank lines, so the returned files have none; expect blank-line churn in the diff.
 
-## This session (UI: story in the middle, dock only when a character talks, D28)
+## This session (M3 s1: companion approval, secrets and the trust hit, party rules)
 
-- **Owner's sketches:** (1) the story is in the middle of the screen; the portrait, the dialog box and the Choices appear in a bottom bar only when a character talks; what they said stays in the middle text afterwards. (2) "Story (webnovel format)" with an arrow to the middle: the story reads as one continuous page, not a box that clears at each scene. Owner said the character dialog is good for now.
-- **Web-novel page:** `UiState.read` (`ReadChunk[]`, last `MAX_READ` = 30, built in `gameModel.readChunk` when CHOOSE / CONTINUE leaves a scene; reset on START, LOAD, debug actions; kept over Menu / Settings; not saved). `SceneView` renders read scenes (dimmed, with the choice taken as an italic line, place caption only when it changes), then this scene's turns, and scrolls to the newest text (`.story` is the scroll area; HUD and dock stay put; `.play` is now `100dvh`). `useGame` exposes `read`; `Game` passes it to `PlayScreen`.
-- **Story data:** new beat `{ say: '<character id>', text, if? }` (STORY_FORMAT §2, "Spoken lines"). The intro's dialog was split into `say` + narration beats: `p.dole` (Dole, 3 spoken lines), `p.dole_in`, `p.dole_out`, `p.dole_sent` (+ the Biscuit line), `p.voice` (Juno, 3 lines); the test chapter's `t.echo` Nora whisper. Unnamed speakers (recording, foreman, anchor) stay narration. No scene was added or removed, so pacing and routes are unchanged.
-- **Engine (pure):** `Beat` type and Zod schema accept `say`; `currentView` returns `beats` (`{ text, say }`) next to `lines` (same text; every old reader still works). Linter: `lintRefs` reports an unknown `say` character; `lintWalk.conditionsOf` handles a beat with an optional `if`. No state, save or reducer change.
-- **UI:** new `ui/turns.ts` (`turnsOf`: a turn is a run of narration or of one character's lines), `hooks/useTurn.ts` (which turn is being read; reset per scene), `components/Dock.tsx` (portrait + spoken line + Continue + Choices panel), `components/Lines.tsx` (typed paragraphs). `SceneView` is now the middle: backdrop + story text (finished turns, with a speaker's name on what they said, plus the narration turn being typed) + Continue under it. `PlayScreen` reads the scene turn by turn: Continue goes to the next turn, from the last turn it leaves the scene; the Choices panel and `1-4` exist on the last turn only. `useTypewriter` takes a string key so each turn restarts it. `EndingScreen` uses the new `SceneView` props. `stage.css` rewritten for the new grid (story row, dock row); `who` no longer draws a portrait.
-- **Tests (+14, 369 total):** `tests/ui/turns.test.ts` (new), stage tests rewritten (narration choice scene, `next` scene, speech turn, last speech turn with choices, spoken line kept in the middle), select (`beats`), schema (`say`), lint (unknown speaker), prologue (who talks in `p.dole`, `p.voice`), two assertions in `render.test.ts` / `renderPlay.test.ts` for the new markup.
-- **Docs updated:** STORY_FORMAT (§2 `say`, §8), UI_UX (§2, §3 rewritten, §4, §5, §7, §9), ARCHITECTURE (§2, §8, §9), ROADMAP (M2 checkbox, D28), START_HERE (repo map), README (status), HANDOFF. `scripts/pack.ts` and `package.json` unchanged: the next session is still M3 s1 and its pack already exists.
+- **Approval table:** `story/approval.ts` (`APPROVAL`, `SOCIAL`), the HONOR §5 table at 5 trust per `+`; it travels as `story.social` and is an optional 4th argument of `apply` / `applyAll` (D14). New `engine/relations.ts`: `shift`, `party` (moved from `effects.ts`; the dead cannot join), `react`, `walkouts`.
+- **Reactions:** a witnessed `honor` effect moves the trust of the companions in the party, scaled by the deed's repeat factor (`applyDeed` now returns `deed: { tag, witnessed, factor }`). An unwitnessed deed moves nobody; `applyAll` stores its tag in the new `GameState.owedTags[secret]` next to `owed`. `reveal` pays the honor, forgets the tags and makes the party present react in full.
+- **Walk-out:** after every effect list and at a chapter change, a companion with trust <= -30 and fear < 60 leaves the party.
+- **Saves:** `SAVE_VERSION` 2, `engine/migrations.ts` `v1to2`, `stateSchema` has `owedTags`.
+- **UI:** toasts say "X joins you" / "X leaves you"; "will remember" only for a trust change or a fear increase.
+- **Bugs:** three fixed, three open (below; ROADMAP M3 list).
+- **Tests (+26, 395):** new `tests/engine/social.test.ts` (approval, reveal, party, walk-out, golden unwitnessed-deed path), approval table in `storyData`, real-story golden (threaten Brick with Nora beside you), v1 -> v2 migration, whole-number schema, toasts. Fixtures got `owedTags` and a small `social` table.
+- **Docs updated:** HONOR (§3, §5, §6, §8), STORY_FORMAT (§5), GAME_DESIGN, ARCHITECTURE (folders, state, flow, saves), CHARACTERS (thresholds), UI_UX (toasts), START_HERE (repo map), ROADMAP (M3 checklist, bug list, D29), README, HANDOFF. `scripts/pack.ts` and `package.json` gained `m3s2`.
 
 ## Decisions made
 
-- D28 dialog layout and `say` beats (above). Earlier: D1-D27.
+- D29 companion approval, `owedTags`, walk-out, save v2 (above, ROADMAP). Earlier: D1-D28.
 
 ## Assumptions to confirm (small, easy to change)
 
+- **M3 s1 numbers (change in `story/approval.ts`):** one `+` in the HONOR §5 table = 5 trust (`STEP`), so `++` = 10; walk-out at trust -30 unless fear is 60+. Balance is a guess until the fuzz / playtest pass.
+- **Who reacts:** the party at the moment of a witnessed deed; for a secret, the party at the moment of the `reveal`, in full (no repeat scaling). Put `['party','+id']` after a deed the newcomer did not see.
+- **Not in the table (no reaction yet):** `keep_word`, `lie_harm`, `betray`, `torture`, `murder`, `cruelty_show`, and Biscuit. HONOR §5 lists only ten tags; say if Brick should like `keep_word`, or everyone should recoil from `murder`.
+- **Old saves:** a v1 save loads (migration), but its held secrets pay honor on reveal with no trust hit.
+- **Walk-out is silent in the story:** a log line and the toast "X leaves you"; no scene, no flag, and the perk trait stays (open bug below).
 - **Reading of the second sketch:** the red lines in the middle are the story text; the bottom frame holds portrait (left), the spoken line (center) and Choices (right). "The character, choices and dialog only show when a character talks" is built as: the portrait and the line show only while a character speaks; the **Choices panel also shows on the last turn of a choice scene when nobody is talking**, alone in the bottom bar, because most choice scenes end on narration and hiding them would soft-lock the game. If choices must appear only after a character speaks, end those scenes on a `say` beat (data only) or tell me and I will gate them.
 - **The page is not saved:** after reload and Continue the page starts at the current scene (saves hold state, not text; rebuilding the earlier text from history is possible later if wanted).
 - **Narration is also paged:** a scene whose narration is split by a spoken line takes one Continue per turn (`p.dole` has four turns). Scenes with no speech are still one turn and one Continue, as before.
@@ -37,7 +43,7 @@
 
 ## Known bugs
 
-- none known
+- **Open** (details in ROADMAP M3 list): (1) `SceneView` scroll key repeats once the page holds 30 scenes (latent until M4); (2) nested `<header>` in `PlayScreen` / `StatBar`; (3) companion perks (`Bruiser`) are not removed when the companion leaves, is killed or walks out.
 
 ## Known gaps
 
@@ -49,19 +55,21 @@
 - The page keeps 30 scenes (`MAX_READ` in `gameModel.ts`); older ones are dropped from the top. Focus stays on the page (not on Continue) when a turn changes, as for scenes.
 - The test chapter after the intro is mechanical (deleted in M4).
 - Not built: text jitter / whisper lines at low Reason, haptics, sound, soften-violence variants (M7); Journal, Party cards, TierBanner, fail-cost hint line, confirm step for irreversible choices (M3+); `CAMP` is a stub (M4).
+- **Journal "Deeds" has no data:** HONOR §7 wants the last 20 deeds with tag, witnessed or not, and who reacted. State keeps only `deedCount` and the 200-line log, so M3 s2 must add a stored deed list (new `GameState` field: `SAVE_VERSION` 3 + a migration).
+- Effects on a dead npc (`trust`, `fear`) still change its numbers; harmless today.
 
 ## Environment
 
 - Node >= 22.12 (`nvm install 22 && nvm use 22`, then `npm install`). Vercel builds on Node 22. Push over SSH (`git@github.com:Dnggr/rot-reason.git`).
 
-## Next 3 tasks (M3 session 1: social systems part 1)
+## Next 3 tasks (M3 session 2: Journal, Party cards, tier banners)
 
-Next pack: `npm run pack:m3s1`
+Next pack: `npm run pack:m3s2`
 
-0. **Owner first:** push this, open the Vercel preview on a phone and a wide screen, play the intro through `p.dole` and `p.voice`, and tick the M2 line in ROADMAP (layout, text sizes, typewriter pace, high contrast). Say if the story / dock layout reads differently from your sketch, or if choices must wait for a speaker (see Assumptions). Report anything with `?debug=1` and Copy debug report.
-1. Companion approval table (story data, passed into the engine like deeds, D14) and the trust / fear effects it drives; party joins and leaves.
-2. Secrets and reveal: the trust hit when a secret surfaces (engine side exists: `owed`, `surface`); golden test that an unwitnessed deed surfaces later and applies the remainder (M3 definition of done).
-3. Update HANDOFF, create the next pack (`m3s2`: Journal, tier banners, Party cards; echo countdown is already visible in the debug panel), delete `m3s1` when M3 is done.
+0. **Owner first:** push this, open the Vercel preview on a phone and a wide screen, play the intro, and tick the M2 line in ROADMAP. Then, with `?debug=1`, jump to `t.street` after sharing with Nora and watch her trust move when you threaten Brick (State tree > `npc`). Decide the open numbers in Assumptions.
+1. Journal (Deeds, People) and Party cards (`CharacterCard`: trust, fear, alive, perk). Deeds needs the stored deed list (Known gaps): add it with a migration. Fix the open bug about perks while there.
+2. Tier banners (HONOR §2: a full-screen beat once per tier change).
+3. Update HANDOFF, tick M3 in ROADMAP, create the next pack (`m4s1`: Prologue part 2 + Ch1, needs the open question 8 settled first), delete `m3s1` and `m3s2` (M3 done).
 
 ## Verify
 
@@ -80,3 +88,4 @@ Next pack: `npm run pack:m3s1`
 - UI stage layout (D27): `Backdrop`, `SceneView` as stage parts, `stage.css`, Title left column, Choices panel; 355 tests.
 - UI story in the middle (D28): `say` beats, `turns`, `useTurn`, `Dock`, `Lines`, `SceneView` as the middle, dialog split in the intro; 369 tests.
 - M2 s2 (UI shell part 2): Settings (+ `settings.ts`, `useSettings`), keyboard (`keys.ts`, `useKeys`), typewriter (`typewriter.ts`, `useTypewriter`), low-HP / low-Reason visuals (`motion.css`), `engine/debug.ts` (`DEBUG_JUMP` / `SET` / `ROLL`), rewind, DebugPanel in `src/debug/`, D25-D26; 350 tests.
+- M3 s1 (social systems part 1): `story/approval.ts`, `engine/relations.ts`, `engine/migrations.ts`, `GameState.owedTags`, walk-out, D29; 395 tests.

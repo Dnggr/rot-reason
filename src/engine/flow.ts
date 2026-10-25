@@ -5,12 +5,14 @@ import { applyAll } from './effects'
 import { capScene } from './honor'
 import { chapterOf, findScene, isSys, RESUME, SYS_DEATH, SYS_MISSING } from './ids'
 import { line, type Applied, type LogLine } from './log'
-import type { GameState, Scene, SceneId, Story } from './types'
+import { NO_SOCIAL, walkouts } from './relations'
+import type { GameState, Scene, SceneId, Social, Story } from './types'
 export const FEAR_DECAY = 5
-// A new chapter: deed counts restart and every npc's fear fades (HONOR §3 rule 2, §6).
-export function changeChapter(s: GameState, chapter: string): Applied {
+// A new chapter: deed counts restart and every npc's fear fades (HONOR §3 rule 2, §6); a companion that fear was holding may now walk out (HONOR §4).
+export function changeChapter(s: GameState, chapter: string, social: Social = NO_SOCIAL): Applied {
   const npc = Object.fromEntries(Object.entries(s.npc).map(([id, n]) => [id, { ...n, fear: clamp(n.fear - FEAR_DECAY, FEAR_RANGE) }]))
-  return { state: { ...s, chapter, deedCount: {}, npc }, log: [line('FX', `chapter ${chapter}: deed counts reset, fear -${FEAR_DECAY}`)] }
+  const out = walkouts({ ...s, chapter, deedCount: {}, npc }, social)
+  return { state: out.state, log: [line('FX', `chapter ${chapter}: deed counts reset, fear -${FEAR_DECAY}`), ...out.log] }
 }
 // Moves into a scene: its `on` effects run under the honor scene cap; hp 0 sends the player to sys.death (death beats any ending).
 export function enter(state: GameState, id: SceneId, story: Story): Applied {
@@ -21,7 +23,7 @@ export function enter(state: GameState, id: SceneId, story: Story): Applied {
     return { state: r.state, log: [line('ERROR', `missing scene ${id}`), ...r.log] }
   }
   const before = state.honor
-  const on = applyAll(scene.on, { ...state, scene: id }, story.deeds)
+  const on = applyAll(scene.on, { ...state, scene: id }, story.deeds, story.social)
   const cap = capScene(before, on.state)
   const log = [line('SCENE', id), ...on.log, ...cap.log]
   if (cap.state.stats.hp <= 0 && !isSys(id)) {
@@ -57,7 +59,7 @@ export function advance(state: GameState, target: SceneId, story: Story, from: S
   }
   if (!isSys(to)) {
     if (chapterOf(to) !== s.chapter) {
-      const c = changeChapter(s, chapterOf(to))
+      const c = changeChapter(s, chapterOf(to), story.social)
       s = c.state
       log.push(...c.log)
     }

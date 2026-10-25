@@ -43,7 +43,7 @@ Every honor effect is a **tagged deed**, not a raw number: `deed(tag, witnessed)
 
 **Rules (all in `engine/honor.ts`):**
 
-1. **Witness rule.** `witnessed=true` applies the full Δ. `witnessed=false` applies **half** now (halves round away from zero) and the rest is **owed** to the `secret` that follows the deed in the same effect list (STORY_FORMAT §5). When the secret is revealed, the remainder applies; the trust hit is an authored `trust` effect (companion table: M3).
+1. **Witness rule.** `witnessed=true` applies the full Δ. `witnessed=false` applies **half** now (halves round away from zero) and the rest is **owed** to the `secret` that follows the deed in the same effect list (STORY_FORMAT §5). When the secret is revealed, the remainder applies and the companions in the party at that moment react to the hidden deed in full (§5).
 2. **Diminishing returns.** The same tag repeated within one chapter gives 100%, then 50%, then 25% (3rd use and later), for every tag. Counted in `deedCount`; the reducer resets it at each chapter change (live since M1 s3). Prevents farming mercy.
 3. **Scene cap.** Net honor change per scene is clamped to ±25 (`capScene(before, state)`: the reducer passes the honor value from before the scene's effects; a pick and a scene's `on` effects each get their own cap).
 4. **Context mods.** `applyDeed` takes a scale of `x2` (huge moment) or `x0.5` (minor one). Nothing else may scale it. The `honor` effect has no scale slot yet, so effects use `x1` until a scene needs one.
@@ -65,7 +65,11 @@ Low honor is a **different playstyle, not a punishment**: it unlocks shortcuts, 
 
 ## 5. Companion approval
 
-Each companion reacts to tags (see `CHARACTERS.md`): `+` raises trust, `-` lowers trust. Reactions fire only if the companion is present (or hears of it as a secret).
+Each companion reacts to tags (see `CHARACTERS.md`): `+` raises trust, `-` lowers trust. Live since M3 s1 (D29, `story/approval.ts`, `engine/relations.ts`): one `+` is **5 trust**, `++` is 10, `-` -5, `--` -10; `0` is no reaction.
+
+- **Present** = in the party when the deed lands. A *witnessed* deed moves them at once, scaled by the deed's repeat factor (100%, 50%, 25%; halves round away from zero), so repeating mercy cannot farm trust.
+- **Hears of it as a secret**: an unwitnessed deed moves nobody. Its tag is stored with the secret (`GameState.owedTags`); on `reveal` the companions in the party *at that moment* react in full (no repeat scaling), on top of the honor the secret owed.
+- Dead companions never react. Tags not in the table below (`keep_word`, `lie_harm`, `betray`, `torture`, `murder`, `cruelty_show`) move nobody yet; Biscuit has no row (open, HANDOFF).
 
 | Tag | Nora | Brick | Juno | Hart | Calloway |
 |---|---|---|---|---|---|
@@ -82,7 +86,9 @@ Each companion reacts to tags (see `CHARACTERS.md`): `+` raises trust, `-` lower
 
 ## 6. Fear (separate from honor)
 
-`fear` is per-NPC `0..100`, raised by `intimidate` and `cruelty_show`. High fear gives compliance but low trust; fear decays 5 per chapter unless renewed (done in `engine/flow.ts` on a chapter change). Honor-negative plus fear is the "Warden of the Dead" route.
+`fear` is per-NPC `0..100`, raised by `intimidate` and `cruelty_show` (authored `fear` effects; the approval table moves trust only). High fear gives compliance but low trust; fear decays 5 per chapter unless renewed (done in `engine/flow.ts` on a chapter change).
+
+**Walk-out.** A companion in the party leaves it when their trust is **-30 or lower** (the conflict line) and their fear is **under 60** (the compliance line, CHARACTERS). Fear 60+ keeps a companion who no longer trusts you, until the fade at a chapter change lets them go (§4: stay out of fear, leave when it fades). Checked after every effect list and at a chapter change. Honor-negative plus fear is the "Warden of the Dead" route.
 
 ## 7. Player-facing UI
 
@@ -92,7 +98,7 @@ Each companion reacts to tags (see `CHARACTERS.md`): `+` raises trust, `-` lower
 
 ## 8. Implementation notes
 
-- Pure functions in `engine/honor.ts` (live since M1 s2): `applyDeed(state, tag, witnessed, scale, deeds) -> {state, log, owed?}`, `capScene(before, state)`, `surface(state, id)`. The deed table is `src/story/honor.ts` (`DEEDS`), passed in by the caller. Unknown tag = ERROR log, no change.
+- Pure functions in `engine/honor.ts` (live since M1 s2): `applyDeed(state, tag, witnessed, scale, deeds) -> {state, log, owed?, deed?}` (`deed` = tag, witnessed, repeat factor, for the reactions), `capScene(before, state)`, `surface(state, id)`. Reactions and the walk-out are in `engine/relations.ts` (`react`, `walkouts`), driven by `effects.apply` / `applyAll` with the story's `Social` table (D14). The deed table is `src/story/honor.ts` (`DEEDS`), passed in by the caller. Unknown tag = ERROR log, no change.
 - Tier is derived (`tierOf(honor)`), never stored.
 - Unit tests (`tests/engine/honor.test.ts`, `effects.test.ts`): witness halving (half + remainder always equals the full delta), diminishing returns, scene cap, clamp, secret surfacing.
 - Story linter: warns if an unknown tag is used, or a chapter has no tag diversity.
