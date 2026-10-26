@@ -23,6 +23,15 @@ const endings: Record<string, string> = {
   beacon: 'Beacon', warden_of_the_dead: 'Warden of the Dead', broken_reason: 'Broken Reason', rot_within: 'Rot Within',
   last_seat: 'Last Seat', lighthouse: 'The Lighthouse', death: 'You did not make it',
 }
+const journal = {
+  title: 'Journal', open: 'Journal', close: 'Close', deeds: 'Deeds', people: 'People', party: 'With you', others: 'Others',
+  deedsEmpty: 'Nothing yet. What you do is remembered here.', peopleEmpty: 'Nobody yet.',
+  seen: 'Seen', unseen: 'Unseen', cameOut: 'Came out', day: (d: number): string => `Day ${d}`,
+  honor: (n: number): string => `Honor ${n > 0 ? `+${n}` : n}`, noChange: 'No change in honor', reacted: 'Reacted:',
+  inParty: 'With you', dead: 'Dead', trust: 'Trust', fear: 'Fear', perk: 'Perk',
+  trustLabel: (who: string, n: number): string => `${who}'s trust ${n} of 100`, fearLabel: (who: string, n: number): string => `${who}'s fear ${n} of 100`,
+} as const
+const banner = { dismiss: 'Continue' } as const
 export const S = {
   title: 'Rot & Reason',
   tagline: 'Every choice costs something.',
@@ -52,7 +61,7 @@ export const S = {
   kitEmpty: 'nothing',
   honor: 'Honor',
   day,
-  tier, tone, odds, res, stat, attr, phase, mood,
+  tier, tone, odds, res, stat, attr, phase, mood, journal, banner,
   cantAfford: 'Not enough',
   theEnd: 'The end',
   recap: 'Your run',

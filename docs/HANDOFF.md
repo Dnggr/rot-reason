@@ -2,48 +2,45 @@
 
 ## Status
 
-- **Phase:** M3 session 1 (social systems part 1) code DONE. Next: M3 session 2 (Journal, Party cards, tier banners). M2 still closes when the owner has checked the definition of done on a phone.
-- **Deployed:** https://rotandreason.vercel.app/ (auto-deploys on push to `main`). It shows the older layout until the D27 / D28 work is pushed. **Not checked on a phone yet.**
-- **Last verified:** in a repo rebuilt from the pack on Node 22.22: `npm install`, `npm run typecheck` ok, `npm run test` 395 tests green (369 + 26 new), `npm run rules` ok, `npm run lint:story` ok (0 errors, 0 warnings), `npm run fuzz` 1000 runs clean on seeds 1 and 99, `npm run coverage` 100% lines on `src/engine`. **Not checked:** `npm run ready` end to end (the rebuilt repo has no git, so `docs:check` skipped its "code changed" test and only checked the Next pack line), the live site, a browser, a phone. Note: the pack strips blank lines, so the returned files have none; expect blank-line churn in the diff.
+- **Phase:** M3 code DONE (s1 + s2). Next: M4 session 1 (Prologue part 2 + Ch1; settle ROADMAP open question 8 first). M2 and M3 close when the owner has checked them on a phone.
+- **Deployed:** https://rotandreason.vercel.app/ (auto-deploys on push to `main`). It shows the older layout until the D27 / D28 work and this session are pushed. **Not checked on a phone yet.**
+- **Last verified:** in a repo rebuilt from the pack on Node 22.22: `npm install`, `npm run typecheck` ok, `npm run test` 426 tests green (397 + 29 new), `npm run rules` ok, `npm run lint:story` ok (0 errors, 0 warnings), `npm run fuzz` 1000 runs clean on seeds 1 and 99, `npm run coverage` 100% lines on `src/engine`, `npm run build` ok (about 115 KB gzip initial JS). **Not checked:** `npm run ready` end to end (the rebuilt repo has no git, so `docs:check` skipped its "code changed" test), the live site, a browser, a phone, a screen reader. The UI is tested by server-render checks only: the Journal, the banner and the keys have never run in a real browser. Note: the pack strips blank lines, so the returned files have none; expect blank-line churn in the diff.
 
-## This session (M3 s1: companion approval, secrets and the trust hit, party rules)
+## This session (M3 s2: Journal, Party cards, tier banners, perks)
 
-- **Approval table:** `story/approval.ts` (`APPROVAL`, `SOCIAL`), the HONOR §5 table at 5 trust per `+`; it travels as `story.social` and is an optional 4th argument of `apply` / `applyAll` (D14). New `engine/relations.ts`: `shift`, `party` (moved from `effects.ts`; the dead cannot join), `react`, `walkouts`.
-- **Reactions:** a witnessed `honor` effect moves the trust of the companions in the party, scaled by the deed's repeat factor (`applyDeed` now returns `deed: { tag, witnessed, factor }`). An unwitnessed deed moves nobody; `applyAll` stores its tag in the new `GameState.owedTags[secret]` next to `owed`. `reveal` pays the honor, forgets the tags and makes the party present react in full.
-- **Walk-out:** after every effect list and at a chapter change, a companion with trust <= -30 and fear < 60 leaves the party.
-- **Saves:** `SAVE_VERSION` 2, `engine/migrations.ts` `v1to2`, `stateSchema` has `owedTags`.
-- **UI:** toasts say "X joins you" / "X leaves you"; "will remember" only for a trust change or a fear increase.
-- **Bugs:** three fixed, three open (below; ROADMAP M3 list).
-- **Tests (+26, 395):** new `tests/engine/social.test.ts` (approval, reveal, party, walk-out, golden unwitnessed-deed path), approval table in `storyData`, real-story golden (threaten Brick with Nora beside you), v1 -> v2 migration, whole-number schema, toasts. Fixtures got `owedTags` and a small `social` table.
-- **Docs updated:** HONOR (§3, §5, §6, §8), STORY_FORMAT (§5), GAME_DESIGN, ARCHITECTURE (folders, state, flow, saves), CHARACTERS (thresholds), UI_UX (toasts), START_HERE (repo map), ROADMAP (M3 checklist, bug list, D29), README, HANDOFF. `scripts/pack.ts` and `package.json` gained `m3s2`.
+- **Deed list:** `GameState.deeds` (last 20: tag, witnessed, surfaced, day, honor delta, who reacted with trust change), written by `effects.apply` and by `reveal` (`engine/deeds.ts`). `SAVE_VERSION` 3, `migrations.v2to3` (empty list). `stateSchema` has it.
+- **Journal:** `engine/journal.journalOf` (selector), `ui/screens/JournalScreen.tsx` (tabs Deeds, People), `ui/components/CharacterCard.tsx` (trust and fear meters, with-you / dead chips, perk line; party first). Opens from a Journal button and `J`; closes with Close, `Escape` or `J`. It is drawn over `PlayScreen`, which stays mounted, inert and key-less, so the scene being read keeps its turn.
+- **Tier banner:** `ui/tiers.tierBanner`, `UiState.banner`, `BANNER_OFF`, `ui/components/TierBanner.tsx`, lines in `story/tiers.ts` (`StoryTables.tiers`). 3 s or a tap. Not saved.
+- **Perks (bug fix):** `StoryTables.perks` (`story/traits.ts` `PERKS`: Brick / Bruiser, Juno / Signal) and `checks.heldTraits` give the bonus while the companion is alive and in the party. The test chapter's `+Bruiser` / `-Bruiser` effects are gone (it got `+Hardened` so the test chapter still uses the `trait` effect).
+- **Other fixes:** `SceneView` scroll key (`turns.scrollKey`), the nested `<header>`. `engine/actions.ts` split out of `types.ts` (200-line rule).
+- **Bugs flagged:** six new open ones (ROADMAP M3 list, Known bugs below).
+- **Tests (+29, 426):** `tests/engine/journal.test.ts` (deed records, cap, surfaced, perks, `journalOf`, real-story golden with Brick), `tests/ui/journalUi.test.ts` (Journal, card, banner, overlays, the two UI bug fixes), v1 -> v3 and v2 -> v3 migrations.
+- **Docs updated:** ARCHITECTURE (folders, state, flow, saves, UI rules), HONOR (§2, §7, §8), UI_UX (§2, §4, §5, §7), GAME_DESIGN (checks, party, secrets), CHARACTERS (perks), STORY_FORMAT (perks, deeds), START_HERE (repo map), ROADMAP (M3 list, bug list, D30), README, HANDOFF. `scripts/pack.ts` and `package.json`: `m3s1` and `m3s2` deleted (M3 done), `m4s1` added.
 
 ## Decisions made
 
-- D29 companion approval, `owedTags`, walk-out, save v2 (above, ROADMAP). Earlier: D1-D28.
+- D30 Journal, deed list, tier banner, perks from the party (above, ROADMAP). Earlier: D1-D29.
 
 ## Assumptions to confirm (small, easy to change)
 
-- **M3 s1 numbers (change in `story/approval.ts`):** one `+` in the HONOR §5 table = 5 trust (`STEP`), so `++` = 10; walk-out at trust -30 unless fear is 60+. Balance is a guess until the fuzz / playtest pass.
-- **Who reacts:** the party at the moment of a witnessed deed; for a secret, the party at the moment of the `reveal`, in full (no repeat scaling). Put `['party','+id']` after a deed the newcomer did not see.
-- **Not in the table (no reaction yet):** `keep_word`, `lie_harm`, `betray`, `torture`, `murder`, `cruelty_show`, and Biscuit. HONOR §5 lists only ten tags; say if Brick should like `keep_word`, or everyone should recoil from `murder`.
-- **Old saves:** a v1 save loads (migration), but its held secrets pay honor on reveal with no trust hit.
-- **Walk-out is silent in the story:** a log line and the toast "X leaves you"; no scene, no flag, and the perk trait stays (open bug below).
-- **Reading of the second sketch:** the red lines in the middle are the story text; the bottom frame holds portrait (left), the spoken line (center) and Choices (right). "The character, choices and dialog only show when a character talks" is built as: the portrait and the line show only while a character speaks; the **Choices panel also shows on the last turn of a choice scene when nobody is talking**, alone in the bottom bar, because most choice scenes end on narration and hiding them would soft-lock the game. If choices must appear only after a character speaks, end those scenes on a `say` beat (data only) or tell me and I will gate them.
-- **The page is not saved:** after reload and Continue the page starts at the current scene (saves hold state, not text; rebuilding the earlier text from history is possible later if wanted).
-- **Narration is also paged:** a scene whose narration is split by a spoken line takes one Continue per turn (`p.dole` has four turns). Scenes with no speech are still one turn and one Continue, as before.
-- Choice scenes in the intro that end on narration (`p.stairs`, `p.dole`, `p.radio`) show only the Choices panel at the bottom right. `who` is still stored and linted, but draws nothing now (the Journal can use it).
-- **Mixed story lines** like `"I understand," Dole says, in the voice of a man who does not.` were split into a spoken beat plus narration (`He says it in the voice of a man who does not.`); the wording moved a little, the meaning did not. Flag any line you want back as it was.
-- Tapping a choice or Continue while text is typing only finishes the typing (also for `1-4`). `Space` goes to the next turn after typing; it does nothing once the choices show.
-- Soften violence and Sound do nothing yet (stored, `soften` class on `<html>`). Settings first run follows the device's reduced-motion preference.
-- Typewriter pace: 30 ms per character (UI_UX §7). If it drags on a phone, change `MS_PER_CHAR` in `ui/typewriter.ts` (one number).
-- `?debug=1` works on the live site too (anyone can add it), as the plan said. "Set seed" reseeds the roll stream (`state.rng`), not `state.seed`. Rewind refuses a run edited with jump / set.
-- Story seeds from before (unchanged): Haven's recording uses the name "the Rot" from Day 1; Biscuit is Dole's dog; the first bitten man wore a St. Brigid's wristband; `p.street` / `p.gate` are deferred to M4; the old "mercy-kill" option for Dole is gone.
-- Still open from M1 (STORY_FORMAT §2, §5): `GameState.name`; `LogEntry` shape; `all`/`any`/`not`; `CHOOSE` carries the choice id; new deed tag `lie_harm`; owed remainder pairing (D15); echo `after: N`; `scene.time` applies when the player leaves; `glitch` replaces `text` when Reason < 30 (and is one narration turn); start stats hp 5 / reason 80 / rot 0; a due echo may fire before an ending; endings E5/E6 order; `reduce` START ignores its `state`; starting kit items are not modelled.
-- From M2 s1: ending titles are UI labels in `ui/strings.ts`; NPC display names are the capitalised id (`ui/names.ts`, also the speaker name on a `say` line); autosave covers every state except `sys.error`; new game over a save needs a second tap; toasts omit the deed tag; Continue shows the raw chapter id until chapter titles exist (M4); default name "Ash".
+- **Banner:** 3 s (was 2 s in UI_UX); tap, Continue or the timer dismisses it. One line per tier is mine (`story/tiers.ts`): edit freely. A reload while it shows loses it.
+- **People list:** shows the party, the dead and anyone whose trust or fear rose from its start. A person you met who never moved is hidden (no `met` state yet; open bug).
+- **Perk text** on the cards is mine ("Grit checks +2 while he is with you."). Only Brick and Juno have perks the engine applies; Nora, Hart, Calloway and Biscuit show none until their mechanic exists.
+- **Journal honor** is the deed's own change before the ±25 scene cap (open bug).
+- **M3 s1 numbers (change in `story/approval.ts`):** one `+` = 5 trust, walk-out at trust -30 unless fear is 60+. Balance is a guess until the fuzz / playtest pass.
+- **Who reacts:** the party at the moment of a witnessed deed; for a secret, the party at the `reveal`, in full. Put `['party','+id']` after a deed the newcomer did not see.
+- **Not in the approval table (no reaction yet):** `keep_word`, `lie_harm`, `betray`, `torture`, `murder`, `cruelty_show`, and Biscuit.
+- **Old saves:** v1 and v2 saves load (migrations); their past deeds are not in the Journal, and a v1 secret pays honor on reveal with no trust hit.
+- **Walk-out is silent in the story:** a log line and the toast "X leaves you"; no scene or flag.
+- Layout and reading (unchanged from D27 / D28): choices show on the last turn only, also alone in the dock when nobody talks; the page of earlier scenes is not saved; narration is paged by speaker; a tap while text types only finishes the typing; typewriter 30 ms per character (`MS_PER_CHAR`); Soften violence and Sound do nothing yet; `?debug=1` works on the live site.
+- Story seeds (unchanged): Haven's recording uses the name "the Rot" from Day 1; Biscuit is Dole's dog; the first bitten man wore a St. Brigid's wristband; `p.street` / `p.gate` are deferred to M4.
+- Still open from M1 (STORY_FORMAT §2, §5): `GameState.name`; `LogEntry` shape; `all`/`any`/`not`; `CHOOSE` carries the choice id; new deed tag `lie_harm`; owed remainder pairing (D15); echo `after: N`; `scene.time` applies when the player leaves; `glitch` replaces `text` when Reason < 30; start stats hp 5 / reason 80 / rot 0; a due echo may fire before an ending; endings E5/E6 order; `reduce` START ignores its `state`; starting kit items are not modelled.
+- From M2 s1: ending titles are UI labels in `ui/strings.ts`; NPC display names are the capitalised id (`ui/names.ts`); autosave covers every state except `sys.error`; new game over a save needs a second tap (Title only, see bug 4); toasts omit the deed tag; Continue shows the raw chapter id until chapter titles exist (M4); default name "Ash".
 
 ## Known bugs
 
-- **Open** (details in ROADMAP M3 list): (1) `SceneView` scroll key repeats once the page holds 30 scenes (latent until M4); (2) nested `<header>` in `PlayScreen` / `StatBar`; (3) companion perks (`Bruiser`) are not removed when the companion leaves, is killed or walks out.
+- **Open** (details in ROADMAP M3 list, "flagged in the M3 s2 review"): (1) a companion recruited at or below the walk-out line joins and leaves in the same list, silently; (2) effects on a dead npc still change its trust / fear; (3) a spoken line is announced twice by screen readers; (4) New game from the Ending or the error fallback skips the erase confirmation; (5) Journal honor ignores the ±25 scene cap; (6) People hides someone you met but whose numbers never moved.
+- Fixed this session: scroll key at 30 scenes, nested `<header>`, stale companion perks.
 
 ## Known gaps
 
@@ -54,22 +51,20 @@
 - No backdrop or portrait art exists yet (gradient and silhouette placeholders); the text box and panel are semi-opaque and the story text has a text shadow so art will stay readable, but contrast over real art is unchecked. The Background, Settings and Ending screens keep the old centered column.
 - The page keeps 30 scenes (`MAX_READ` in `gameModel.ts`); older ones are dropped from the top. Focus stays on the page (not on Continue) when a turn changes, as for scenes.
 - The test chapter after the intro is mechanical (deleted in M4).
-- Not built: text jitter / whisper lines at low Reason, haptics, sound, soften-violence variants (M7); Journal, Party cards, TierBanner, fail-cost hint line, confirm step for irreversible choices (M3+); `CAMP` is a stub (M4).
-- **Journal "Deeds" has no data:** HONOR §7 wants the last 20 deeds with tag, witnessed or not, and who reacted. State keeps only `deedCount` and the 200-line log, so M3 s2 must add a stored deed list (new `GameState` field: `SAVE_VERSION` 3 + a migration).
-- Effects on a dead npc (`trust`, `fear`) still change its numbers; harmless today.
+- Not built: text jitter / whisper lines at low Reason, haptics, sound, soften-violence variants (M7); fail-cost hint line, Journal Notes tab, confirm step for irreversible choices (M3+); `CAMP` is a stub (M4).
 
 ## Environment
 
 - Node >= 22.12 (`nvm install 22 && nvm use 22`, then `npm install`). Vercel builds on Node 22. Push over SSH (`git@github.com:Dnggr/rot-reason.git`).
 
-## Next 3 tasks (M3 session 2: Journal, Party cards, tier banners)
+## Next 3 tasks (M4 session 1: Prologue part 2 + Ch1)
 
-Next pack: `npm run pack:m3s2`
+Next pack: `npm run pack:m4s1`
 
-0. **Owner first:** push this, open the Vercel preview on a phone and a wide screen, play the intro, and tick the M2 line in ROADMAP. Then, with `?debug=1`, jump to `t.street` after sharing with Nora and watch her trust move when you threaten Brick (State tree > `npc`). Decide the open numbers in Assumptions.
-1. Journal (Deeds, People) and Party cards (`CharacterCard`: trust, fear, alive, perk). Deeds needs the stored deed list (Known gaps): add it with a migration. Fix the open bug about perks while there.
-2. Tier banners (HONOR §2: a full-screen beat once per tier change).
-3. Update HANDOFF, tick M3 in ROADMAP, create the next pack (`m4s1`: Prologue part 2 + Ch1, needs the open question 8 settled first), delete `m3s1` and `m3s2` (M3 done).
+0. **Owner first:** push this, open the Vercel preview on a phone and a wide screen, play the intro, open the Journal (button and `J`), trigger a tier change (`?debug=1`, set honor to 25) and check the banner; tick the M2 line in ROADMAP. **Decide ROADMAP open question 8** (content budget at 85:15) before M4 writing starts.
+1. Write Prologue part 2 (`p.street`, `p.gate`) and the start of Ch1 per STORYBOARD, with callbacks, echoes and honor lines, at 85:15 (`lint:story` enforces it). Do not author `trait` effects for companion perks (they follow the party).
+2. Fix the flagged bugs that the new scenes touch (recruiting a companion below the walk-out line is the likely one).
+3. Update HANDOFF, tick the M4 lines in ROADMAP, create the next pack (`m4s2`), delete `m4s1` once M4 is done.
 
 ## Verify
 
@@ -89,3 +84,4 @@ Next pack: `npm run pack:m3s2`
 - UI story in the middle (D28): `say` beats, `turns`, `useTurn`, `Dock`, `Lines`, `SceneView` as the middle, dialog split in the intro; 369 tests.
 - M2 s2 (UI shell part 2): Settings (+ `settings.ts`, `useSettings`), keyboard (`keys.ts`, `useKeys`), typewriter (`typewriter.ts`, `useTypewriter`), low-HP / low-Reason visuals (`motion.css`), `engine/debug.ts` (`DEBUG_JUMP` / `SET` / `ROLL`), rewind, DebugPanel in `src/debug/`, D25-D26; 350 tests.
 - M3 s1 (social systems part 1): `story/approval.ts`, `engine/relations.ts`, `engine/migrations.ts`, `GameState.owedTags`, walk-out, D29; 395 tests.
+- M3 s2 (social systems part 2): `GameState.deeds` (save v3), `engine/deeds.ts`, `journal.ts`, perks from the party, `JournalScreen`, `CharacterCard`, `TierBanner`, three M3 s1 bugs fixed, six new bugs flagged, D30; 426 tests.

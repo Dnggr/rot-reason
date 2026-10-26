@@ -21,3 +21,5 @@ export function turnsOf(beats: readonly BeatView[]): Turn[] {
   }
   return out
 }
+// The number SceneView watches to scroll to the newest text: it changes with every scene left (the newest chunk's step, which keeps growing after the page holds MAX_READ scenes), every turn read, and the turn being typed. Fewer than 100 turns per scene.
+export const scrollKey = (read: readonly ReadChunk[], turnsDone: number, hasNow: boolean): number => (read[read.length - 1]?.key ?? 0) * 1000 + turnsDone * 10 + (hasNow ? 1 : 0)

@@ -17,21 +17,24 @@ story (data)  ->  engine (pure logic)  ->  ui (React)       debug/ may read all;
 ```
 src/
   engine/
-    types.ts        GameState, Action, SaveData, LogEntry, Scene, Choice, Effect, Condition types; `Social` (approval table + walk-out line) in StoryTables (live since M1 s1; Social, owedTags M3 s1)
+    types.ts        GameState, LogEntry, DeedRecord, Scene, Choice, Effect, Condition types; `Social` (approval table + walk-out line), `perks` and `tiers` in StoryTables (live since M1 s1; Social, owedTags M3 s1; deeds, perks, tiers M3 s2); re-exports Action, DebugPatch, SaveData from actions.ts
+    actions.ts      SaveData, DebugPatch, Action (split from types.ts to keep it under 200 lines) (live since M3 s2)
     schema.ts       Zod schemas for story data: Condition, Effect, Choice, Scene (live since M1 s1)
     reducer.ts      reduce(state, action, story) -> state   (the only state change path; never throws) (live since M1 s3)
     choose.ts       CHOOSE / CONTINUE: validate, tick, cost, check, fx, cap, time, advance (live since M1 s3)
     flow.ts         advance / enter: $resume, missing target, death, chapter change, echo take, `on` effects (live since M1 s3)
-    init.ts         startGame(story, bg, name, seed), SAVE_VERSION (2 since M3 s1) (live since M1 s3)
+    init.ts         startGame(story, bg, name, seed), SAVE_VERSION (3 since M3 s2) (live since M1 s3)
     choices.ts      status(choice, state): hidden / locked / broke / open (live since M1 s3)
     ids.ts          SYS_* scene ids, RESUME, chapterOf, findScene (live since M1 s3)
     bounds.ts       clamp + the value ranges; throws on NaN/Infinity (live since M1 s2)
     conditions.ts   evaluate(cond, state) -> boolean (live since M1 s2)
     effects.ts      apply(effect, state, deeds, social?) -> {state, log, owed?, deed?}; applyAll(list, state, deeds, social?): pairs unwitnessed deeds with the next `secret`, reveal makes the party react, ends with the walk-out check (live since M1 s2; social M3 s1)
+    deeds.ts        DEED_KEEP (20), addDeed, reactors: the Journal's deed list (live since M3 s2, D30)
+    journal.ts      journalOf(state, story) -> { deeds (newest first, with who reacted), people (party first; the party, the dead and anyone whose trust or fear rose) with their perk line }: the Journal's selector (live since M3 s2, D30)
     relations.ts    shift (trust / fear), party (join / leave; the dead cannot join), react (companion approval of a deed), walkouts, NO_SOCIAL, PARTY_MAX (live since M3 s1, D29)
     honor.ts        tierOf, applyDeed (returns the deed and its repeat factor), capScene, surface, repeatFactor, roundAway (live since M1 s2)
-    migrations.ts   save upgrades, one function per version step: v1to2 adds `owedTags` (live since M3 s1)
-    checks.ts       resolveCheck(attr, dc, state, traitBonus) -> {state, roll, bonus, total, pass, log} (live since M1 s2)
+    migrations.ts   save upgrades, one function per version step: v1to2 adds `owedTags` (M3 s1), v2to3 adds `deeds` (M3 s2)
+    checks.ts       resolveCheck(attr, dc, state, traitBonus, perks?) -> {state, roll, bonus, total, pass, log}; heldTraits(state, perks): the player's traits plus the perk trait of every living companion in the party, so a perk lasts exactly as long as the companion is with you (live since M1 s2; perks M3 s2, D30)
     echoes.ts       schedule, tick, due, take (live since M1 s2)
     endings.ts      resolveEnding(state, rules), AUTO / DEATH / SYS ending ids (live since M1 s3)
     rng.ts          seeded mulberry32, pure: `nextFloat(rng) -> {value, rng}`, `nextInt`, `d6`, `initRng(seed)` (live since M1 s1)
@@ -46,7 +49,8 @@ src/
     flags.ts  characters.ts  backgrounds.ts  endings.ts  system.ts   (live since M1 s3; items.ts and factions.ts come when a scene needs them)
     honor.ts        DEEDS table: tag -> delta (live since M1 s2)
     approval.ts     APPROVAL (companion x deed tag -> trust change, the HONOR §5 table at 5 per +) and SOCIAL (APPROVAL + the walk-out line: trust -30, held by fear 60) (live since M3 s1, D29)
-    traits.ts       TRAIT_BONUS: trait -> check bonus per attribute (live since M1 s2)
+    traits.ts       TRAIT_BONUS: trait -> check bonus per attribute (live since M1 s2); PERKS: companion id -> { trait, text } for the perks the engine applies (Brick, Juno; M3 s2, D30)
+    tiers.ts        TIER_LINES: the line of the full-screen banner when honor enters a tier (M3 s2, D30)
     chapters/ prologue.ts  test.ts (until M4)  ch1_a.ts  ch1_b.ts  ...  index.ts (registry, lazy by chapter)
   ui/
     App.tsx         root: ErrorBoundary > story loading > Game (live since M2 s1)
@@ -54,10 +58,11 @@ src/
     strings.ts  lockReason.ts  toasts.ts  names.ts  storage.ts  version.ts
     settings.ts     Settings type, defaults, rr_settings_v1 read / write, applySettings (to <html>) (live since M2 s2)
     typewriter.ts   pure: MS_PER_CHAR, totalChars, tick, splitLines    keys.ts  keyCommand: 1-4 / Space / J    vitals.ts  low HP / Reason thresholds
-    turns.ts        pure: turnsOf(beats) -> Turn[] (a run of narration, or of one character's lines); ReadChunk (a scene already read; D28)
+    turns.ts        pure: turnsOf(beats) -> Turn[] (a run of narration, or of one character's lines); ReadChunk (a scene already read; D28); scrollKey (what SceneView watches to scroll)
+    tiers.ts        pure: tierBanner(prev, next, lines) -> the banner when honor entered a new tier, BANNER_MS (M3 s2, D30)
     debugApi.ts     DebugApi + DebugPanelComponent: what the game hands the debug panel
-    screens/    TitleScreen  BackgroundScreen  PlayScreen  SettingsScreen  EndingScreen (live)   Camp  Journal (later)
-    components/ Backdrop  StatBar  HonorMeter  SceneView  Dock  Lines  ChoiceList  ChoiceButton  Toast  ReportButton  ErrorFallback  ErrorBoundary (live)   CharacterCard (M3)
+    screens/    TitleScreen  BackgroundScreen  PlayScreen  SettingsScreen  EndingScreen  JournalScreen (live; the Journal is drawn over PlayScreen)   Camp (later)
+    components/ Backdrop  StatBar  HonorMeter  SceneView  Dock  Lines  ChoiceList  ChoiceButton  Toast  ReportButton  ErrorFallback  ErrorBoundary  CharacterCard  TierBanner (live)
     hooks/      useGame.ts  gameModel.ts (pure reducer, autosave, Continue, playRoute, rewind)  useStory.ts  useSettings.ts  useTypewriter.ts  useTurn.ts  useKeys.ts
     styles/     tokens.css  base.css  play.css  stage.css (backdrop, HUD, story, dock with portrait / spoken line / Choices panel, Title column; wide grid)  motion.css
   debug/        DebugPanel.tsx  StateView.tsx  Controls.tsx  forceRoll.ts  rrHandle.ts  debug.css   (live since M2 s2)
@@ -81,6 +86,7 @@ GameState {
   owed: Record<secretId, number>  // honor still owed when that secret surfaces (HONOR §3)
   owedTags: Record<secretId, string[]> // the unwitnessed deed tags a secret hides: the party reacts to them on reveal (D29)
   party: string[]
+  deeds: DeedRecord[]             // the last 20 deeds, oldest first: { tag, witnessed, surfaced, day, delta, who: {npc: trust change} } (D30)
   npc: Record<id, { alive, trust, fear }>
   echoes: { scene, dueIn?: number, atChapter?: string }[]
   deedCount: Record<tag, number>  // per chapter, for diminishing returns
@@ -98,7 +104,7 @@ No functions, no class instances, no Dates in state.
 UI click -> dispatch({type:'CHOOSE', choice}) -> reduce(state, action, story)
   -> 1 validate action against current scene: choice exists, `if` shown, `lock` true, cost affordable
        (stale clicks are ignored and logged as ERROR; they are not in history)
-  -> 2 echoes.tick, pay cost, resolveCheck (seeded), applyAll(choice fx + check branch fx) in order (a witnessed deed also moves the trust of the companions in the party by the approval table; a `reveal` does the same for the deeds the secret hid; the list ends with the walk-out check), schedule choice.echo
+  -> 2 echoes.tick, pay cost, resolveCheck (seeded, with the perks of the party), applyAll(choice fx + check branch fx) in order (a witnessed deed also moves the trust of the companions in the party by the approval table; a `reveal` does the same for the deeds the secret hid; every deed and every surfaced deed is also recorded in `deeds`; the list ends with the walk-out check), schedule choice.echo
   -> 3 capScene (net honor change per scene within ±25), then the departing scene's `time`, then push history
   -> 4 advance: resolve `$resume` / missing target / hp 0 (-> sys.death); on a chapter change reset deedCount
        and fade fear by 5 (a companion that fear was holding may then walk out); echoes.take (a due echo replaces the target, `resume` remembers it); enter the scene:
@@ -133,7 +139,7 @@ Actions (typed in `engine/types.ts`): `START(bg,name,seed)`, `CHOOSE(choice)` wh
 - `makeSave(state, checkpoint, story, savedAt)` moves the checkpoint to the current state whenever the scene is tagged `gate`. Never autosave a state parked on `sys.error`.
 - Storage is injected as `KeyValueStore { getItem, setItem }`; `readSave` returns `undefined` when nothing is stored and an error result (never a throw) for bad JSON.
 - Autosave after every state change on the play screen (`useGame` effect -> `gameModel.autosave`; synchronous, no debounce, D21). A failed write shows a notice, never a throw. Continue reads the save with `readSave` on the title screen; an unreadable save shows a notice and New game. `ui/storage.ts` falls back to memory when localStorage is blocked, and the Title warns. Manual slots later (M5).
-- `migrate(v)` functions are small and tested with fixture saves. `SAVE_VERSION` is 2 (M3 s1): `migrations.v1to2` gives a v1 snapshot and checkpoint an empty `owedTags`, so a v1 save loads; a held secret from a v1 run then pays its honor on reveal but causes no trust hit.
+- `migrate(v)` functions are small and tested with fixture saves. `SAVE_VERSION` is 3 (M3 s2): `migrations.v1to2` gives a v1 snapshot and checkpoint an empty `owedTags` (a held secret from a v1 run pays its honor on reveal but causes no trust hit), and `v2to3` an empty `deeds` (a v2 run has no record of its past deeds), so v1 and v2 saves load.
 
 ## 7. Debug tooling (`?debug=1` or dev build)
 
@@ -160,6 +166,7 @@ Actions (typed in `engine/types.ts`): `START(bg,name,seed)`, `CHOOSE(choice)` wh
 - Styles in 5 CSS files (tokens, base, play, stage, motion) plus `debug/debug.css` with the panel, all with CSS variables; no CSS-in-JS, no utility framework. Settings reach the page as `<html data-text="S|M|L|XL">` and the classes `hc`, `reduce-motion`, `soften` (`ui/settings.applySettings`); tokens and `motion.css` key off them. All animation is in `motion.css`.
 - `PlayScreen` owns the turn (`useTurn`, restarted by `step` = scenes played), the typewriter (`useTypewriter`, restarted by each turn) and the keyboard (`useKeys` + `ui/keys.keyCommand`); a tap or key while text is typing only finishes it. The choices and their keys exist on the last turn only.
 - Images referenced by key from `place` and the speaking character (`say`); missing image -> placeholder, never an error. `Backdrop` sets the CSS variable `--bg-img` to `url(/bg/<name>.webp)` (name stripped to letters, digits, `_`, `-`) over a gradient, so a missing file only leaves the gradient. `SceneView` renders as `display: contents` so its backdrop and story text are grid items of `.play`; `Dock` (portrait, spoken line, Choices panel) is its own grid item, rendered only while a character talks or choices are offered (`stage.css`).
+- Overlays (M3 s2, D30): the Journal (`UiState.screen === 'journal'`) and the tier banner (`UiState.banner`, set by `uiReducer` from `ui/tiers.tierBanner`, cleared by `BANNER_OFF`, START, LOAD, rewind) are drawn by `PlayScreen` over the play page, which stays mounted (the scene being read keeps its turn) but is `inert` with its keys off while one is open. The Journal shows `engine/journal.journalOf`; nothing in `ui` reads story data directly.
 - Lazy-load chapters (`import('./chapters/ch2')`); initial bundle target < 150 KB gzip.
 
 ## 10. Deploy (Vercel)

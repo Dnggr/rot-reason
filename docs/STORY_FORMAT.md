@@ -144,3 +144,6 @@ Warnings: a chapter of 8+ scenes where more than 15% of scenes ask for a choice 
 2. Ask Claude to write one chapter part file + any new flags in `flags.ts`.
 3. Run `npm run lint:story` and the chapter's golden-path test.
 4. Play it with `?debug=1` and note continuity issues in `HANDOFF.md`.
+
+- **Companion perks (D30).** Do not author `['trait', '+Bruiser']` / `['trait', '-Bruiser']` for a companion's perk: it follows `['party', '+brick']` / `['party', '-brick']`, a `kill` and a walk-out by itself (`story/traits.ts` `PERKS`). `trait` effects are for the player's own traits.
+- **Deeds in the Journal (D30).** Every `['honor', tag, witnessed]` is recorded in the Journal's Deeds (last 20). A hidden deed is recorded when it happens and again as "came out" on `['reveal', id]`. Nothing to author.

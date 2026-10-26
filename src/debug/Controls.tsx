@@ -53,7 +53,7 @@ export function Controls({ api }: { api: DebugApi }) {
       </div>
       {checks.map((c) =>
         (['pass', 'fail'] as const).map((want: Want) => {
-          const roll = c.check === undefined ? undefined : rollFor(want, c.check, game, story.traitBonus)
+          const roll = c.check === undefined ? undefined : rollFor(want, c.check, game, story.traitBonus, story.perks)
           const blocked = off || roll === undefined || status(c, game) !== 'open'
           return (
             <button key={`${c.id}-${want}`} type="button" className="btn" disabled={blocked} onClick={() => {

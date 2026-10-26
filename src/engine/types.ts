@@ -115,6 +115,8 @@ export interface EndingRule {
 // Companion approval (HONOR §5, D29): npc id -> deed tag -> trust change, and when a companion walks out (trust at or below `leaveTrust` and fear under `fearHolds`).
 export type ApprovalTable = Readonly<Record<string, Readonly<Record<string, number>>>>
 export interface Social { approval: ApprovalTable; leaveTrust: number; fearHolds: number }
+// A companion's perk (CHARACTERS.md): the trait that gives the check bonus while they are in the party, and one line for their card (D30). Only perks the engine really applies are listed.
+export interface Perk { trait: string; text: string }
 export interface StoryTables {
   start: SceneId
   deeds: DeedTable
@@ -123,6 +125,8 @@ export interface StoryTables {
   npcs: Readonly<Record<string, NpcStart>>
   endings: readonly EndingRule[] // first match wins
   social: Social
+  perks: Readonly<Record<string, Perk>> // npc id -> perk (D30)
+  tiers: Readonly<Record<Tier, string>> // the line of the full-screen banner shown when honor enters a tier (HONOR §2, D30)
 }
 export interface Story extends StoryTables {
   scenes: Readonly<Record<SceneId, Scene>>
@@ -139,6 +143,8 @@ export interface LogEntry {
   kind: 'SCENE' | 'CHOICE' | 'FX' | 'HONOR' | 'SECRET' | 'ECHO' | 'ERROR' | 'DEBUG'
   text: string
 }
+// One entry of the Journal's Deeds list (HONOR §7, D30): a deed as it happened, or a hidden one when it came out (`surfaced`). `who` = companions whose trust moved, with the change.
+export interface DeedRecord { tag: string; witnessed: boolean; surfaced: boolean; day: number; delta: number; who: Record<string, number> }
 export interface GameState {
   v: number // save schema version
   seed: number
@@ -159,6 +165,7 @@ export interface GameState {
   owed: Record<string, number> // secret id -> honor still owed when it surfaces (HONOR §3 witness rule)
   owedTags: Record<string, string[]> // secret id -> the unwitnessed deed tags it hides: the party reacts to them when it surfaces (D29)
   party: string[]
+  deeds: DeedRecord[] // the last DEED_KEEP deeds, oldest first (engine/deeds.ts)
   npc: Record<string, NpcState>
   echoes: EchoEntry[]
   deedCount: Record<string, number> // per chapter, for diminishing returns
@@ -166,30 +173,4 @@ export interface GameState {
   log: LogEntry[] // ring buffer, last 200
   resume: SceneId | null // where to go when an echo scene ends with '$resume' (flow.advance)
 }
-export interface SaveData {
-  v: number
-  seed: number
-  bg: string // seed + bg + name + history is enough to replay the game when the snapshot is unusable
-  name: string
-  history: string[]
-  snapshot: GameState
-  checkpoint: GameState | null
-  savedAt: number // epoch ms, supplied by the storage layer (the engine has no clock)
-}
-// A DEBUG_SET payload (engine/debug.ts): set one value to an exact number, or switch one flag. Debug build only.
-export type DebugPatch =
-  | { kind: 'stat'; key: StatKey; value: number }
-  | { kind: 'res'; key: ResKey; value: number }
-  | { kind: 'honor'; value: number }
-  | { kind: 'day'; value: number }
-  | { kind: 'rng'; value: number } // reseeds the roll stream (state.rng); state.seed, the start seed, is left alone
-  | { kind: 'flag'; key: string; on: boolean }
-export type Action =
-  | { type: 'START'; bg: string; name: string; seed: number }
-  | { type: 'CHOOSE'; choice: ChoiceId }
-  | { type: 'CONTINUE' }
-  | { type: 'CAMP'; action: string }
-  | { type: 'LOAD'; save: SaveData }
-  | { type: 'DEBUG_JUMP'; scene: SceneId } // debug build only (the UI drops these otherwise): enter any scene
-  | { type: 'DEBUG_SET'; patch: DebugPatch }
-  | { type: 'DEBUG_ROLL'; roll: number } // the next d6 lands on `roll` (1-6)
+export type { Action, DebugPatch, SaveData } from './actions'

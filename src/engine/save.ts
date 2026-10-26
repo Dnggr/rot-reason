@@ -3,13 +3,13 @@ import { CONTINUE_TOKEN } from './choose'
 import { SAVE_VERSION, startGame } from './init'
 import { findScene, SYS_ERROR } from './ids'
 import { pushLog } from './log'
-import { v1to2 } from './migrations'
+import { v1to2, v2to3 } from './migrations'
 import { reduce } from './reducer'
 import { saveHeadSchema, validState } from './stateSchema'
 import type { Action, ChoiceId, GameState, SaveData, Story } from './types'
 export const SAVE_KEY = 'rr_save_v1'
 export type Migrations = Readonly<Record<number, (raw: Record<string, unknown>) => Record<string, unknown>>> // v -> upgrades v to v+1
-export const MIGRATIONS: Migrations = { 1: v1to2 }
+export const MIGRATIONS: Migrations = { 1: v1to2, 2: v2to3 }
 export interface KeyValueStore {
   getItem(key: string): string | null
   setItem(key: string, value: string): void

@@ -31,7 +31,7 @@ In data (`src/story/backgrounds.ts`) the hook is an optional one-line `hook` str
 
 ## Dominic "Brick" Salazar, ex-con dockhand (the shield)
 - **Age/Look:** 41, huge, soft-spoken, prison tattoos, reads paperbacks.
-- **Trait:** Loyal, blunt, short temper when disrespected. **Perk:** Bruiser (Grit checks +2 when present; holds a door in Ch5).
+- **Trait:** Loyal, blunt, short temper when disrespected. **Perk:** Bruiser (Grit checks +2 when present; holds a door in Ch5). *Live (M3 s2, D30): `PERKS.brick` gives the Bruiser bonus while he is alive and in the party.*
 - **Flaw:** violence as first answer. **Secret:** went to prison taking the fall for his brother, who is now a Reaper.
 - **Wants:** to be treated as a man, not a record. **Fears:** being caged again.
 - **Likes:** protect, share, keep_word, intimidate (if aimed at bullies). **Dislikes:** abandon, betray, lie (to him).
@@ -42,7 +42,7 @@ In data (`src/story/backgrounds.ts`) the hook is an optional one-line `hook` str
 
 ## Juno Park, teen radio scavenger (the truth)
 - **Age/Look:** 16, oversized headphones, soldering burns, sarcastic.
-- **Trait:** Clever, reckless, honest to a fault. **Perk:** Signal (+1 Wits checks involving tech; intercepts broadcasts, reveals ambushes).
+- **Trait:** Clever, reckless, honest to a fault. **Perk:** Signal (+1 Wits checks involving tech; intercepts broadcasts, reveals ambushes). *Live (M3 s2, D30): `PERKS.juno` gives +1 on every Wits check while she is in the party; "involving tech" is not modelled.*
 - **Flaw:** cannot stay out of danger when curious. **Secret:** knows the "Haven" broadcast loops and may be pre-recorded.
 - **Wants:** to find her older brother (on the pier). **Fears:** being alone in the dark.
 - **Likes:** honest, protect, share. **Dislikes:** lie (strongly), abandon, steal.
@@ -117,3 +117,6 @@ In data (`src/story/backgrounds.ts`) the hook is an optional one-line `hook` str
 
 ## Relationship thresholds (global)
 `trust ≥ 30` unlocks a **bond scene** at camp (gives a perk upgrade and a backstory reveal). `trust ≤ -30` unlocks a **conflict scene**; until those scenes exist (M5), a companion at that line **walks out of the party** unless fear holds them (engine, M3 s1: `story/approval.ts` `SOCIAL`). `fear ≥ 60` unlocks "compliance" lines but no bond scene, and keeps a distrustful companion with you.
+
+## Perks in the engine (M3 s2, D30)
+A perk is listed in `src/story/traits.ts` `PERKS` (companion id -> `{ trait, text }`) only when the engine applies it. `heldTraits(state, perks)` adds the perk trait of every living companion in the party to the player's own traits for every check and every odds word, so there is no `['trait', '+Bruiser']` effect to forget: leaving, death and a walk-out all end the perk. The card line in the Journal is `text`. Add a row when a mechanic exists (Medic, Shelter, Armory, Biscuit).

@@ -69,3 +69,30 @@ input[type='checkbox'] { width: 24px; height: 24px; flex: none; padding: 0; acce
 .seg .btn { margin-top: 0; flex: 1; }
 .seg [aria-checked='true'] { border-color: var(--honor); color: var(--honor); box-shadow: inset 0 0 0 1px var(--honor); }
 .toggle { display: flex; gap: calc(var(--space) * 2); align-items: flex-start; padding: var(--space) 0; font-family: var(--font-ui); cursor: pointer; }
+.seg [aria-selected='true'] { border-color: var(--honor); color: var(--honor); box-shadow: inset 0 0 0 1px var(--honor); }
+.journal { position: fixed; inset: 0; z-index: 20; display: flex; justify-content: center; overflow-y: auto; background: color-mix(in srgb, var(--bg) 94%, transparent); }
+.journal-box { width: min(100%, 40rem); padding: calc(var(--space) * 2); font-family: var(--font-ui); }
+.journal-top { display: flex; justify-content: space-between; align-items: center; gap: calc(var(--space) * 2); margin-bottom: var(--space); }
+.journal-top h1 { margin: 0; }
+.journal-top .btn { width: auto; margin-top: 0; }
+.journal-body { margin-top: calc(var(--space) * 2); }
+.journal-body h2 { margin: calc(var(--space) * 2) 0 var(--space); font: 600 13px var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.deeds, .people { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space); }
+.deed, .person { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: var(--space) calc(var(--space) * 1.5); }
+.deed-head, .person-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space); }
+.deed .sub, .person .sub { margin: 4px 0 0; }
+.person h3 { margin: 0; font-size: calc(var(--ui-size) * 1.1); }
+.person.gone { opacity: 0.7; }
+.meter-row { display: grid; grid-template-columns: 6rem 1fr; align-items: center; gap: var(--space); margin-top: 6px; font-size: calc(var(--ui-size) * 0.875); }
+.meter { position: relative; height: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+.meter-fill { position: absolute; top: 0; bottom: 0; }
+.meter-fill.trust { background: var(--honor); }
+.meter-fill.neg { background: var(--blood); }
+.meter-fill.fear { background: var(--rot); }
+.perk { margin: var(--space) 0 0; font-size: calc(var(--ui-size) * 0.9); }
+.tier-banner { position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--space) * 2); padding: 6vw; text-align: center; cursor: pointer; background: rgba(0, 0, 0, 0.9); }
+.tier-name { margin: 0; font: 600 13px var(--font-ui); letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); }
+.tier-T1 .tier-name, .tier-T2 .tier-name { color: var(--blood); }
+.tier-T4 .tier-name, .tier-T5 .tier-name { color: var(--honor); }
+.tier-line { margin: 0; max-width: 28rem; font: var(--story-size)/var(--story-line) var(--font-story); }
+.tier-banner .btn { width: auto; min-width: 160px; }

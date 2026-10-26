@@ -1,6 +1,7 @@
 // engine/effects.ts — apply(effect, state): the closed effect vocabulary (STORY_FORMAT §5); pure, returns new state + log lines
 import { clamp, DAY_RANGE, FEAR_RANGE, RES_RANGE, STAT_RANGE, TRUST_RANGE } from './bounds'
 import { npcOf } from './conditions'
+import { addDeed, reactors } from './deeds'
 import { schedule } from './echoes'
 import { applyDeed, surface } from './honor'
 import { line, signed, type Applied, type LogLine } from './log'
@@ -13,26 +14,28 @@ function trait(s: GameState, spec: string): Applied {
   const next = signedList(s.traits, spec)
   return next === undefined ? fail(s, `trait ${spec}: must start with + or -`) : ok({ ...s, traits: next }, `trait ${spec}`)
 }
-// A secret comes out: its owed honor applies (honor.surface), then the party reacts to every deed it hid, in full (D29).
+// A secret comes out: its owed honor applies (honor.surface), then the party reacts to every deed it hid, in full (D29). Each hidden deed joins the Journal's list as `surfaced` (D30); the first carries the honor paid.
 function reveal(s: GameState, id: string, social: Social): Applied {
   const tags = s.secrets.includes(id) ? (s.owedTags[id] ?? []) : []
   const r = surface(s, id)
   let cur = r.state
   const log = [...r.log]
-  for (const tag of tags) {
+  const paid = cur.honor - s.honor
+  tags.forEach((tag, i) => {
     const seen = react(cur, tag, 1, social)
-    cur = seen.state
+    cur = addDeed(seen.state, { tag, witnessed: false, surfaced: true, day: s.day, delta: i === 0 ? paid : 0, who: reactors(cur, seen.state) })
     log.push(...seen.log)
-  }
+  })
   return { state: cur, log }
 }
 export function apply(e: Effect, s: GameState, deeds: DeedTable, social: Social = NO_SOCIAL): Applied {
   switch (e[0]) {
     case 'honor': {
       const r = applyDeed(s, e[1], e[2], 1, deeds)
-      if (r.deed === undefined || !r.deed.witnessed) return r // unwitnessed: nobody reacts until the secret surfaces
-      const seen = react(r.state, e[1], r.deed.factor, social)
-      return { ...r, state: seen.state, log: [...r.log, ...seen.log] }
+      if (r.deed === undefined) return r
+      const seen = r.deed.witnessed ? react(r.state, e[1], r.deed.factor, social) : { state: r.state, log: [] } // unwitnessed: nobody reacts until the secret surfaces
+      const rec = { tag: e[1], witnessed: r.deed.witnessed, surfaced: false, day: s.day, delta: r.state.honor - s.honor, who: reactors(s, seen.state) }
+      return { ...r, state: addDeed(seen.state, rec), log: [...r.log, ...seen.log] }
     }
     case 'stat': {
       const v = clamp(s.stats[e[1]] + e[2], STAT_RANGE[e[1]])

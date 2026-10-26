@@ -25,8 +25,7 @@
     "pack:story": "tsx scripts/pack.ts story",
     "pack:ui": "tsx scripts/pack.ts ui",
     "coverage": "vitest run --coverage",
-    "pack:m3s1": "tsx scripts/pack.ts m3s1",
-    "pack:m3s2": "tsx scripts/pack.ts m3s2"
+    "pack:m4s1": "tsx scripts/pack.ts m4s1"
   },
   "dependencies": {
     "react": "^19.3.1",

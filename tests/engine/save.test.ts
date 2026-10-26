@@ -41,22 +41,41 @@ describe('makeSave', () => {
     expect(gate).toMatchObject({ v: SAVE_VERSION, seed: 3, bg: 'dockworker', name: 'Ash', history: ['c1.a:a'], savedAt: 5 })
   })
 })
-describe('migrate v1 -> v2 (owedTags, D29)', () => {
+describe('migrate v1 -> v3 (owedTags D29, deeds D30)', () => {
   const v1State = (): Record<string, unknown> => {
     const { owedTags: _dropped, ...rest } = play(a, cont)
     return { ...rest, v: 1, secrets: ['x'], owed: { x: -3 } }
   }
   const v1Save = (): Record<string, unknown> => ({ v: 1, seed: 3, bg: 'dockworker', name: 'Ash', history: ['c1.a:a', 'c1.b:>'], snapshot: v1State(), checkpoint: v1State(), savedAt: 5 })
-  it('adds an empty owedTags to the snapshot and the checkpoint and stamps both versions', () => {
+  it('adds an empty owedTags and deeds to the snapshot and the checkpoint and stamps both versions', () => {
     const m = migrate(v1Save())
-    expect(m['v']).toBe(2)
-    expect(m['snapshot']).toMatchObject({ v: 2, owedTags: {}, secrets: ['x'], owed: { x: -3 } })
-    expect(m['checkpoint']).toMatchObject({ v: 2, owedTags: {} })
+    expect(m['v']).toBe(3)
+    expect(m['snapshot']).toMatchObject({ v: 3, owedTags: {}, deeds: [], secrets: ['x'], owed: { x: -3 } })
+    expect(m['checkpoint']).toMatchObject({ v: 3, owedTags: {}, deeds: [] })
   })
   it('keeps a missing checkpoint missing, and a v1 save loads through loadSave as a valid state', () => {
     expect(migrate({ ...v1Save(), checkpoint: null })['checkpoint']).toBeNull()
     const r = loadSave(v1Save(), story)
     expect(r.ok && r.via).toBe('snapshot')
+  })
+})
+describe('migrate v2 -> v3 (deeds, D30)', () => {
+  const v2State = (): Record<string, unknown> => {
+    const { deeds: _dropped, ...rest } = play(a, cont)
+    return { ...rest, v: 2, honor: 5 }
+  }
+  const v2Save = (): Record<string, unknown> => ({ v: 2, seed: 3, bg: 'dockworker', name: 'Ash', history: ['c1.a:a', 'c1.b:>'], snapshot: v2State(), checkpoint: v2State(), savedAt: 5 })
+  it('gives the snapshot and the checkpoint an empty deed list and keeps the rest', () => {
+    const m = migrate(v2Save())
+    expect(m['v']).toBe(3)
+    expect(m['snapshot']).toMatchObject({ v: 3, deeds: [], honor: 5 })
+    expect(m['checkpoint']).toMatchObject({ v: 3, deeds: [] })
+    expect(migrate({ ...v2Save(), checkpoint: null })['checkpoint']).toBeNull()
+  })
+  it('a v2 save loads through loadSave as a valid state', () => {
+    const r = loadSave(v2Save(), story)
+    expect(r.ok && r.via).toBe('snapshot')
+    expect(r.ok && r.save.snapshot.deeds).toEqual([])
   })
 })
 describe('migrate', () => {

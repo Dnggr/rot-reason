@@ -8,7 +8,7 @@ export const sys: Scene[] = [
 ]
 export function makeStory(scenes: Scene[], over: Partial<Story> = {}): Story {
   return {
-    start: scenes[0]?.id ?? 'c1.a', deeds, social, traitBonus: { Bruiser: { grit: 2 } },
+    start: scenes[0]?.id ?? 'c1.a', deeds, social, traitBonus: { Bruiser: { grit: 2 } }, perks: {}, tiers: { T1: 'one', T2: 'two', T3: 'three', T4: 'four', T5: 'five' },
     backgrounds: { dockworker: { name: 'Dockworker', attr: { grit: 4, wits: 2, heart: 3 }, trait: 'Hauler', stats: { hp: 5, reason: 80, rot: 0 }, res: { food: 1, ammo: 0, meds: 0 } } },
     npcs: { nora: { name: 'Nora', trust: 10, fear: 20 }, brick: { name: 'Brick', trust: 0, fear: 5 } },
     endings: [{ id: 'good', if: ['honor', '>=', 5] }, { id: 'plain' }],

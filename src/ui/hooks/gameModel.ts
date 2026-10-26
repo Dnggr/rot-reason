@@ -9,38 +9,41 @@ import { currentView, hudOf, type Hud, type View } from '../../engine/select'
 import type { Action, Background, GameState, SaveData, Story } from '../../engine/types'
 import type { EraseStore } from '../storage'
 import { diffToasts } from '../toasts'
+import { tierBanner, type Banner } from '../tiers'
 import { turnsOf, type ReadChunk } from '../turns'
-export type Screen = 'title' | 'background' | 'play' | 'settings'
+export type Screen = 'title' | 'background' | 'play' | 'settings' | 'journal' // the Journal is drawn over the play screen (PlayScreen), so the scene being read keeps its place
 export interface UiState {
   screen: Screen
-  from: Screen // where Settings returns to
+  from: Screen // where Settings or the Journal return to
   game: GameState // before the first START this is a placeholder that is never shown (screen is 'title')
   checkpoint: GameState | null // last chapter gate, for "Restart chapter"
   toasts: readonly string[]
   seq: number // bumps on every action so the Toast can restart its timer
   read: readonly ReadChunk[] // the scenes read so far in this session, newest last (not saved: Continue starts a fresh page)
+  banner: Banner | undefined // honor just entered a new tier (HONOR §2, D30): shown once over the play screen, not saved
 }
 export const MAX_READ = 30 // scenes kept above the current one
-export type UiAction = Action | { type: 'SCREEN'; screen: Screen } | { type: 'DEBUG_REWIND' } // rewind is a session operation (it replays history), so it lives here, not in the engine
+export type UiAction = Action | { type: 'SCREEN'; screen: Screen } | { type: 'BANNER_OFF' } | { type: 'DEBUG_REWIND' } // rewind is a session operation (it replays history), so it lives here, not in the engine
 export function initialUi(story: Story): UiState {
   const r = startGame(story, Object.keys(story.backgrounds)[0] ?? '', '', 1) // throws on a story with no background: the error boundary shows it
-  return { screen: 'title', from: 'title', game: pushLog(r.state, r.log), checkpoint: null, toasts: [], seq: 0, read: [] }
+  return { screen: 'title', from: 'title', game: pushLog(r.state, r.log), checkpoint: null, toasts: [], seq: 0, read: [], banner: undefined }
 }
 // Wraps engine `reduce` (the only state-changing path); everything else here is navigation and display. DEBUG_* actions are dropped unless `debug` is on (the panel is mounted).
 export function uiReducer(story: Story, debug: boolean = false): (ui: UiState, a: UiAction) => UiState {
   return (ui, a) => {
     const seq = ui.seq + 1
-    if (a.type === 'SCREEN') return { ...ui, screen: a.screen, from: a.screen === 'settings' ? ui.screen : ui.from, toasts: [], seq } // `read` stays: Settings and Menu do not turn the page
+    if (a.type === 'SCREEN') return { ...ui, screen: a.screen, from: a.screen === 'settings' || a.screen === 'journal' ? ui.screen : ui.from, toasts: [], seq } // `read` stays: Settings and Menu do not turn the page
+    if (a.type === 'BANNER_OFF') return ui.banner === undefined ? ui : { ...ui, banner: undefined }
     if (a.type === 'DEBUG_REWIND') return debug ? rewind(ui, story) : ui
     if (!debug && a.type.startsWith('DEBUG_')) return ui
     const game = reduce(ui.game, a, story)
-    if (a.type === 'LOAD' && game.log[game.log.length - 1]?.kind === 'ERROR') return { ...ui, game, toasts: [], seq, read: [] } // the engine rejected the snapshot
+    if (a.type === 'LOAD' && game.log[game.log.length - 1]?.kind === 'ERROR') return { ...ui, game, toasts: [], seq, read: [], banner: undefined } // the engine rejected the snapshot
     const base = a.type === 'START' ? null : a.type === 'LOAD' ? a.save.checkpoint : ui.checkpoint
     const checkpoint = game.scene === SYS_ERROR ? base : makeSave(game, base, story, 0).checkpoint // the engine moves it at `gate` scenes
     const played = a.type === 'CHOOSE' || a.type === 'CONTINUE'
     const screen = a.type === 'START' || a.type === 'LOAD' ? 'play' : ui.screen
     const read = played && game.history.length > ui.game.history.length ? [...ui.read, readChunk(ui.game, a, story)].slice(-MAX_READ) : played ? ui.read : [] // START, LOAD and DEBUG_* begin a fresh page
-    return { ...ui, screen, game, checkpoint, toasts: played ? diffToasts(ui.game, game) : [], seq, read }
+    return { ...ui, screen, game, checkpoint, toasts: played ? diffToasts(ui.game, game) : [], seq, read, banner: played ? tierBanner(ui.game, game, story.tiers) : undefined }
   }
 }
 // The scene the player just left, kept for the page above the next one.
@@ -65,7 +68,7 @@ export function rewind(ui: UiState, story: Story): UiState {
   if ('error' in re) return refuse(re.error)
   const game = pushLog({ ...re.state, log: g.log }, [line('DEBUG', `rewind ${undone} -> ${re.state.scene}`)]) // keeps the old log, so a report still shows what was undone
   const checkpoint = ui.checkpoint !== null && ui.checkpoint.history.length <= game.history.length ? ui.checkpoint : null
-  return { ...ui, game, checkpoint, toasts: [], seq: ui.seq + 1, read: [] }
+  return { ...ui, game, checkpoint, toasts: [], seq: ui.seq + 1, read: [], banner: undefined }
 }
 export type BackgroundCard = Background & { key: string }
 export const backgroundCards = (story: Story): BackgroundCard[] => Object.entries(story.backgrounds).map(([key, bg]) => ({ key, ...bg }))

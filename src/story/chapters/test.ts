@@ -28,7 +28,7 @@ export const scenes: Scene[] = [
     ],
     choices: [
       { id: 'a', tone: 'threaten', text: 'Level your gun at the big man.', cost: { ammo: 1 }, lock: ['stat', 'reason', '>=', 20],
-        fx: [['honor', 'intimidate', true], ['fear', 'brick', 15], ['party', '+brick'], ['trait', '+Bruiser'], ['echo', { scene: 't.echo', after: 1 }]], to: 't.gate' },
+        fx: [['honor', 'intimidate', true], ['fear', 'brick', 15], ['party', '+brick'], ['echo', { scene: 't.echo', after: 1 }]], to: 't.gate' },
       { id: 'b', tone: 'honest', text: 'Confess what you took from the nurse.', if: ['secret', 'stolen_meds'], fx: [['reveal', 'stolen_meds'], ['honor', 'honest', true], ['trust', 'nora', -5]], to: 't.gate' },
       { id: 'c', tone: 'quiet', text: 'Send Nora back upstairs alone.', if: ['party', 'nora'], fx: [['party', '-nora'], ['honor', 'abandon', true], ['trust', 'nora', -20]], to: 't.gate' },
       { id: 'd', tone: 'quiet', text: 'Slip past the bus without a sound.', fx: [['time', { day: 1, phase: 'night' }]], echo: { scene: 't.echo', after: 1 }, to: 't.gate' },
@@ -45,7 +45,7 @@ export const scenes: Scene[] = [
     choices: [
       { id: 'a', tone: 'brave', text: 'Rally the crowd to follow you out.', fx: [['set', 'final_lead'], ['trust', 'brick', 10]], to: 't.end' },
       { id: 'b', tone: 'honest', text: 'Hold the pier and rebroadcast the truth.', fx: [['set', 'final_stay'], ['set', 'broadcast_changed'], ['clear', 'test_started']], to: 't.end' },
-      { id: 'c', tone: 'cold', text: 'Leave them all and take the bus alone.', fx: [['honor', 'abandon', true], ['kill', 'nora'], ['set', 'route_fear'], ['set', 'nora_turned'], ['trait', '-Bruiser']], to: 't.end' },
+      { id: 'c', tone: 'cold', text: 'Leave them all and take the bus alone.', fx: [['honor', 'abandon', true], ['kill', 'nora'], ['trait', '+Hardened'], ['set', 'route_fear'], ['set', 'nora_turned']], to: 't.end' },
       { id: 'd', tone: 'brave', text: 'Charge the horde and hold it off.', fx: [['honor', 'sacrifice', true], ['stat', 'hp', -5]], to: 't.end' },
     ],
   },

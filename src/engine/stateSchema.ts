@@ -1,5 +1,6 @@
 // engine/stateSchema.ts — Zod schemas for runtime data: GameState and the save envelope (saves are validated on load, ARCHITECTURE §5.3)
 import { z } from 'zod'
+import { DEED_KEEP } from './deeds'
 import { findScene, SYS_ERROR } from './ids'
 import type { GameState, Story } from './types'
 const id = z.string().min(1)
@@ -7,6 +8,7 @@ const int = z.number().int()
 const within = (min: number, max: number) => int.min(min).max(max)
 const npc = z.strictObject({ alive: z.boolean(), trust: within(-100, 100), fear: within(0, 100) })
 const echo = z.strictObject({ scene: id, dueIn: z.exactOptional(within(0, 1000)), atChapter: z.exactOptional(id) })
+const deed = z.strictObject({ tag: id, witnessed: z.boolean(), surfaced: z.boolean(), day: within(1, 21), delta: int, who: z.record(z.string(), int) })
 const entry = z.strictObject({ n: int, kind: z.enum(['SCENE', 'CHOICE', 'FX', 'HONOR', 'SECRET', 'ECHO', 'ERROR', 'DEBUG']), text: z.string() })
 export const gameStateSchema: z.ZodType<GameState> = z.strictObject({
   v: int, seed: int, rng: int, name: z.string(), scene: id, chapter: id, day: within(1, 21),
@@ -15,7 +17,7 @@ export const gameStateSchema: z.ZodType<GameState> = z.strictObject({
   res: z.strictObject({ food: within(0, 9), ammo: within(0, 9), meds: within(0, 9) }),
   attr: z.strictObject({ grit: within(0, 9), wits: within(0, 9), heart: within(0, 9) }),
   bg: id, traits: z.array(z.string()), honor: within(-100, 100), flags: z.record(z.string(), z.literal(true)),
-  secrets: z.array(z.string()), owed: z.record(z.string(), int), owedTags: z.record(z.string(), z.array(z.string())), party: z.array(z.string()), npc: z.record(z.string(), npc),
+  secrets: z.array(z.string()), owed: z.record(z.string(), int), owedTags: z.record(z.string(), z.array(z.string())), party: z.array(z.string()), deeds: z.array(deed).max(DEED_KEEP), npc: z.record(z.string(), npc),
   echoes: z.array(echo), deedCount: z.record(z.string(), within(0, 1000)), history: z.array(z.string()),
   log: z.array(entry).max(200), resume: id.nullable(),
 })

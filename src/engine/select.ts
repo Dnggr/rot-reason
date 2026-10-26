@@ -47,7 +47,7 @@ export function currentView(state: GameState, story: Story): View {
   const choices: ChoiceView[] = (scene.choices ?? []).flatMap((c) => {
     const st = status(c, state)
     if (st === 'hidden') return []
-    const odds = c.check === undefined ? undefined : checkOdds(c.check.attr, c.check.dc, state, story.traitBonus)
+    const odds = c.check === undefined ? undefined : checkOdds(c.check.attr, c.check.dc, state, story.traitBonus, story.perks)
     return [{ id: c.id, text: c.text, tone: c.tone, cost: c.cost, enabled: st === 'open', why: st === 'locked' ? 'lock' : st === 'broke' ? 'cost' : undefined, lock: st === 'locked' ? c.lock : undefined, odds }]
   })
   const kind = scene.choices !== undefined ? 'choices' : scene.next !== undefined ? 'next' : scene.end !== undefined ? 'end' : 'error'

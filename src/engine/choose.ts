@@ -41,7 +41,7 @@ export function choose(state: GameState, id: ChoiceId, story: Story): Applied {
   let list: readonly Effect[] = choice.fx ?? []
   let to = choice.to
   if (choice.check !== undefined) {
-    const r = resolveCheck(choice.check.attr, choice.check.dc, s, story.traitBonus)
+    const r = resolveCheck(choice.check.attr, choice.check.dc, s, story.traitBonus, story.perks)
     const branch = r.pass ? choice.check.pass : choice.check.fail
     s = r.state
     log.push(...r.log)

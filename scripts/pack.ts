@@ -16,21 +16,13 @@ const PRESETS: Record<string, { include: string[]; compress?: boolean }> = {
   bug: { include: [...BASE, 'docs/ARCHITECTURE.md'] }, // add the files from the debug log: npm run pack -- bug src/engine/honor.ts
   chapter: { include: [...BASE, 'docs/STORY_FORMAT.md', 'docs/STORYBOARD.md', 'src/story/flags.ts'] }, // add: src/story/chapters/ch2*
   // ---- TASK PACKS: one per upcoming session, named <milestone><session> (START_HERE Rule 0.5). Delete when the milestone is done. ----
-  // M3 s1: social systems part 1 (trust / fear, party, companion approval table, secrets and the trust hit when one surfaces; the Journal is M3 s2)
-  m3s1: {
+  // M4 s1: Prologue part 2 (p.street, p.gate) + the start of Ch1; settle ROADMAP open question 8 (content budget at 85:15) first
+  m4s1: {
     include: [
-      ...BASE, ...CFG, ...PACKING, 'docs/GAME_DESIGN.md', 'docs/HONOR.md', 'docs/CHARACTERS.md', 'docs/ARCHITECTURE.md', 'docs/STORY_FORMAT.md',
-      'src/engine/types.ts', 'src/engine/effects.ts', 'src/engine/honor.ts', 'src/engine/echoes.ts', 'src/engine/conditions.ts', 'src/engine/choose.ts', 'src/engine/flow.ts', 'src/engine/select.ts',
-      'src/story/characters.ts', 'src/story/honor.ts', 'src/story/flags.ts', 'src/story/index.ts',
-      'tests/engine/fixtures.ts', 'tests/engine/reducerHelpers.ts', 'tests/engine/storyFixture.ts', 'tests/engine/effects.test.ts', 'tests/engine/honor.test.ts', 'tests/engine/echoes.test.ts',
-    ],
-  },
-  // M3 s2: Journal (Deeds, People), Party cards, tier banners (the UI side of the social systems)
-  m3s2: {
-    include: [
-      ...BASE, ...PACKING, 'docs/UI_UX.md', 'docs/HONOR.md', 'docs/CHARACTERS.md', 'docs/ARCHITECTURE.md', 'docs/GAME_DESIGN.md',
-      'src/ui/**', 'src/engine/types.ts', 'src/engine/select.ts', 'src/engine/relations.ts', 'src/engine/effects.ts', 'src/engine/honor.ts', 'src/engine/save.ts', 'src/engine/migrations.ts', 'src/engine/stateSchema.ts', 'src/engine/init.ts',
-      'src/story/approval.ts', 'src/story/characters.ts', 'tests/ui/**', 'tests/engine/fixtures.ts', 'tests/engine/social.test.ts',
+      ...BASE, ...PACKING, 'docs/STORYBOARD.md', 'docs/STORY_FORMAT.md', 'docs/CHARACTERS.md', 'docs/HONOR.md', 'docs/GAME_DESIGN.md',
+      'src/story/flags.ts', 'src/story/characters.ts', 'src/story/honor.ts', 'src/story/approval.ts', 'src/story/traits.ts', 'src/story/tiers.ts', 'src/story/index.ts',
+      'src/story/chapters/prologue.ts', 'src/story/chapters/test.ts', 'src/story/chapters/index.ts',
+      'scripts/lint-story.ts', 'scripts/lintTone.ts', 'tests/prologue.test.ts', 'tests/story.test.ts', 'tests/engine/testStory.ts',
     ],
   },
 }

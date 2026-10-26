@@ -1,7 +1,7 @@
 // ui/components/SceneView.tsx — the middle of the stage (UI_UX §3): backdrop plus the story as one web-novel page. Scenes already read stay above, in order (with the choice taken); then the turns read in this scene, then the one being typed. A speaker's lines carry their name. `children` (Continue) go under the text.
 import { useEffect, useRef, type ReactNode } from 'react'
 import { shortName } from '../names'
-import type { ReadChunk, Turn } from '../turns'
+import { scrollKey, type ReadChunk, type Turn } from '../turns'
 import { Backdrop } from './Backdrop'
 import { Lines } from './Lines'
 interface Props {
@@ -25,7 +25,7 @@ function Told({ turn }: { turn: Turn }) {
 const caption = (place: string): string => place.replaceAll('_', ' ')
 export function SceneView({ place, read = [], done = [], now, revealed, onSkip, children }: Props) {
   const box = useRef<HTMLDivElement>(null)
-  const size = read.length * 1000 + done.length * 10 + (now === undefined ? 0 : 1)
+  const size = scrollKey(read, done.length, now !== undefined)
   useEffect(() => {
     const el = box.current
     if (el !== null) el.scrollTop = el.scrollHeight // the newest text is always in view

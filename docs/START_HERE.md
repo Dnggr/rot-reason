@@ -44,9 +44,9 @@ Vite 8 + React 19 + TypeScript 7 (strict) + Vitest 5 (+ `@vitest/coverage-v8`, a
 
 ```
 docs/                 these files (read first, update last)
-src/engine/           pure logic: reducer (+ choose, flow, init, debug), select, conditions, effects, relations (trust / fear, party, approval, walk-out), honor, rng, echoes, checks, choices, bounds, endings, save (+ stateSchema, migrations), ids, log, report
-src/story/            data only: chapters/ (prologue = the live intro; test chapter continues it until M4), index (assembles the Story), characters, backgrounds, endings, flags, system, honor, approval, traits
-src/ui/               App, Game (screen router), strings, lockReason, toasts, names, storage, version, settings, typewriter, turns, keys, vitals, debugApi; screens/ (Title, Background, Play, Settings, Ending); components/ (Backdrop, StatBar, HonorMeter, SceneView, Dock, Lines, ChoiceList/Button, Toast, ErrorFallback/Boundary, ReportButton); hooks/ (useGame + gameModel, useStory, useSettings, useTypewriter, useTurn, useKeys); styles/ (tokens, base, play, stage, motion)
+src/engine/           pure logic: reducer (+ choose, flow, init, debug), select, journal, conditions, effects, relations (trust / fear, party, approval, walk-out), deeds, honor, rng, echoes, checks (+ perks), choices, bounds, endings, save (+ stateSchema, migrations), actions, ids, log, report
+src/story/            data only: chapters/ (prologue = the live intro; test chapter continues it until M4), index (assembles the Story), characters, backgrounds, endings, flags, system, honor, approval, traits (+ perks), tiers
+src/ui/               App, Game (screen router), strings, lockReason, toasts, names, storage, version, settings, typewriter, turns, tiers, keys, vitals, debugApi; screens/ (Title, Background, Play, Settings, Journal, Ending); components/ (Backdrop, StatBar, HonorMeter, SceneView, Dock, Lines, ChoiceList/Button, Toast, CharacterCard, TierBanner, ErrorFallback/Boundary, ReportButton); hooks/ (useGame + gameModel, useStory, useSettings, useTypewriter, useTurn, useKeys); styles/ (tokens, base, play, stage, motion)
 src/debug/            DebugPanel (+ StateView, Controls, forceRoll, rrHandle), loaded lazily by main.tsx in dev or with ?debug=1; nothing else imports it; the report builder is src/engine/report.ts
 scripts/              lint-story (+ lintCore/Graph/Refs/Walk), fuzz (+ fuzzRun), rules-check, docs-check, pack
 tests/                engine unit tests + per-chapter golden paths + tests/ui (UI logic, render smoke)

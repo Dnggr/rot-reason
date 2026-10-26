@@ -38,15 +38,15 @@ Scene (read) -> Choice (cost) -> Consequence (instant + echo later) -> Camp (rec
 | Rot | 0-100 | Infection of a bitten character (Nora, optionally you). Ticking clock | Later (M5) |
 | Day / Phase | 1-21 / Dawn-Day-Dusk-Night | Night raises danger; Day 21 = ship leaves | MVP |
 | Echoes | queue | Delayed consequences | MVP |
-| Secrets | set | Unwitnessed deeds that can surface later; the party's trust hit comes with them | M3 (engine live since M3 s1) |
+| Secrets | set | Unwitnessed deeds that can surface later; the party's trust hit comes with them; the Journal lists each deed and when it came out | M3 (engine M3 s1, Journal M3 s2) |
 
-**Checks (no combat system).** `roll = d6 (seeded) + attribute + trait bonus` vs `DC`. A tie passes (`total >= DC`). Trait bonuses live in `src/story/traits.ts` (Bruiser: Grit +2, Signal: Wits +1); `resolveCheck` adds the bonus of every trait the player holds. `select.currentView` gives each check choice an odds word: Risky (2 or fewer of 6 faces win), Even (3), Likely (4 or more); the UI never hides the cost of failure. Violence is resolved by choice plus check, not a combat screen.
+**Checks (no combat system).** `roll = d6 (seeded) + attribute + trait bonus` vs `DC`. A tie passes (`total >= DC`). Trait bonuses live in `src/story/traits.ts` (Bruiser: Grit +2, Signal: Wits +1); `resolveCheck` adds the bonus of every trait the player holds **and** of the perk of every living companion in the party (`PERKS` in `traits.ts`; Brick's Bruiser, Juno's Signal), so a perk ends the moment the companion leaves, dies or walks out (D30). Perks whose mechanic the engine lacks (Nora's Medic, Hart's Shelter, Calloway's Armory, Biscuit) are not listed and not shown on cards. `select.currentView` gives each check choice an odds word: Risky (2 or fewer of 6 faces win), Even (3), Likely (4 or more); the UI never hides the cost of failure. Violence is resolved by choice plus check, not a combat screen.
 
 **Time.** Scenes may advance the clock. Camp costs 1 Food per living party member (+ Biscuit). Running out of food costs HP/Reason, never an instant fail.
 
 **Camp hub (safe scenes).** Eat, rest (+Reason), talk to a companion (bond scene if trust threshold met), plan the route. Camp scenes are templates fed by data, not hand-written each time.
 
-**Party.** Max 3 companions at once (enforced in `engine/relations.ts`; the dead cannot join). Each has a perk, an opinion of your tags (the approval table, HONOR §5: they react to deeds they see, and to secrets when they surface) and a walk-out line (trust -30, unless fear 60+ holds them). Betrayal thresholds and conflict scenes come with the bond scenes (M5).
+**Party.** Max 3 companions at once (enforced in `engine/relations.ts`; the dead cannot join). Each has a perk (live for Brick and Juno), an opinion of your tags (the approval table, HONOR §5: they react to deeds they see, and to secrets when they surface) and a walk-out line (trust -30, unless fear 60+ holds them). Betrayal thresholds and conflict scenes come with the bond scenes (M5).
 
 **Echoes.** A choice can schedule a future scene (`after N scenes` or `at chapter X`). This is the main consequence engine.
 

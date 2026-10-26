@@ -2,16 +2,18 @@
 import { useEffect, useMemo, useReducer, useState } from 'react'
 import { buildReport, reportText } from '../../engine/report'
 import { makeSave } from '../../engine/save'
+import { journalOf, type JournalView } from '../../engine/journal'
 import { currentView, hudOf, type Hud, type View } from '../../engine/select'
 import type { ChoiceId, GameState, Story } from '../../engine/types'
 import { S } from '../strings'
 import type { Store } from '../storage'
+import type { Banner } from '../tiers'
 import type { ReadChunk } from '../turns'
 import { APP_VERSION } from '../version'
 import { autosave, backgroundCards, eraseSave, hasSave, initialUi, newSeed, savedGame, uiReducer, type BackgroundCard, type Saved, type Screen, type UiAction } from './gameModel'
 export interface GameApi {
   screen: Screen
-  from: Screen // where Settings returns to
+  from: Screen // where Settings or the Journal return to
   step: number // scenes played so far; the key that restarts the typewriter and the choice animation
   game: GameState // read-only; for the error boundary's report, never rendered from
   view: View
@@ -19,6 +21,8 @@ export interface GameApi {
   toasts: readonly string[]
   toastSeq: number
   read: readonly ReadChunk[] // scenes already read, shown above the current one
+  journal: JournalView // what the Journal shows now (drawn only on the 'journal' screen)
+  banner: Banner | undefined // a tier change to show once
   cards: readonly BackgroundCard[]
   saved: Saved // what Continue would load (only read on the title screen)
   saveExists: boolean // for Settings > Reset saved game
@@ -27,6 +31,9 @@ export interface GameApi {
   canRestartChapter: boolean
   openBackground(): void
   openSettings(): void
+  openJournal(): void
+  closeJournal(): void
+  dismissBanner(): void
   back(): void // leave Settings
   resetSave(): void
   toTitle(): void
@@ -51,11 +58,15 @@ export function useGame(story: Story, persist: Store, debug: boolean = false): G
   const cards = useMemo(() => backgroundCards(story), [story])
   const view = useMemo(() => currentView(ui.game, story), [ui.game, story])
   const { checkpoint, game } = ui
+  const journal = useMemo(() => journalOf(game, story), [game, story])
   return {
-    screen: ui.screen, from: ui.from, step: game.history.length, game, view, hud: hudOf(game), toasts: ui.toasts, toastSeq: ui.seq, read: ui.read, cards, saved, saveExists, persistent: persist.persistent, saveError,
+    screen: ui.screen, from: ui.from, step: game.history.length, game, view, hud: hudOf(game), toasts: ui.toasts, toastSeq: ui.seq, read: ui.read, journal, banner: ui.banner, cards, saved, saveExists, persistent: persist.persistent, saveError,
     canRestartChapter: checkpoint !== null,
     openBackground: () => dispatch({ type: 'SCREEN', screen: 'background' }),
     openSettings: () => dispatch({ type: 'SCREEN', screen: 'settings' }),
+    openJournal: () => dispatch({ type: 'SCREEN', screen: 'journal' }),
+    closeJournal: () => dispatch({ type: 'SCREEN', screen: 'play' }),
+    dismissBanner: () => dispatch({ type: 'BANNER_OFF' }),
     back: () => dispatch({ type: 'SCREEN', screen: ui.from }),
     resetSave: () => {
       eraseSave(persist.store)

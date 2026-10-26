@@ -16,7 +16,7 @@
 | T4 | +21..+60 | **Respected** | Strangers help, discounts, allies vouch for you |
 | T5 | +61..+100 | **Revered** | Crowds follow, doors open, enemies hesitate, "friends" events |
 
-Tier changes show a full-screen beat once (e.g. "People begin to whisper your name.").
+Tier changes show a full-screen banner once (live since M3 s2, D30): the tier word and one line from `src/story/tiers.ts` (entering T2: "People begin to whisper your name."). A tap, Continue or 3 s dismisses it. One banner per move, for the tier honor ends in; it is not saved, so a reload while it shows loses it.
 
 ## 3. How honor changes
 
@@ -94,11 +94,12 @@ Each companion reacts to tags (see `CHARACTERS.md`): `+` raises trust, `-` lower
 
 - Center-split meter: red left (infamy), gold right (respect), marker at current value.
 - Tier name under the meter. Toasts: `Honor +5 (Mercy)` or `Honor -3 (Lie, unseen)`.
-- Journal tab "Deeds": last 20 deeds with tag, witnessed or not, and who reacted.
+- Journal tab "Deeds" (live since M3 s2, D30): the last 20 deeds, newest first, each with its tag, Seen / Unseen / Came out (a hidden deed whose secret surfaced), the honor it moved, the day, and who reacted (companion and trust change). The list is `GameState.deeds` (`engine/deeds.ts`); `journalOf` reads it. The honor shown is taken before the per-scene cap, so a scene that hits the ±25 cap can show more than the meter moved.
+- Journal tab "People": cards (`CharacterCard`) with trust and fear meters, with-you / dead chips and the perk line; the party first. A person is listed once they travel with you, are dead, or their trust or fear has moved from the start (a fear that only faded does not count).
 
 ## 8. Implementation notes
 
-- Pure functions in `engine/honor.ts` (live since M1 s2): `applyDeed(state, tag, witnessed, scale, deeds) -> {state, log, owed?, deed?}` (`deed` = tag, witnessed, repeat factor, for the reactions), `capScene(before, state)`, `surface(state, id)`. Reactions and the walk-out are in `engine/relations.ts` (`react`, `walkouts`), driven by `effects.apply` / `applyAll` with the story's `Social` table (D14). The deed table is `src/story/honor.ts` (`DEEDS`), passed in by the caller. Unknown tag = ERROR log, no change.
+- Pure functions in `engine/honor.ts` (live since M1 s2): `applyDeed(state, tag, witnessed, scale, deeds) -> {state, log, owed?, deed?}` (`deed` = tag, witnessed, repeat factor, for the reactions), `capScene(before, state)`, `surface(state, id)`. Reactions and the walk-out are in `engine/relations.ts` (`react`, `walkouts`); every deed is recorded by `effects.apply` into `GameState.deeds` (`engine/deeds.ts`, D30), driven by `effects.apply` / `applyAll` with the story's `Social` table (D14). The deed table is `src/story/honor.ts` (`DEEDS`), passed in by the caller. Unknown tag = ERROR log, no change.
 - Tier is derived (`tierOf(honor)`), never stored.
 - Unit tests (`tests/engine/honor.test.ts`, `effects.test.ts`): witness halving (half + remainder always equals the full delta), diminishing returns, scene cap, clamp, secret surfacing.
 - Story linter: warns if an unknown tag is used, or a chapter has no tag diversity.
