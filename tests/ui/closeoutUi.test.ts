@@ -10,8 +10,9 @@ import { ConfirmButton } from '../../src/ui/components/ConfirmButton'
 import { ErrorFallback } from '../../src/ui/components/ErrorFallback'
 import { SceneView } from '../../src/ui/components/SceneView'
 import { tap } from '../../src/ui/confirm'
-import { fallbackActions } from '../../src/ui/fallback'
+import { canRetry, fallbackActions } from '../../src/ui/fallback'
 import { savedGame } from '../../src/ui/hooks/gameModel'
+import { typing } from '../../src/ui/typewriter'
 import { EndingScreen } from '../../src/ui/screens/EndingScreen'
 import { PlayScreen } from '../../src/ui/screens/PlayScreen'
 import { TitleScreen } from '../../src/ui/screens/TitleScreen'
@@ -93,5 +94,28 @@ describe('a spoken line is announced once', () => {
     expect(regions.filter((r) => r.includes('Stay.'))).toHaveLength(1)
     expect(regions[0]).toBe('') // the story in the middle
     expect(out.indexOf('Stay.')).toBeGreaterThan(out.indexOf('class="textbox"'))
+  })
+})
+describe('the death ending can be retried; the typewriter waits behind an overlay (D32)', () => {
+  const view: View = { kind: 'end', scene: 'sys.death', lines: ['You are gone.'], beats: [{ text: 'You are gone.', say: undefined }], who: [], place: undefined, mood: undefined, choices: [], ending: 'death' }
+  const props = { view, hud: hudOf(makeState()), onNew: noop, onTitle: noop }
+  it('canRetry: only the death ending, and only while a checkpoint exists', () => {
+    expect(canRetry('death', true)).toBe(true)
+    expect(canRetry('death', false)).toBe(false)
+    expect(canRetry('lighthouse', true)).toBe(false)
+    expect(canRetry(undefined, true)).toBe(false)
+  })
+  it('the Ending shows Restart chapter only when given a handler, and New game stays guarded', () => {
+    const plain = html(createElement(EndingScreen, props))
+    expect(plain).not.toContain(S.restartChapter)
+    const retry = html(createElement(EndingScreen, { ...props, onRestart: noop }))
+    expect(retry).toContain(`>${S.restartChapter}</button>`)
+    expect(retry.indexOf(S.restartChapter)).toBeLessThan(retry.indexOf(S.newGame))
+    expect(findAll(EndingScreen({ ...props, onRestart: noop }), ConfirmButton)).toHaveLength(1)
+  })
+  it('typing: runs only with text left and nothing covering the page', () => {
+    expect(typing(false, false)).toBe(true)
+    expect(typing(false, true)).toBe(false)
+    expect(typing(true, false)).toBe(false)
   })
 })

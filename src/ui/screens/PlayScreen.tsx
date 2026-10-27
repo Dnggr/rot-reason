@@ -42,12 +42,12 @@ export function PlayScreen({ view, hud, step, typewriter, toasts, toastSeq, read
   const t = useTurn(step, turns.length)
   const now = turns[t.turn]
   const speaker = now?.who
-  const tw = useTypewriter(now?.lines ?? [], `${step}.${t.turn}`, typewriter)
+  const over = journal !== undefined || banner !== undefined // an overlay is up: the page behind takes no keys and its text stops typing (D32)
+  const tw = useTypewriter(now?.lines ?? [], `${step}.${t.turn}`, typewriter, over)
   const asking = t.last && view.kind === 'choices' // the choices show on the last turn only
   // While the text is still typing, a tap or key finishes it first, so a double tap cannot run past a turn unread.
   const choose = (id: ChoiceId): void => (tw.done ? onChoose(id) : tw.skip())
   const next = (): void => (!tw.done ? tw.skip() : t.last ? onNext() : t.advance())
-  const over = journal !== undefined || banner !== undefined // an overlay is up: the page behind takes no keys
   useKeys(
     over ? { kind: 'end', choices: [], typing: false } : { kind: t.last ? view.kind : 'next', choices: t.last ? view.choices : [], typing: !tw.done },
     { pick: (i) => { const c = view.choices[i]; if (c !== undefined) choose(c.id) }, skip: tw.skip, next, journal: journal !== undefined ? onJournalClose : banner === undefined ? onJournal : nothing },

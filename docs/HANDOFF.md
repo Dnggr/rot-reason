@@ -2,24 +2,25 @@
 
 ## Status
 
-- **Phase:** M3 code DONE (s1, s2, s3 = the bug-closing session). Next: M4 session 1 (Prologue part 2 + Ch1; settle ROADMAP open question 8 first). M2 and M3 close when the owner has checked them on a phone.
+- **Phase:** M3 code DONE (s1, s2; s3 and s4 closed its bug lists). Next: M4 session 1 (Prologue part 2 + Ch1; settle ROADMAP open question 8 first). M2 and M3 close when the owner has checked them on a phone.
 - **Deployed:** https://rotandreason.vercel.app/ (auto-deploys on push to `main`). It shows the older layout until the D27 / D28 work and this session are pushed. **Not checked on a phone yet.**
-- **Last verified:** in a repo rebuilt from the pack on Node 22 (with a throwaway `git init` + baseline commit so `docs:check` could run): `npm run typecheck` ok, `npm run test` 454 tests green (426 + 28 new), `npm run rules` ok (158 files), `npm run lint:story` ok (0 errors, 0 warnings), `npm run fuzz` 1000 runs clean, `npm run ready` ok end to end (docs:check included), `npm run coverage` 100% lines on `src/engine`, `npm run build` ok (about 115 KB gzip initial JS), `npm run pack:m4s1` packs. **Still not checked:** the live site, a browser, a phone, a screen reader (the aria-live change is checked by markup only). The UI is tested by server-render checks only. Note: the pack strips blank lines, so the returned files have none; expect blank-line churn in the diff.
+- **Last verified:** in a repo rebuilt from the pack on Node 22 (with a throwaway `git init` + baseline commit so `docs:check` could run): `npm run ready` ok end to end (typecheck, lint:story 0 / 0, 462 tests green = 454 + 8 new, rules 159 files, docs:check), `npm run fuzz` 1000 runs clean, `npm run coverage` 100% lines on `src/engine`, `npm run build` ok, `npm run pack:m4s1` packs. **Still not checked:** the live site, a browser, a phone, a screen reader. The UI is tested by server-render checks only, so the two-tap button, the typewriter pause and the Restart chapter click are checked by their pure rules and markup, not by a click.
 
+## This session (M3 s4: close the five bugs flagged in M3 s3, flag more)
 
-## This session (M3 s3: close the M3 bug list, flag more)
-
-- **The six open M3 s2 bugs are fixed** (ROADMAP M3 list, D31): (1) `party +id` is refused with an ERROR when the companion would walk out at once (`relations.wouldLeave`); `scripts/lintParty.ts` warns, in either order. (2) `shift` ignores the dead, and the chapter fear fade skips them (the fade was a second path, found by a probe). (3) `SceneView`'s `aria-live` region holds only the turn being typed. (4) `ConfirmButton` (`ui/confirm.ts`) guards New game on the Title, the Ending and the error fallback (`ui/fallback.ts`). (5) `capScene(before, state, prior)` + `deeds.trimDeeds` give the cap's correction back to the scene's newest same-direction deeds. (6) `GameState.met` (**save v4**, `migrations.v3to4`), `engine/met.ts`, People lists it.
-- **Five new bugs flagged, none fixed** (ROADMAP "flagged in the M3 s3 review"): lint skips `party` / `fear` ids in ending rules; `validState` accepts an impossible party; a v1 secret's honor leaves no Journal deed; the typewriter runs behind the Journal and banner; dying offers no retry from the checkpoint (maybe intended).
-- **Tests (+28, 454):** `tests/engine/closeout.test.ts` (refused join, the dead, the cap in the deed list, `met`), `tests/ui/closeoutUi.test.ts` (two-tap rule, Ending / fallback / Title guards, one announcement per line), v3 -> v4 migration in `tests/engine/save.test.ts`, party lint in `tests/lint.test.ts`. Fixtures and the v1 / v2 migration tests moved to v4.
-- **Docs updated:** HANDOFF, ROADMAP (M3 list, new bug list, D31), HONOR (§3, §6, §7, §8), STORY_FORMAT (party, trust / fear, met), UI_UX (§2, §7), ARCHITECTURE (folders, saves). `scripts/pack.ts`: `m4s1` preset gained the files the new bug list touches.
+- **The five open bugs are fixed** (ROADMAP, D32): (1) `lintRefs` checks `party` / `fear` ids (and `bg`) in ending rules like scene conditions. (2) `gameStateSchema` refines the party (at most 3, no repeats, living npcs), so a bad save is refused on load and the fuzz bot checks it every step. (3) `reveal` adds one `unknown` deed when a v1 secret paid honor with no deed tags. (4) `useTypewriter(lines, step, enabled, paused)` waits while the Journal or the tier banner is up (`typewriter.typing`). (5) The death ending (also Continue on a dead save) offers Restart chapter while a checkpoint exists (`fallback.canRetry`, `EndingScreen onRestart`).
+- **Three new bugs flagged, none fixed** (ROADMAP "flagged in the M3 s4 review"): saves are checked for shape and party but not for references (echo / resume scenes, bg, flags, chapter, met, owed keys, npc table); `party -ghost` succeeds silently; a ConfirmButton stays armed.
+- **Tests (+8, 462):** `tests/engine/stateChecks.test.ts` (party refinement, `unknown` deed), `tests/lint.test.ts` (ending npc conditions and bg), `tests/ui/closeoutUi.test.ts` (`canRetry`, Restart chapter on the Ending, `typing`).
+- **Docs updated:** HANDOFF, ROADMAP (M3 lists, new bug list, D32), HONOR (§7), UI_UX (§2 Ending, §10 typewriter), ARCHITECTURE (stateSchema, typewriter, fallback). `scripts/pack.ts`: the `m4s1` preset now carries the files the new bug list touches (`stateSchema.ts`, `save.ts`, `relations.ts`, `lintRefs.ts`).
 
 ## Decisions made
 
-- D31 Close the M3 bug list (above, ROADMAP). Earlier: D1-D30.
+- D32 Close the M3 bug list again (above, ROADMAP). Earlier: D1-D31.
 
 ## Assumptions to confirm (small, easy to change)
 
+- **Death retry (D32, my call):** dying offers Restart chapter (back to the last checkpoint) beside New game and Title. Only the death ending; the real endings stay final. Say if you want it removed or on every ending.
+- **Old-save honor:** a revealed v1 secret shows in the Journal as a deed called "Unknown".
 - **Banner:** 3 s (was 2 s in UI_UX); tap, Continue or the timer dismisses it. One line per tier is mine (`story/tiers.ts`): edit freely. A reload while it shows loses it.
 - **People list (D31):** shows the party, the dead, anyone you have met (named in a scene's `who`, a `say` speaker, or touched by a `trust` / `fear` / `party` effect) and anyone whose numbers moved. **So Dole and Juno (a radio voice) now get cards with trust 0 / fear 0 bars once their scene shows.** If you want companions only, filter in `journalOf` (say so).
 - **Refused join:** a recruit at or below the walk-out line is an ERROR log line with no scene or toast; the author sees it through `lint:story`. Join-then-lose-trust in one list is still allowed (the walk-out is logged and toasted).
@@ -37,8 +38,8 @@
 
 ## Known bugs
 
-- **Open** (details in ROADMAP M3 list, "flagged in the M3 s3 review"; none blocks M4): (1) `lint:story` skips `party` / `fear` ids in ending rules; (2) `validState` accepts an impossible party (unknown, dead, over 3); (3) a v1 secret that pays honor on reveal leaves no deed in the Journal; (4) the typewriter keeps typing behind the Journal and the tier banner; (5) dying offers only New game / Title.
-- Fixed in M3 s3: the six M3 s2 bugs (silent join and leave, dead npc changing and fading, double announcement, New game confirmation, Journal honor vs the cap, People missing the met). Fixed in M3 s2: scroll key at 30 scenes, nested `<header>`, stale companion perks.
+- **Open** (details in ROADMAP M3 list, "flagged in the M3 s4 review"; none blocks M4): (1) saves are checked for shape and party only, not for references to the story (echo / resume scenes, bg, flags, chapter, met, owed keys, npc table); (2) `['party','-ghost']` for an unknown npc succeeds silently at run time; (3) a ConfirmButton stays armed after its first tap.
+- Fixed in M3 s4: ending rules with `party` / `fear` ids not linted, impossible party accepted, v1 secret honor missing from the Journal, typewriter running behind overlays, no retry after death. Fixed in M3 s3: the six M3 s2 bugs (silent join and leave, dead npc changing and fading, double announcement, New game confirmation, Journal honor vs the cap, People missing the met). Fixed in M3 s2: scroll key at 30 scenes, nested `<header>`, stale companion perks.
 
 ## Known gaps
 
@@ -61,7 +62,7 @@ Next pack: `npm run pack:m4s1`
 
 0. **Owner first:** unzip over the repo (it has no `package-lock.json`; keep yours), push, open the Vercel preview on a phone and a wide screen, play the intro, open the Journal (button and `J`), trigger a tier change (`?debug=1`, set honor to 25) and check the banner; tick the M2 line in ROADMAP. **Decide ROADMAP open question 8** (content budget at 85:15) before M4 writing starts.
 1. Write Prologue part 2 (`p.street`, `p.gate`) and the start of Ch1 per STORYBOARD, with callbacks, echoes and honor lines, at 85:15 (`lint:story` enforces it). Do not author `trait` effects for companion perks (they follow the party).
-2. Fix the flagged bugs that the new scenes touch (ending rules with `party` / `fear` conditions: lint gap 1; the pack carries `lintRefs.ts`, `stateSchema.ts`, `honor.ts`). Ask the owner about the death retry (bug 5).
+2. Fix the flagged bugs that the new scenes touch (save references: bug 1; the pack carries `stateSchema.ts`, `save.ts`, `lintRefs.ts`, `relations.ts`). Confirm the death retry with the owner.
 3. Update HANDOFF, tick the M4 lines in ROADMAP, create the next pack (`m4s2`), delete `m4s1` once M4 is done.
 
 ## Verify
@@ -84,3 +85,4 @@ Next pack: `npm run pack:m4s1`
 - M3 s1 (social systems part 1): `story/approval.ts`, `engine/relations.ts`, `engine/migrations.ts`, `GameState.owedTags`, walk-out, D29; 395 tests.
 - M3 s2 (social systems part 2): `GameState.deeds` (save v3), `engine/deeds.ts`, `journal.ts`, perks from the party, `JournalScreen`, `CharacterCard`, `TierBanner`, three M3 s1 bugs fixed, six new bugs flagged, D30; 426 tests.
 - M3 s3 (close the M3 bug list): `GameState.met` (save v4), `engine/met.ts`, refused join + `lintParty`, dead npcs frozen, `trimDeeds`, `ConfirmButton`, aria-live split, five new bugs flagged, D31; 454 tests.
+- M3 s4 (close the bugs flagged in M3 s3): ending-rule lint for `party` / `fear`, party refinement in `gameStateSchema`, `unknown` deed for a v1 secret, typewriter pauses under overlays, Restart chapter on the death ending, three new bugs flagged, D32; 462 tests.

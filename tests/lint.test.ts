@@ -61,6 +61,15 @@ describe('lintStory: graph', () => {
 })
 describe('lintStory: references', () => {
   const one = (fx: unknown[], text: unknown = 'x'): Scene[] => [{ id: 'c1.a', text: text as string, choices: [{ id: 'a', text: 'x', fx, to: 'c1.b' }, { id: 'b', text: 'y', to: 'c1.b' }] } as Scene, base[1] as Scene]
+  it('checks every npc condition in an ending rule the way a scene is checked (D32)', () => {
+    const rule = (c: unknown) => has(lint(base, { endings: [{ id: 'e', if: c as never }, { id: 'last' }] }).errors, 'ending e: unknown character ghost')
+    expect(rule(['party', 'ghost'])).toBe(true)
+    expect(rule(['fear', 'ghost', '>=', 1])).toBe(true)
+    expect(rule(['alive', 'ghost'])).toBe(true)
+    expect(rule({ any: [['flag', 'known'], { not: ['trust', 'ghost', '>', 1] }] })).toBe(true)
+    expect(rule(['party', 'nora'])).toBe(false)
+    expect(has(lint(base, { endings: [{ id: 'e', if: ['bg', 'nowhere'] }, { id: 'last' }] }).errors, 'ending e: unknown background nowhere')).toBe(true)
+  })
   it('rejects unknown flags in effects, conditions and endings', () => {
     expect(has(lint(one([['set', 'ghost']])).errors, 'c1.a: unknown flag ghost')).toBe(true)
     expect(has(lint(one([['clear', 'ghost']])).errors, 'unknown flag ghost')).toBe(true)

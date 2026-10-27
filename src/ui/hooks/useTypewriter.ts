@@ -1,6 +1,6 @@
-// ui/hooks/useTypewriter.ts — reveals one turn's text a few characters per frame (requestAnimationFrame, UI_UX §10); skippable; disabled means all at once
+// ui/hooks/useTypewriter.ts — reveals one turn's text a few characters per frame (requestAnimationFrame, UI_UX §10); skippable; disabled means all at once; `paused` holds it still while an overlay (the Journal, the tier banner) covers the page (D32)
 import { useCallback, useEffect, useState } from 'react'
-import { tick, totalChars } from '../typewriter'
+import { tick, totalChars, typing } from '../typewriter'
 export interface Typewriter {
   count: number // characters to show
   done: boolean
@@ -11,7 +11,7 @@ interface St {
   count: number
   carry: number
 }
-export function useTypewriter(lines: readonly string[], step: number | string, enabled: boolean): Typewriter {
+export function useTypewriter(lines: readonly string[], step: number | string, enabled: boolean, paused = false): Typewriter {
   const total = totalChars(lines)
   const [st, setSt] = useState<St>({ step, count: 0, carry: 0 })
   const fresh = st.step !== step
@@ -19,7 +19,7 @@ export function useTypewriter(lines: readonly string[], step: number | string, e
   const count = !enabled ? total : fresh ? 0 : Math.min(st.count, total)
   const done = count >= total
   useEffect(() => {
-    if (done) return
+    if (!typing(done, paused)) return
     let raf = 0
     let last: number | undefined
     const frame = (now: number): void => {
@@ -30,7 +30,7 @@ export function useTypewriter(lines: readonly string[], step: number | string, e
     }
     raf = requestAnimationFrame(frame)
     return () => cancelAnimationFrame(raf)
-  }, [done, step, total])
+  }, [done, paused, step, total])
   const skip = useCallback(() => setSt({ step, count: total, carry: 0 }), [step, total])
   return { count, done, skip }
 }

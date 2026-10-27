@@ -15,6 +15,7 @@ function trait(s: GameState, spec: string): Applied {
   const next = signedList(s.traits, spec)
   return next === undefined ? fail(s, `trait ${spec}: must start with + or -`) : ok({ ...s, traits: next }, `trait ${spec}`)
 }
+export const UNKNOWN_DEED = 'unknown' // the Journal's tag for honor a revealed secret paid when no deed is on record
 // A secret comes out: its owed honor applies (honor.surface), then the party reacts to every deed it hid, in full (D29). Each hidden deed joins the Journal's list as `surfaced` (D30); the first carries the honor paid.
 function reveal(s: GameState, id: string, social: Social): Applied {
   const tags = s.secrets.includes(id) ? (s.owedTags[id] ?? []) : []
@@ -27,6 +28,8 @@ function reveal(s: GameState, id: string, social: Social): Applied {
     cur = addDeed(seen.state, { tag, witnessed: false, surfaced: true, day: s.day, delta: i === 0 ? paid : 0, who: reactors(cur, seen.state) })
     log.push(...seen.log)
   })
+  // A secret with honor owed but no hidden deeds on record (a v1 save, D29) still shows in the Journal: one `unknown` deed carries the honor paid (D32).
+  if (tags.length === 0 && paid !== 0) cur = addDeed(cur, { tag: UNKNOWN_DEED, witnessed: false, surfaced: true, day: s.day, delta: paid, who: {} })
   return { state: cur, log }
 }
 export function apply(e: Effect, s: GameState, deeds: DeedTable, social: Social = NO_SOCIAL): Applied {

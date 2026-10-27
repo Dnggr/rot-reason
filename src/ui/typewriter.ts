@@ -1,6 +1,8 @@
-// ui/typewriter.ts — the pure parts of the typewriter (UI_UX §7, §10): speed, character count, the time step, and the shown / hidden split of the narration lines
+// ui/typewriter.ts — the pure parts of the typewriter (UI_UX §7, §10): speed, character count, the time step, when it runs, and the shown / hidden split of the narration lines
 export const MS_PER_CHAR = 30 // UI_UX §7; the one knob to tune on a phone
 const glyphs = (s: string): string[] => Array.from(s) // by code point, so a character is never cut in half
+// It types only while there is text left and nothing covers the page (the Journal, the tier banner: D32).
+export const typing = (done: boolean, paused: boolean): boolean => !done && !paused
 export const totalChars = (lines: readonly string[]): number => lines.reduce((n, l) => n + glyphs(l).length, 0)
 export interface Tick {
   count: number // characters shown

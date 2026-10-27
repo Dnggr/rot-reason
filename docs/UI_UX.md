@@ -15,7 +15,7 @@ Live: Title (Continue, New game, Settings in a left column over a backdrop; a se
 | Play | The game | See layout below |
 | Camp | Hub between spikes | Eat / Rest / Talk / Plan; party cards with trust |
 | Journal | Memory of the run | Live (M3 s2): tabs Deeds (last 20, seen / unseen / came out, who reacted) and People (party cards first). Notes (clues, flags shown as text) is not built. Opens from the Journal button or `J`; closes with its Close button, `Escape` or `J`; drawn over the play page, which keeps its place |
-| Ending | Epilogue | Ending title, one card per companion fate, stats recap, Share/Restart |
+| Ending | Epilogue | Ending title, one card per companion fate, stats recap, Share/Restart. Live: title, text, recap, New game (second tap), Title screen; the **death** ending also offers Restart chapter while a checkpoint exists (D32) |
 | Settings | Comfort | Text size S/M/L/XL, soften violence, reduce motion, high contrast, sound, reset saved game. Opens from Title or Play and goes back there; Reset appears only when opened from Title. Changes apply at once and are saved (`rr_settings_v1`). A first run follows the device's reduced-motion preference |
 
 ## 3. Stage layout (owner's sketches, 2026-10-24)
@@ -102,7 +102,7 @@ Live: `Backdrop` (full-screen background layer), `StatBar` (vitals and resource 
 - **Art pipeline:** v1 silhouettes (SVG/CSS) -> v2 AI or commissioned illustrations in WebP ≤ 80 KB each, 16:9 crop, keyed by `place`/`who`.
 
 ## 7. Juice (cheap and meaningful)
-- Typewriter text (live, `MS_PER_CHAR` = 30 in `ui/typewriter.ts`, requestAnimationFrame): the whole text of the turn being read is in the DOM at once and the unshown tail is only made transparent, so layout never jumps and screen readers get it all. Tap the narration, press `Space`, or tap a choice or Continue to finish it. Off with Reduce motion. Choice buttons ease in, one after the other (live).
+- Typewriter text (live, `MS_PER_CHAR` = 30 in `ui/typewriter.ts`, requestAnimationFrame): the whole text of the turn being read is in the DOM at once and the unshown tail is only made transparent, so layout never jumps and screen readers get it all. Tap the narration, press `Space`, or tap a choice or Continue to finish it. Off with Reduce motion. It waits while the Journal or the tier banner covers the page (D32). Choice buttons ease in, one after the other (live).
 - Low HP (live, hp 2 or less): a red vignette pulse over the screen. Low Reason (live, under 30): a faint glow and flicker on the narration. Both stop pulsing with Reduce motion (the vignette stays, still). Not built: text jitter on random words, whisper lines, a disabled option labeled wrong. (The `glitch` text swap is in the engine.)
 - Honor tier change (live, M3 s2): a full-screen banner with the tier word and one line, 3 s or until tapped / Continue (`ui/tiers.ts`, `story/tiers.ts`); the page behind is inert while it shows. Fade-in only; Reduce motion shows it still.
 - Toasts (live, `ui/toasts.ts`, built from the state diff, max 5, 2.5 s): "Honor +5", "-1 HP", "-1 Food", "Brick will remember that" (trust changed, or fear went up; a fear that only faded at a chapter change says nothing), "Nora joins you" / "Nora leaves you" (party diff; a death is not a leaving). The deed tag is not shown (the diff has none).

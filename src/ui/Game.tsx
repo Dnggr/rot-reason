@@ -3,7 +3,7 @@ import { useEffect, type RefObject } from 'react'
 import type { GameState, Story } from '../engine/types'
 import { ErrorFallback } from './components/ErrorFallback'
 import type { DebugPanelComponent } from './debugApi'
-import { fallbackActions } from './fallback'
+import { canRetry, fallbackActions } from './fallback'
 import { playRoute } from './hooks/gameModel'
 import { useGame, type GameApi } from './hooks/useGame'
 import { useSettings, type SettingsApi } from './hooks/useSettings'
@@ -31,7 +31,7 @@ function Screen({ g, s }: { g: GameApi; s: SettingsApi }) {
   if (route === 'fallback') {
     return <ErrorFallback title={S.errorTitle} lines={v.lines.length > 0 ? v.lines : [S.errorMissing]} report={g.report} actions={fallbackActions(g)} />
   }
-  if (route === 'ending') return <EndingScreen view={v} hud={g.hud} onNew={g.openBackground} onTitle={g.toTitle} />
+  if (route === 'ending') return <EndingScreen view={v} hud={g.hud} onRestart={canRetry(v.ending, g.canRestartChapter) ? g.restartChapter : undefined} onNew={g.openBackground} onTitle={g.toTitle} />
   return (
     <PlayScreen view={v} hud={g.hud} step={g.step} typewriter={!s.settings.reducedMotion} toasts={g.toasts} toastSeq={g.toastSeq} read={g.read} saveError={g.saveError}
       onChoose={g.choose} onNext={g.next} onMenu={g.toTitle} onSettings={g.openSettings}

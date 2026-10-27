@@ -2,6 +2,7 @@
 import { z } from 'zod'
 import { DEED_KEEP } from './deeds'
 import { findScene, SYS_ERROR } from './ids'
+import { PARTY_MAX } from './relations'
 import type { GameState, Story } from './types'
 const id = z.string().min(1)
 const int = z.number().int()
@@ -20,6 +21,13 @@ export const gameStateSchema: z.ZodType<GameState> = z.strictObject({
   secrets: z.array(z.string()), owed: z.record(z.string(), int), owedTags: z.record(z.string(), z.array(z.string())), party: z.array(z.string()), met: z.array(z.string()), deeds: z.array(deed).max(DEED_KEEP), npc: z.record(z.string(), npc),
   echoes: z.array(echo), deedCount: z.record(z.string(), within(0, 1000)), history: z.array(z.string()),
   log: z.array(entry).max(200), resume: id.nullable(),
+}).superRefine((s, ctx) => {
+  // Who travels with you (D32): at most PARTY_MAX, no one twice, every one a living npc. `party` and `kill` keep this true; a hand-edited or corrupt save would not.
+  const gone = s.party.find((p) => s.npc[p]?.alive !== true)
+  const problem = s.party.length > PARTY_MAX ? `party has ${s.party.length} members (max ${PARTY_MAX})`
+    : new Set(s.party).size !== s.party.length ? 'party lists someone twice'
+    : gone !== undefined ? `party member ${gone} is not a living npc` : undefined
+  if (problem !== undefined) ctx.addIssue({ code: 'custom', path: ['party'], message: problem })
 })
 // The save envelope, parsed loosely: snapshot and checkpoint are validated one by one so a bad snapshot can still fall back to replay.
 export const saveHeadSchema = z.object({

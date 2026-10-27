@@ -40,7 +40,7 @@ src/
     endings.ts      resolveEnding(state, rules), AUTO / DEATH / SYS ending ids (live since M1 s3)
     rng.ts          seeded mulberry32, pure: `nextFloat(rng) -> {value, rng}`, `nextInt`, `d6`, `initRng(seed)` (live since M1 s1)
     save.ts         makeSave, migrate, replay, loadSave, readSave / writeSave (storage injected) (live since M1 s3)
-    stateSchema.ts  Zod schema for GameState and the save envelope, validState (live since M1 s3)
+    stateSchema.ts  Zod schema for GameState and the save envelope, validState (live since M1 s3); the party must be at most PARTY_MAX, without repeats, all living npcs (D32). It checks shape and the party, not references to the story (open bug)
     select.ts       view selectors: currentView(state, story) -> View (`lines` = all text; `beats` = each line with its `say` speaker; each locked choice carries its `lock` condition), hudOf(state) -> Hud (live since M1 s3; lock and hudOf M2 s1; beats D28)
     log.ts          LogLine, Applied, line, pushLog (200-entry ring buffer), formatEntry (live since M1 s2)
     report.ts       buildReport, reportText: the debug report JSON, pure (live since M2 s1)
@@ -58,12 +58,12 @@ src/
     Game.tsx        picks the screen from useGame; playRoute -> fallback / ending / play
     strings.ts  lockReason.ts  toasts.ts  names.ts  storage.ts  version.ts
     settings.ts     Settings type, defaults, rr_settings_v1 read / write, applySettings (to <html>) (live since M2 s2)
-    typewriter.ts   pure: MS_PER_CHAR, totalChars, tick, splitLines    keys.ts  keyCommand: 1-4 / Space / J    vitals.ts  low HP / Reason thresholds
+    typewriter.ts   pure: MS_PER_CHAR, totalChars, tick, typing (waits under an overlay), splitLines    keys.ts  keyCommand: 1-4 / Space / J    vitals.ts  low HP / Reason thresholds
     turns.ts        pure: turnsOf(beats) -> Turn[] (a run of narration, or of one character's lines); ReadChunk (a scene already read; D28); scrollKey (what SceneView watches to scroll)
     tiers.ts        pure: tierBanner(prev, next, lines) -> the banner when honor entered a new tier, BANNER_MS (M3 s2, D30)
     debugApi.ts     DebugApi + DebugPanelComponent: what the game hands the debug panel
     screens/    TitleScreen  BackgroundScreen  PlayScreen  SettingsScreen  EndingScreen  JournalScreen (live; the Journal is drawn over PlayScreen)   Camp (later)
-    components/ Backdrop  StatBar  HonorMeter  SceneView  Dock  Lines  ChoiceList  ChoiceButton  Toast  ReportButton  ErrorFallback  ErrorBoundary  CharacterCard  TierBanner  ConfirmButton (live); `ui/confirm.ts` (the two-tap rule), `ui/fallback.ts` (the error fallback's actions)
+    components/ Backdrop  StatBar  HonorMeter  SceneView  Dock  Lines  ChoiceList  ChoiceButton  Toast  ReportButton  ErrorFallback  ErrorBoundary  CharacterCard  TierBanner  ConfirmButton (live); `ui/confirm.ts` (the two-tap rule), `ui/fallback.ts` (the error fallback's actions; `canRetry`: the death ending's Restart chapter)
     hooks/      useGame.ts  gameModel.ts (pure reducer, autosave, Continue, playRoute, rewind)  useStory.ts  useSettings.ts  useTypewriter.ts  useTurn.ts  useKeys.ts
     styles/     tokens.css  base.css  play.css  stage.css (backdrop, HUD, story, dock with portrait / spoken line / Choices panel, Title column; wide grid)  motion.css
   debug/        DebugPanel.tsx  StateView.tsx  Controls.tsx  forceRoll.ts  rrHandle.ts  debug.css   (live since M2 s2)
