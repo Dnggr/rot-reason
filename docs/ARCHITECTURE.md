@@ -29,9 +29,10 @@ src/
     bounds.ts       clamp + the value ranges; throws on NaN/Infinity (live since M1 s2)
     conditions.ts   evaluate(cond, state) -> boolean (live since M1 s2)
     effects.ts      apply(effect, state, deeds, social?) -> {state, log, owed?, deed?}; applyAll(list, state, deeds, social?): pairs unwitnessed deeds with the next `secret`, reveal makes the party react, ends with the walk-out check (live since M1 s2; social M3 s1)
-    deeds.ts        DEED_KEEP (20), addDeed, reactors: the Journal's deed list (live since M3 s2, D30)
-    journal.ts      journalOf(state, story) -> { deeds (newest first, with who reacted), people (party first; the party, the dead and anyone whose trust or fear rose) with their perk line }: the Journal's selector (live since M3 s2, D30)
-    relations.ts    shift (trust / fear), party (join / leave; the dead cannot join), react (companion approval of a deed), walkouts, NO_SOCIAL, PARTY_MAX (live since M3 s1, D29)
+    deeds.ts        DEED_KEEP (20), addDeed, reactors, trimDeeds (gives the scene cap's correction back to the scene's deeds): the Journal's deed list (live since M3 s2, D30; trim M3 s3, D31)
+    met.ts          meet, metIn: GameState.met, who the player has met (live since M3 s3, D31)
+    journal.ts      journalOf(state, story) -> { deeds (newest first, with who reacted), people (party first; the party, the dead and anyone met, and anyone whose trust or fear rose) with their perk line }: the Journal's selector (live since M3 s2, D30)
+    relations.ts    shift (trust / fear), party (join / leave; the dead cannot join and nobody who would walk out at once, D31), wouldLeave, react (companion approval of a deed), walkouts, NO_SOCIAL, PARTY_MAX; `shift` ignores the dead (live since M3 s1, D29)
     honor.ts        tierOf, applyDeed (returns the deed and its repeat factor), capScene, surface, repeatFactor, roundAway (live since M1 s2)
     migrations.ts   save upgrades, one function per version step: v1to2 adds `owedTags` (M3 s1), v2to3 adds `deeds` (M3 s2)
     checks.ts       resolveCheck(attr, dc, state, traitBonus, perks?) -> {state, roll, bonus, total, pass, log}; heldTraits(state, perks): the player's traits plus the perk trait of every living companion in the party, so a perk lasts exactly as long as the companion is with you (live since M1 s2; perks M3 s2, D30)
@@ -62,7 +63,7 @@ src/
     tiers.ts        pure: tierBanner(prev, next, lines) -> the banner when honor entered a new tier, BANNER_MS (M3 s2, D30)
     debugApi.ts     DebugApi + DebugPanelComponent: what the game hands the debug panel
     screens/    TitleScreen  BackgroundScreen  PlayScreen  SettingsScreen  EndingScreen  JournalScreen (live; the Journal is drawn over PlayScreen)   Camp (later)
-    components/ Backdrop  StatBar  HonorMeter  SceneView  Dock  Lines  ChoiceList  ChoiceButton  Toast  ReportButton  ErrorFallback  ErrorBoundary  CharacterCard  TierBanner (live)
+    components/ Backdrop  StatBar  HonorMeter  SceneView  Dock  Lines  ChoiceList  ChoiceButton  Toast  ReportButton  ErrorFallback  ErrorBoundary  CharacterCard  TierBanner  ConfirmButton (live); `ui/confirm.ts` (the two-tap rule), `ui/fallback.ts` (the error fallback's actions)
     hooks/      useGame.ts  gameModel.ts (pure reducer, autosave, Continue, playRoute, rewind)  useStory.ts  useSettings.ts  useTypewriter.ts  useTurn.ts  useKeys.ts
     styles/     tokens.css  base.css  play.css  stage.css (backdrop, HUD, story, dock with portrait / spoken line / Choices panel, Title column; wide grid)  motion.css
   debug/        DebugPanel.tsx  StateView.tsx  Controls.tsx  forceRoll.ts  rrHandle.ts  debug.css   (live since M2 s2)
@@ -139,7 +140,7 @@ Actions (typed in `engine/types.ts`): `START(bg,name,seed)`, `CHOOSE(choice)` wh
 - `makeSave(state, checkpoint, story, savedAt)` moves the checkpoint to the current state whenever the scene is tagged `gate`. Never autosave a state parked on `sys.error`.
 - Storage is injected as `KeyValueStore { getItem, setItem }`; `readSave` returns `undefined` when nothing is stored and an error result (never a throw) for bad JSON.
 - Autosave after every state change on the play screen (`useGame` effect -> `gameModel.autosave`; synchronous, no debounce, D21). A failed write shows a notice, never a throw. Continue reads the save with `readSave` on the title screen; an unreadable save shows a notice and New game. `ui/storage.ts` falls back to memory when localStorage is blocked, and the Title warns. Manual slots later (M5).
-- `migrate(v)` functions are small and tested with fixture saves. `SAVE_VERSION` is 3 (M3 s2): `migrations.v1to2` gives a v1 snapshot and checkpoint an empty `owedTags` (a held secret from a v1 run pays its honor on reveal but causes no trust hit), and `v2to3` an empty `deeds` (a v2 run has no record of its past deeds), so v1 and v2 saves load.
+- `migrate(v)` functions are small and tested with fixture saves. `SAVE_VERSION` is 4 (M3 s3): `migrations.v1to2` gives a v1 snapshot and checkpoint an empty `owedTags` (a held secret from a v1 run pays its honor on reveal but causes no trust hit), `v2to3` an empty `deeds` (a v2 run has no record of its past deeds), and `v3to4` a `met` list that starts with the party (D31), so v1, v2 and v3 saves load.
 
 ## 7. Debug tooling (`?debug=1` or dev build)
 

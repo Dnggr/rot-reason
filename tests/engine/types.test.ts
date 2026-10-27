@@ -5,7 +5,7 @@ const state: GameState = {
   v: 1, seed: 7, rng: 7, name: 'Ash', scene: 'c0.start', chapter: 'c0', day: 1, phase: 'dawn',
   stats: { hp: 5, reason: 80, rot: 0 }, res: { food: 3, ammo: 2, meds: 1 }, attr: { grit: 2, wits: 3, heart: 1 },
   bg: 'dockworker', traits: ['Medic'], honor: 0, flags: { route_church: true }, secrets: ['hart_wife'], owed: { hart_wife: 3 }, owedTags: { hart_wife: ['mercy'] }, deeds: [],
-  party: ['nora'], npc: { nora: { alive: true, trust: 10, fear: 0 } },
+  party: ['nora'], met: ['nora'], npc: { nora: { alive: true, trust: 10, fear: 0 } },
   echoes: [{ scene: 'c4.father', dueIn: 12 }, { scene: 'c4.hart_knows', atChapter: 'c4' }],
   deedCount: { mercy: 1 }, history: ['c0.start:a'], log: [{ n: 1, kind: 'SCENE', text: 'c0.start' }], resume: 'c2.toll',
 }

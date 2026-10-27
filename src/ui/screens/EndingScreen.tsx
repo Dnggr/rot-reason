@@ -1,5 +1,6 @@
-// ui/screens/EndingScreen.tsx — epilogue: ending title, the scene's text, a short recap, New game / Title (UI_UX §2; companion cards and Share come later)
+// ui/screens/EndingScreen.tsx — epilogue: ending title, the scene's text, a short recap, New game (a second tap confirms: the finished run is the save, D31) / Title (UI_UX §2; companion cards and Share come later)
 import type { Hud, View } from '../../engine/select'
+import { ConfirmButton } from '../components/ConfirmButton'
 import { SceneView } from '../components/SceneView'
 import { S } from '../strings'
 interface Props {
@@ -23,7 +24,7 @@ export function EndingScreen({ view, hud, onNew, onTitle }: Props) {
           <dt>{S.stat.reason}</dt><dd>{hud.stats.reason}</dd>
         </dl>
       </section>
-      <button type="button" className="btn primary" onClick={onNew}>{S.newGame}</button>
+      <ConfirmButton className="btn primary" label={S.newGame} confirm={S.eraseAndStart} onConfirm={onNew} />
       <button type="button" className="btn" onClick={onTitle}>{S.toTitle}</button>
     </main>
   )

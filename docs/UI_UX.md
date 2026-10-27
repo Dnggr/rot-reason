@@ -6,7 +6,7 @@
 Mobile portrait first (360-430 px wide), one column. From 900 px up the Title and Play screens use the full-width stage layout of §3. Background, Settings, Ending and error screens stay a centered 560 px column. Works offline after first load (PWA later).
 
 ## 2. Screens
-Live: Title (Continue, New game, Settings in a left column over a backdrop; a second tap confirms erasing a save), Background, Play (stage layout, §3: the story in the middle, a bottom dock only while a character talks or choices are offered; Menu, Journal and Settings top-right on wide screens, at the bottom on narrow ones), Settings (M2 s2), Journal (M3 s2), Ending, ErrorFallback. Next: Camp (M4).
+Live: Title (Continue, New game, Settings in a left column over a backdrop; a second tap confirms erasing a save; the Ending and the error fallback ask the same, D31), Background, Play (stage layout, §3: the story in the middle, a bottom dock only while a character talks or choices are offered; Menu, Journal and Settings top-right on wide screens, at the bottom on narrow ones), Settings (M2 s2), Journal (M3 s2), Ending, ErrorFallback. Next: Camp (M4).
 
 | Screen | Purpose | Key elements |
 |---|---|---|
@@ -121,7 +121,7 @@ Live: `Backdrop` (full-screen background layer), `StatBar` (vitals and resource 
 - No color-only meaning (icons + labels for stats and tiers).
 - `prefers-reduced-motion` honored (CSS media query in `motion.css`, and it sets the first-run default); the in-app Reduce motion also switches off the typewriter. All animation lives in `motion.css`, behind one switch.
 - Focus is not moved on a scene change: the choices are rebuilt, so focus falls back to the page and `1-4` / `Space` keep working; Tab starts again from the top.
-- The full text of the turn being read is in the DOM immediately (screen readers); later turns are added as the player continues; `aria-live="polite"` on the story and the spoken line.
+- The full text of the turn being read is in the DOM immediately (screen readers); later turns are added as the player continues. `aria-live="polite"` is on the Dock's text box (a spoken line) and on one region in the middle that holds only the narration turn being typed; a finished turn is plain text outside it, so nothing is announced twice (D31; not tried with a screen reader).
 - All actions reachable by keyboard; focus order top-bar -> text -> choices.
 
 ## 10. Performance

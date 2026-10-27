@@ -1,8 +1,9 @@
 // ui/Game.tsx — picks the screen from useGame: title, background, settings, play, ending, or the error fallback; mounts the debug panel when main.tsx gave one
 import { useEffect, type RefObject } from 'react'
 import type { GameState, Story } from '../engine/types'
-import { ErrorFallback, type FallbackAction } from './components/ErrorFallback'
+import { ErrorFallback } from './components/ErrorFallback'
 import type { DebugPanelComponent } from './debugApi'
+import { fallbackActions } from './fallback'
 import { playRoute } from './hooks/gameModel'
 import { useGame, type GameApi } from './hooks/useGame'
 import { useSettings, type SettingsApi } from './hooks/useSettings'
@@ -28,9 +29,7 @@ function Screen({ g, s }: { g: GameApi; s: SettingsApi }) {
   const v = g.view
   const route = playRoute(v)
   if (route === 'fallback') {
-    const actions: FallbackAction[] = [{ label: S.newGame, onClick: g.openBackground }, { label: S.toTitle, onClick: g.toTitle }]
-    if (g.canRestartChapter) actions.unshift({ label: S.restartChapter, onClick: g.restartChapter })
-    return <ErrorFallback title={S.errorTitle} lines={v.lines.length > 0 ? v.lines : [S.errorMissing]} report={g.report} actions={actions} />
+    return <ErrorFallback title={S.errorTitle} lines={v.lines.length > 0 ? v.lines : [S.errorMissing]} report={g.report} actions={fallbackActions(g)} />
   }
   if (route === 'ending') return <EndingScreen view={v} hud={g.hud} onNew={g.openBackground} onTitle={g.toTitle} />
   return (

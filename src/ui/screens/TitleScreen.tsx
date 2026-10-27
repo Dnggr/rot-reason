@@ -1,6 +1,6 @@
-// ui/screens/TitleScreen.tsx — full-screen backdrop, title and the buttons stacked on the left: Continue (day, chapter, honor tier) / New game / Settings; a second tap confirms erasing an existing save
-import { useState } from 'react'
+// ui/screens/TitleScreen.tsx — full-screen backdrop, title and the buttons stacked on the left: Continue (day, chapter, honor tier) / New game / Settings; a second tap (ConfirmButton) confirms erasing an existing save
 import { Backdrop } from '../components/Backdrop'
+import { ConfirmButton } from '../components/ConfirmButton'
 import type { Saved } from '../hooks/gameModel'
 import { S } from '../strings'
 interface Props {
@@ -11,9 +11,6 @@ interface Props {
   onSettings: () => void
 }
 export function TitleScreen({ saved, persistent, onNew, onContinue, onSettings }: Props) {
-  const [confirm, setConfirm] = useState(false)
-  const hasSave = saved.kind === 'ok'
-  const newGame = (): void => (hasSave && !confirm ? setConfirm(true) : onNew())
   return (
     <main className="stage title">
       <Backdrop name="title" />
@@ -27,7 +24,9 @@ export function TitleScreen({ saved, persistent, onNew, onContinue, onSettings }
             {saved.via !== 'snapshot' && <span className="sub">{S.recovered}</span>}
           </button>
         )}
-        <button type="button" className={hasSave ? 'btn' : 'btn primary'} onClick={newGame}>{confirm ? S.eraseAndStart : S.newGame}</button>
+        {saved.kind === 'ok'
+          ? <ConfirmButton className="btn" label={S.newGame} confirm={S.eraseAndStart} onConfirm={onNew} />
+          : <button type="button" className="btn primary" onClick={onNew}>{S.newGame}</button>}
         <button type="button" className="btn" onClick={onSettings}>{S.settings}</button>
         {saved.kind === 'broken' && <p role="alert" className="notice">{S.saveBroken}</p>}
         {!persistent && <p role="alert" className="notice">{S.noStorage}</p>}

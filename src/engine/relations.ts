@@ -3,15 +3,19 @@ import { clamp, TRUST_RANGE, type Range } from './bounds'
 import { npcOf } from './conditions'
 import { roundAway } from './honor'
 import { line, signed, type Applied, type LogLine } from './log'
-import type { GameState, Social } from './types'
+import type { GameState, NpcState, Social } from './types'
 export const PARTY_MAX = 3
 // No table: nobody approves of anything and nobody walks out (-101 is under the trust floor, and fear is never under 0).
 export const NO_SOCIAL: Social = { approval: {}, leaveTrust: -101, fearHolds: 0 }
 const ok = (state: GameState, text: string): Applied => ({ state, log: [line('FX', text)] })
 const fail = (state: GameState, text: string): Applied => ({ state, log: [line('ERROR', text)] })
+// The walk-out test (HONOR §6), shared by `walkouts` and by `party`'s refusal to take on someone who would leave at once (D31).
+export const wouldLeave = (n: NpcState, social: Social): boolean => n.trust <= social.leaveTrust && n.fear < social.fearHolds
+// The dead do not change: an effect on one is logged and ignored (D31), so a stray `trust` after a `kill` cannot show on the Journal's card.
 export function shift(s: GameState, id: string, key: 'trust' | 'fear', delta: number, range: Range): Applied {
   const n = npcOf(s, id)
   if (n === undefined) return fail(s, `${key} ${id}: unknown npc`)
+  if (!n.alive) return ok(s, `${key} ${id} ${signed(delta)}: ${id} is dead, no change`)
   const v = clamp(n[key] + delta, range)
   return ok({ ...s, npc: { ...s.npc, [id]: { ...n, [key]: v } } }, `${key} ${id} ${signed(delta)} -> ${v}`)
 }
@@ -22,8 +26,8 @@ export function signedList(list: readonly string[], spec: string): string[] | un
   if (spec.startsWith('-')) return list.filter((x) => x !== name)
   return undefined
 }
-// '+id' joins, '-id' leaves. A joiner must be a known npc who is alive; the party holds PARTY_MAX.
-export function party(s: GameState, spec: string): Applied {
+// '+id' joins, '-id' leaves. A joiner must be a known npc who is alive and who would not walk out at once (D31); the party holds PARTY_MAX.
+export function party(s: GameState, spec: string, social: Social = NO_SOCIAL): Applied {
   const id = spec.slice(1)
   const next = signedList(s.party, spec)
   if (next === undefined) return fail(s, `party ${spec}: must start with + or -`)
@@ -31,6 +35,7 @@ export function party(s: GameState, spec: string): Applied {
     const n = npcOf(s, id)
     if (n === undefined) return fail(s, `party ${spec}: unknown npc`)
     if (!n.alive) return fail(s, `party ${spec}: ${id} is dead`)
+    if (!s.party.includes(id) && wouldLeave(n, social)) return fail(s, `party ${spec}: ${id} would walk out at once (trust ${n.trust}, fear ${n.fear}; leave line ${social.leaveTrust}, fear holds at ${social.fearHolds})`)
   }
   if (next.length > PARTY_MAX) return fail(s, `party ${spec}: party is full (${PARTY_MAX})`)
   return ok({ ...s, party: next }, `party ${spec}`)
@@ -57,7 +62,7 @@ export function walkouts(s: GameState, social: Social): Applied {
   const log: LogLine[] = []
   for (const id of s.party) {
     const n = npcOf(cur, id)
-    if (n === undefined || !n.alive || n.trust > social.leaveTrust || n.fear >= social.fearHolds) continue
+    if (n === undefined || !n.alive || !wouldLeave(n, social)) continue
     cur = { ...cur, party: cur.party.filter((x) => x !== id) }
     log.push(line('FX', `party -${id}: walked out (trust ${n.trust}, fear ${n.fear})`))
   }

@@ -5,12 +5,13 @@ import { applyAll } from './effects'
 import { capScene } from './honor'
 import { chapterOf, findScene, isSys, RESUME, SYS_DEATH, SYS_MISSING } from './ids'
 import { line, type Applied, type LogLine } from './log'
+import { meet, metIn } from './met'
 import { NO_SOCIAL, walkouts } from './relations'
 import type { GameState, Scene, SceneId, Social, Story } from './types'
 export const FEAR_DECAY = 5
-// A new chapter: deed counts restart and every npc's fear fades (HONOR §3 rule 2, §6); a companion that fear was holding may now walk out (HONOR §4).
+// A new chapter: deed counts restart and the fear of every living npc fades (HONOR §3 rule 2, §6); a companion that fear was holding may now walk out (HONOR §4).
 export function changeChapter(s: GameState, chapter: string, social: Social = NO_SOCIAL): Applied {
-  const npc = Object.fromEntries(Object.entries(s.npc).map(([id, n]) => [id, { ...n, fear: clamp(n.fear - FEAR_DECAY, FEAR_RANGE) }]))
+  const npc = Object.fromEntries(Object.entries(s.npc).map(([id, n]) => [id, n.alive ? { ...n, fear: clamp(n.fear - FEAR_DECAY, FEAR_RANGE) } : n])) // the dead do not change (D31)
   const out = walkouts({ ...s, chapter, deedCount: {}, npc }, social)
   return { state: out.state, log: [line('FX', `chapter ${chapter}: deed counts reset, fear -${FEAR_DECAY}`), ...out.log] }
 }
@@ -23,8 +24,9 @@ export function enter(state: GameState, id: SceneId, story: Story): Applied {
     return { state: r.state, log: [line('ERROR', `missing scene ${id}`), ...r.log] }
   }
   const before = state.honor
-  const on = applyAll(scene.on, { ...state, scene: id }, story.deeds, story.social)
-  const cap = capScene(before, on.state)
+  const seen = meet({ ...state, scene: id }, metIn(scene, state)) // whoever the scene shows is met before its effects run (D31)
+  const on = applyAll(scene.on, seen, story.deeds, story.social)
+  const cap = capScene(before, on.state, state.deeds)
   const log = [line('SCENE', id), ...on.log, ...cap.log]
   if (cap.state.stats.hp <= 0 && !isSys(id)) {
     const d = enter(cap.state, SYS_DEATH, story)

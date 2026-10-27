@@ -56,7 +56,7 @@ export function choose(state: GameState, id: ChoiceId, story: Story): Applied {
     s = e.state
     log.push(...e.log)
   }
-  const cap = capScene(before, s)
+  const cap = capScene(before, s, state.deeds) // the deeds this pick added give back what the cap took (D31)
   log.push(...cap.log)
   if (to === undefined) log.push(line('ERROR', `choice ${id} in ${scene.id} has no target`))
   return leave(cap.state, scene, id, to ?? SYS_MISSING, story, log)

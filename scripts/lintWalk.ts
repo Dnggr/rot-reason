@@ -9,6 +9,19 @@ export function effectsOf(scene: Scene): Effect[] {
   }
   return out
 }
+// Each effect list a scene runs in one go, in order: `on`, and per choice its fx followed by each check branch's fx (what `applyAll` sees).
+export function effectListsOf(scene: Scene): { where: string; list: Effect[] }[] {
+  const lists = [{ where: `${scene.id} on`, list: [...(scene.on ?? [])] }]
+  for (const c of scene.choices ?? []) {
+    const own = c.fx ?? []
+    if (c.check === undefined) lists.push({ where: `${scene.id}:${c.id}`, list: [...own] })
+    else {
+      lists.push({ where: `${scene.id}:${c.id} pass`, list: [...own, ...(c.check.pass.fx ?? [])] })
+      lists.push({ where: `${scene.id}:${c.id} fail`, list: [...own, ...(c.check.fail.fx ?? [])] })
+    }
+  }
+  return lists
+}
 export function flatten(c: Condition): Condition[] {
   if ('all' in c) return [c, ...c.all.flatMap(flatten)]
   if ('any' in c) return [c, ...c.any.flatMap(flatten)]

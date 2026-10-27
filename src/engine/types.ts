@@ -165,6 +165,7 @@ export interface GameState {
   owed: Record<string, number> // secret id -> honor still owed when it surfaces (HONOR §3 witness rule)
   owedTags: Record<string, string[]> // secret id -> the unwitnessed deed tags it hides: the party reacts to them when it surfaces (D29)
   party: string[]
+  met: string[] // npc ids the player has met, in order: named in a scene's `who` or `say`, or joined / moved by an effect (D31); the Journal's People tab lists them
   deeds: DeedRecord[] // the last DEED_KEEP deeds, oldest first (engine/deeds.ts)
   npc: Record<string, NpcState>
   echoes: EchoEntry[]

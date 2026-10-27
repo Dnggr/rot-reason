@@ -5,6 +5,7 @@ import { addDeed, reactors } from './deeds'
 import { schedule } from './echoes'
 import { applyDeed, surface } from './honor'
 import { line, signed, type Applied, type LogLine } from './log'
+import { meet } from './met'
 import { NO_SOCIAL, PARTY_MAX, party, react, shift, signedList, walkouts } from './relations'
 import type { DeedTable, Effect, GameState, Social } from './types'
 export { PARTY_MAX }
@@ -51,9 +52,14 @@ export function apply(e: Effect, s: GameState, deeds: DeedTable, social: Social 
       delete flags[e[1]]
       return ok({ ...s, flags }, `clear ${e[1]}`)
     }
-    case 'trust': return shift(s, e[1], 'trust', e[2], TRUST_RANGE)
-    case 'fear': return shift(s, e[1], 'fear', e[2], FEAR_RANGE)
-    case 'party': return party(s, e[1])
+    case 'trust': case 'fear': { // moving someone's numbers means you have met them (D31)
+      const r = shift(s, e[1], e[0], e[2], e[0] === 'trust' ? TRUST_RANGE : FEAR_RANGE)
+      return { ...r, state: meet(r.state, [e[1]]) }
+    }
+    case 'party': {
+      const r = party(s, e[1], social)
+      return { ...r, state: meet(r.state, r.state.party) } // everyone who travels with you has been met
+    }
     case 'kill': {
       const n = npcOf(s, e[1])
       if (n === undefined) return fail(s, `kill ${e[1]}: unknown npc`)

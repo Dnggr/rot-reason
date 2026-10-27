@@ -17,7 +17,7 @@ export const gameStateSchema: z.ZodType<GameState> = z.strictObject({
   res: z.strictObject({ food: within(0, 9), ammo: within(0, 9), meds: within(0, 9) }),
   attr: z.strictObject({ grit: within(0, 9), wits: within(0, 9), heart: within(0, 9) }),
   bg: id, traits: z.array(z.string()), honor: within(-100, 100), flags: z.record(z.string(), z.literal(true)),
-  secrets: z.array(z.string()), owed: z.record(z.string(), int), owedTags: z.record(z.string(), z.array(z.string())), party: z.array(z.string()), deeds: z.array(deed).max(DEED_KEEP), npc: z.record(z.string(), npc),
+  secrets: z.array(z.string()), owed: z.record(z.string(), int), owedTags: z.record(z.string(), z.array(z.string())), party: z.array(z.string()), met: z.array(z.string()), deeds: z.array(deed).max(DEED_KEEP), npc: z.record(z.string(), npc),
   echoes: z.array(echo), deedCount: z.record(z.string(), within(0, 1000)), history: z.array(z.string()),
   log: z.array(entry).max(200), resume: id.nullable(),
 })

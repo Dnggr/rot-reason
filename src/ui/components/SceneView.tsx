@@ -1,4 +1,4 @@
-// ui/components/SceneView.tsx — the middle of the stage (UI_UX §3): backdrop plus the story as one web-novel page. Scenes already read stay above, in order (with the choice taken); then the turns read in this scene, then the one being typed. A speaker's lines carry their name. `children` (Continue) go under the text.
+// ui/components/SceneView.tsx — the middle of the stage (UI_UX §3): backdrop plus the story as one web-novel page. Scenes already read stay above, in order (with the choice taken); then the turns read in this scene, then the one being typed. A speaker's lines carry their name. `children` (Continue) go under the text. Only the turn being typed is in an `aria-live` region (a finished turn is plain text, and a spoken line is announced by the Dock), so a screen reader says each line once (D31).
 import { useEffect, useRef, type ReactNode } from 'react'
 import { shortName } from '../names'
 import { scrollKey, type ReadChunk, type Turn } from '../turns'
@@ -44,9 +44,9 @@ export function SceneView({ place, read = [], done = [], now, revealed, onSkip, 
             </div>
           ))}
           {place !== undefined && place !== last && <span className="place">{caption(place)}</span>}
-          <div className="narration" aria-live="polite" onClick={onSkip}>
+          <div className="narration" onClick={onSkip}>
             {done.map((t, i) => <Told key={i} turn={t} />)}
-            {now !== undefined && <Lines lines={now.lines} revealed={revealed} />}
+            <div aria-live="polite">{now !== undefined && <Lines lines={now.lines} revealed={revealed} />}</div>
           </div>
           {children}
         </div>

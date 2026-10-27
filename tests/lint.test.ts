@@ -86,6 +86,12 @@ describe('lintStory: warnings', () => {
     const read = lint([{ id: 'c1.a', text: [{ if: ['flag', 'other'], text: 'x' }, 'y'], choices: [{ id: 'a', text: 'x', fx: [['honor', 'mercy', true]], to: 'c1.b' }, { id: 'b', text: 'y', to: 'c1.b' }] } as Scene, base[1] as Scene])
     expect(has(read.warnings, 'flag other is read but never set')).toBe(true)
   })
+  it('flags recruiting a companion who would walk out at once, in either order (D31)', () => {
+    expect(has(warnOf([['trust', 'nora', -45], ['party', '+nora']]), 'party +nora with trust -35 / fear 20 would walk out at once')).toBe(true)
+    expect(has(warnOf([['party', '+nora'], ['trust', 'nora', -45]]), 'nora joins, then ends the list with trust -35')).toBe(true)
+    expect(has(warnOf([['party', '+nora'], ['trust', 'nora', -20]]), 'walk out')).toBe(false) // -10: stays
+    expect(has(warnOf([['trust', 'nora', -45], ['fear', 'nora', 45], ['party', '+nora']]), 'walk out')).toBe(false) // fear 65 holds her
+  })
   it('flags a reveal without a held secret', () => {
     expect(has(warnOf([['reveal', 'hart_wife']]), 'reveal hart_wife but no scene holds that secret')).toBe(true)
     expect(has(warnOf([['secret', 'hart_wife'], ['reveal', 'hart_wife']]), 'reveal')).toBe(false)

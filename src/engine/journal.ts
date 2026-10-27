@@ -21,11 +21,11 @@ export interface JournalView {
   deeds: DeedView[]
   people: PersonView[]
 }
-// A person is known when they travel with you, are dead, or trust or fear has moved from where it started (a fear that only faded at a chapter change does not count: nobody met them).
+// A person is known when you have met them (`GameState.met`, D31), travel with you, are dead, or trust or fear has moved from where it started (that last rule covers a v3 save, which has no `met`; a fear that only faded at a chapter change does not count).
 function known(s: GameState, story: Story, id: string): boolean {
   const n = s.npc[id]
   if (n === undefined) return false
-  if (s.party.includes(id) || !n.alive) return true
+  if (s.party.includes(id) || s.met.includes(id) || !n.alive) return true
   const start = Object.hasOwn(story.npcs, id) ? story.npcs[id] : undefined
   return start !== undefined && (n.trust !== start.trust || n.fear > start.fear)
 }

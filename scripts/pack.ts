@@ -23,6 +23,7 @@ const PRESETS: Record<string, { include: string[]; compress?: boolean }> = {
       'src/story/flags.ts', 'src/story/characters.ts', 'src/story/honor.ts', 'src/story/approval.ts', 'src/story/traits.ts', 'src/story/tiers.ts', 'src/story/index.ts',
       'src/story/chapters/prologue.ts', 'src/story/chapters/test.ts', 'src/story/chapters/index.ts',
       'scripts/lint-story.ts', 'scripts/lintTone.ts', 'tests/prologue.test.ts', 'tests/story.test.ts', 'tests/engine/testStory.ts',
+      'docs/ARCHITECTURE.md', 'scripts/lintRefs.ts', 'scripts/lintParty.ts', 'src/engine/stateSchema.ts', 'src/engine/honor.ts', 'src/engine/relations.ts', 'src/engine/met.ts', // M3 s3 review bugs the new scenes may touch
     ],
   },
 }

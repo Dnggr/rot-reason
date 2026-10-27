@@ -2,9 +2,9 @@
 import type { DeedTable, GameState, Social } from '../../src/engine/types'
 export function makeState(overrides: Partial<GameState> = {}): GameState {
   return {
-    v: 3, seed: 7, rng: 7, name: 'Ash', scene: 'c0.start', chapter: 'c0', day: 1, phase: 'dawn',
+    v: 4, seed: 7, rng: 7, name: 'Ash', scene: 'c0.start', chapter: 'c0', day: 1, phase: 'dawn',
     stats: { hp: 5, reason: 80, rot: 0 }, res: { food: 3, ammo: 2, meds: 1 }, attr: { grit: 2, wits: 3, heart: 1 },
-    bg: 'dockworker', traits: [], honor: 0, flags: {}, secrets: [], owed: {}, owedTags: {}, party: [], deeds: [],
+    bg: 'dockworker', traits: [], honor: 0, flags: {}, secrets: [], owed: {}, owedTags: {}, party: [], met: [], deeds: [],
     npc: { nora: { alive: true, trust: 10, fear: 0 }, brick: { alive: true, trust: 0, fear: 5 }, juno: { alive: true, trust: 0, fear: 0 }, hart: { alive: true, trust: 0, fear: 0 } },
     echoes: [], deedCount: {}, history: [], log: [], resume: null,
     ...overrides,

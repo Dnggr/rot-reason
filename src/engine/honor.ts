@@ -1,7 +1,8 @@
 // engine/honor.ts — tiers, deeds (witness rule, diminishing returns, scene cap) and secret surfacing (HONOR.md §3, §8)
 import { clamp, HONOR_RANGE } from './bounds'
+import { trimDeeds } from './deeds'
 import { line, signed, type Applied } from './log'
-import type { DeedTable, GameState, Tier } from './types'
+import type { DeedRecord, DeedTable, GameState, Tier } from './types'
 export const TIER_ORDER: readonly Tier[] = ['T1', 'T2', 'T3', 'T4', 'T5']
 export const SCENE_CAP = 25
 export type Scale = 0.5 | 1 | 2
@@ -27,11 +28,11 @@ export function applyDeed(state: GameState, tag: string, witnessed: boolean, sca
   const text = `${signed(now)} ${tag} ${witnessed ? 'witnessed' : 'unseen'} -> ${honor}`
   return { state: next, log: [line('HONOR', text)], deed: { tag, witnessed, factor }, ...(full !== now ? { owed: full - now } : {}) }
 }
-// Net honor change in one scene is clamped to ±SCENE_CAP: call with the honor value from before the scene's effects.
-export function capScene(before: number, state: GameState): Applied {
+// Net honor change in one scene is clamped to ±SCENE_CAP: call with the honor value from before the scene's effects. `prior` is the deed list from before them: the deeds the scene added are then trimmed by what the cap took (D31); without it the list is left alone.
+export function capScene(before: number, state: GameState, prior: readonly DeedRecord[] = state.deeds): Applied {
   const honor = clamp(state.honor, [before - SCENE_CAP, before + SCENE_CAP])
   if (honor === state.honor) return { state, log: [] }
-  return { state: { ...state, honor }, log: [line('HONOR', `scene cap ±${SCENE_CAP} -> ${honor}`)] }
+  return { state: { ...state, honor, deeds: trimDeeds(state.deeds, honor - state.honor, prior) }, log: [line('HONOR', `scene cap ±${SCENE_CAP} -> ${honor}`)] }
 }
 // A held secret comes out: the honor it owes applies now, and what it hid is forgotten. The trust hit is the party's reaction to the hidden deeds (effects.ts, relations.react, D29).
 export function surface(state: GameState, id: string): Applied {
