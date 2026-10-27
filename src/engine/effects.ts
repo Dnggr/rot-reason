@@ -1,5 +1,5 @@
 // engine/effects.ts — apply(effect, state): the closed effect vocabulary (STORY_FORMAT §5); pure, returns new state + log lines
-import { clamp, DAY_RANGE, FEAR_RANGE, RES_RANGE, STAT_RANGE, TRUST_RANGE } from './bounds'
+import { clamp, DAY_RANGE, FEAR_RANGE, PHASES, RES_RANGE, STAT_RANGE, TRUST_RANGE } from './bounds'
 import { npcOf } from './conditions'
 import { addDeed, reactors } from './deeds'
 import { schedule } from './echoes'
@@ -79,6 +79,7 @@ export function apply(e: Effect, s: GameState, deeds: DeedTable, social: Social 
       const day = e[1].day === undefined ? s.day : clamp(e[1].day, DAY_RANGE)
       if (day < s.day) return fail(s, `time day ${e[1].day} is before day ${s.day}: time does not run backwards, effect ignored`) // M3 s6, D34
       const phase = e[1].phase ?? s.phase
+      if (day === s.day && PHASES.indexOf(phase) < PHASES.indexOf(s.phase)) return fail(s, `time ${phase} is before ${s.phase} on day ${s.day}: time does not run backwards, effect ignored`) // M3 s7, D35: the same rule for the phase within a day
       return ok({ ...s, day, phase }, `time day ${day} ${phase}`)
     }
     default: return fail(s, `unknown effect ${JSON.stringify(e)}`)

@@ -1,4 +1,4 @@
-// scripts/lintGraph.ts — graph checks: missing targets, unreachable scenes, no path to an ending, $resume rules, ending ids, system scenes
+// scripts/lintGraph.ts — graph checks: missing targets, unreachable scenes, no path to an ending, $resume rules, echo targets tagged 'echo', ending ids, system scenes
 import { endingIds } from '../src/engine/endings'
 import { RESUME, SYS_SCENES, isSys } from '../src/engine/ids'
 import type { Scene, Story } from '../src/engine/types'
@@ -12,6 +12,7 @@ export function lintGraph(story: Story, errors: string[]): void {
   const known = endingIds(story.endings)
   for (const s of scenes) {
     for (const t of [...exitsOf(s), ...echoTargetsOf(s)]) if (t !== RESUME && !has(t)) errors.push(`${s.id}: target ${t} does not exist`)
+    for (const t of echoTargetsOf(s)) if (has(t) && story.scenes[t]?.tags?.includes('echo') !== true) errors.push(`${s.id}: echo target ${t} must be tagged 'echo' (an untagged echo scene drops the player's destination, STORY_FORMAT §5)`)
     if (s.end !== undefined && !known.includes(s.end)) errors.push(`${s.id}: unknown ending ${s.end}`)
     const resumes = exitsOf(s).includes(RESUME)
     const isEcho = s.tags?.includes('echo') === true

@@ -129,6 +129,9 @@ describe('effect schema', () => {
     bad(['trait', 'Hardened'], effectSchema)
     bad(['echo', { scene: 'x' }], effectSchema)
     bad(['time', { phase: 'noon' }], effectSchema)
+    bad(['time', { day: 22 }], effectSchema) // M3 s7, D35: a day above 21 is a schema error, no longer a silent clamp
+    ok(['time', { day: 21 }], effectSchema)
+    bad({ ...narration, time: { day: 40 } })
   })
 })
 describe('effect deltas are whole numbers', () => {

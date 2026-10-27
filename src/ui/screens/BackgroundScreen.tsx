@@ -1,5 +1,6 @@
 // ui/screens/BackgroundScreen.tsx — pick a name and one of the backgrounds (attributes, trait, kit, one-line hook)
 import { useState } from 'react'
+import { NAME_MAX } from '../../engine/bounds'
 import { RES_KEYS } from '../../engine/choices'
 import type { BackgroundCard } from '../hooks/gameModel'
 import { S } from '../strings'
@@ -17,7 +18,7 @@ export function BackgroundScreen({ cards, onBegin, onBack }: Props) {
       <h1>{S.chooseBackground}</h1>
       <label className="field">
         <span>{S.nameLabel}</span>
-        <input value={name} maxLength={24} placeholder={S.defaultName} onChange={(e) => setName(e.target.value)} />
+        <input value={name} maxLength={NAME_MAX} placeholder={S.defaultName} onChange={(e) => setName(e.target.value)} />
       </label>
       <div role="radiogroup" aria-label={S.chooseBackground} className="cards">
         {cards.map((c) => (

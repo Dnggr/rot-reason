@@ -1,6 +1,7 @@
 // engine/stateSchema.ts — Zod schemas for runtime data: GameState and the save envelope (saves are validated on load, ARCHITECTURE §5.3)
 import { z } from 'zod'
 import { DEED_KEEP } from './deeds'
+import { NAME_MAX } from './bounds'
 import { SYS_ERROR } from './ids'
 import { PARTY_MAX } from './relations'
 import { healState } from './stateHeal'
@@ -9,12 +10,13 @@ import type { GameState, Story } from './types'
 const id = z.string().min(1)
 const int = z.number().int()
 const within = (min: number, max: number) => int.min(min).max(max)
+const name = z.string().min(1).max(NAME_MAX).refine((n) => n.trim() !== '', 'is blank') // the Background screen trims and caps names (and falls back to Ash); a save must not hold more (M3 s7, D35)
 const npc = z.strictObject({ alive: z.boolean(), trust: within(-100, 100), fear: within(0, 100) })
 const echo = z.strictObject({ scene: id, dueIn: z.exactOptional(within(0, 1000)), atChapter: z.exactOptional(id) })
 const deed = z.strictObject({ tag: id, witnessed: z.boolean(), surfaced: z.boolean(), day: within(1, 21), delta: int, who: z.record(z.string(), int) })
 const entry = z.strictObject({ n: int, kind: z.enum(['SCENE', 'CHOICE', 'FX', 'HONOR', 'SECRET', 'ECHO', 'ERROR', 'DEBUG']), text: z.string() })
 export const gameStateSchema: z.ZodType<GameState> = z.strictObject({
-  v: int, seed: int, rng: int, name: z.string(), scene: id, chapter: id, day: within(1, 21),
+  v: int, seed: int, rng: int, name, scene: id, chapter: id, day: within(1, 21),
   phase: z.enum(['dawn', 'day', 'dusk', 'night']),
   stats: z.strictObject({ hp: within(0, 5), reason: within(0, 100), rot: within(0, 100) }),
   res: z.strictObject({ food: within(0, 9), ammo: within(0, 9), meds: within(0, 9) }),
@@ -33,7 +35,7 @@ export const gameStateSchema: z.ZodType<GameState> = z.strictObject({
 })
 // The save envelope, parsed loosely: snapshot and checkpoint are validated one by one so a bad snapshot can still fall back to replay.
 export const saveHeadSchema = z.object({
-  v: int, seed: int, bg: id, name: z.string(), history: z.array(z.string()), savedAt: z.number().finite(),
+  v: int, seed: int, bg: id, name, history: z.array(z.string()), savedAt: z.number().finite(),
   snapshot: z.unknown(), checkpoint: z.unknown(),
 })
 const shapeText = (e: z.ZodError): string => `${e.issues[0]?.path.join('.')} ${e.issues[0]?.message}`

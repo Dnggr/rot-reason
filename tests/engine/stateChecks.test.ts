@@ -1,8 +1,9 @@
-// tests/engine/stateChecks.test.ts — M3 bugs closed in D32: a party the engine could never make is refused on load, and a revealed secret with honor owed but no deeds on record still shows in the Journal
+// tests/engine/stateChecks.test.ts — M3 bugs closed in D32 (and the name bound, D35): a party the engine could never make is refused on load, and a revealed secret with honor owed but no deeds on record still shows in the Journal
 import { describe, expect, it } from 'vitest'
 import { apply } from '../../src/engine/effects'
 import { journalOf } from '../../src/engine/journal'
-import { gameStateSchema, validState } from '../../src/engine/stateSchema'
+import { reduce } from '../../src/engine/reducer'
+import { gameStateSchema, saveHeadSchema, validState } from '../../src/engine/stateSchema'
 import { deeds, makeState, social } from './fixtures'
 import { makeStory } from './storyFixture'
 const story = makeStory([{ id: 'c0.start', text: 'x', next: 'c0.start' }], { npcs: { nora: { name: 'Nora', trust: 10, fear: 0 }, brick: { name: 'Brick', trust: 0, fear: 5 }, juno: { name: 'Juno', trust: 0, fear: 0 }, hart: { name: 'Hart', trust: 0, fear: 0 } } })
@@ -37,5 +38,20 @@ describe('a revealed secret that owes honor but hid no deeds (a v1 save) shows i
     const kept = apply(['reveal', 'x'], { ...v1(), owedTags: { x: ['lie'] } }, deeds, social).state.deeds
     expect(kept.map((d) => d.tag)).toEqual(['lie'])
     expect(kept[0]?.delta).toBe(-6)
+  })
+})
+describe('a player name is 1 to 24 characters and not blank (M3 s7, D35; was: any string, even 100,000 characters)', () => {
+  it('the state and the save envelope refuse an empty, a blank and an over-long name', () => {
+    for (const name of ['', '   ', 'x'.repeat(25), 'x'.repeat(100_000)]) {
+      expect(validState({ ...makeState({ name }), scene: 'c0.start' }, story)).toBeUndefined()
+      expect(saveHeadSchema.safeParse({ v: 4, seed: 1, bg: 'dockworker', name, history: [], savedAt: 1, snapshot: null, checkpoint: null }).success).toBe(false)
+    }
+    for (const name of ['Ash', 'x'.repeat(24)]) expect(validState({ ...makeState({ name }), scene: 'c0.start' }, story)).toBeDefined()
+  })
+  it('START with a bad name is an ERROR and the error scene, not a state the save would refuse', () => {
+    const s = reduce(makeState(), { type: 'START', bg: 'dockworker', name: '', seed: 1 }, story)
+    expect(s.scene).toBe('sys.error')
+    expect(s.log[s.log.length - 1]?.text).toContain('name must be 1 to 24 characters')
+    expect(reduce(makeState(), { type: 'START', bg: 'dockworker', name: 'x'.repeat(25), seed: 1 }, story).scene).toBe('sys.error')
   })
 })

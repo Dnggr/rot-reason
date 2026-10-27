@@ -90,6 +90,17 @@ describe('apply: honor, secrets, echoes, time', () => {
     expect(apply(['time', { day: 6, phase: 'dawn' }], s, deeds).state).toMatchObject({ day: 6, phase: 'dawn' })
     expect(apply(['time', { day: 40 }], makeState({ day: 21 }), deeds).log[0]?.kind).toBe('FX') // a clamped 40 is day 21, not before it
   })
+  it('time never runs back within a day either: an earlier phase on the same day is an ERROR that changes nothing (M3 s7, D35)', () => {
+    const s = makeState({ day: 3, phase: 'night' })
+    for (const spec of [{ phase: 'dawn' }, { day: 3, phase: 'dusk' }, { day: 3, phase: 'day' }] as const) {
+      const back = apply(['time', spec], s, deeds)
+      expect(back.state).toBe(s)
+      expect(back.log).toEqual([{ kind: 'ERROR', text: `time ${spec.phase} is before night on day 3: time does not run backwards, effect ignored` }])
+    }
+    expect(apply(['time', { phase: 'night' }], s, deeds).log[0]?.kind).toBe('FX') // the same moment is fine
+    expect(apply(['time', { day: 3 }], s, deeds).state).toMatchObject({ day: 3, phase: 'night' })
+    expect(apply(['time', { day: 4, phase: 'dawn' }], s, deeds).state).toMatchObject({ day: 4, phase: 'dawn' }) // a later day may start at any phase
+  })
   it('an unknown effect kind is an ERROR log', () => {
     expect(run(['bogus', 'x'] as unknown as Effect).log[0]?.kind).toBe('ERROR')
   })

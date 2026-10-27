@@ -9,15 +9,16 @@ export function effectsOf(scene: Scene): Effect[] {
   }
   return out
 }
-// Each effect list a scene runs in one go, in order: `on`, and per choice its fx followed by each check branch's fx (what `applyAll` sees).
+// Each effect list a scene runs in one go, in order: `on`, and per choice its fx followed by each check branch's fx (what `applyAll` sees), then the choice's `echo` as the last effect.
 export function effectListsOf(scene: Scene): { where: string; list: Effect[] }[] {
   const lists = [{ where: `${scene.id} on`, list: [...(scene.on ?? [])] }]
   for (const c of scene.choices ?? []) {
     const own = c.fx ?? []
-    if (c.check === undefined) lists.push({ where: `${scene.id}:${c.id}`, list: [...own] })
+    const tail: Effect[] = c.echo === undefined ? [] : [['echo', c.echo]] // `choose` schedules a choice's echo after its effect list
+    if (c.check === undefined) lists.push({ where: `${scene.id}:${c.id}`, list: [...own, ...tail] })
     else {
-      lists.push({ where: `${scene.id}:${c.id} pass`, list: [...own, ...(c.check.pass.fx ?? [])] })
-      lists.push({ where: `${scene.id}:${c.id} fail`, list: [...own, ...(c.check.fail.fx ?? [])] })
+      lists.push({ where: `${scene.id}:${c.id} pass`, list: [...own, ...(c.check.pass.fx ?? []), ...tail] })
+      lists.push({ where: `${scene.id}:${c.id} fail`, list: [...own, ...(c.check.fail.fx ?? []), ...tail] })
     }
   }
   return lists

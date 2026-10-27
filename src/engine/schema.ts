@@ -34,7 +34,7 @@ export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
 const echoSpec = z
   .strictObject({ scene: id, after: z.exactOptional(z.number().int().min(1)), at: z.exactOptional(id) })
   .refine((e) => (e.after === undefined) !== (e.at === undefined), "echo needs exactly one of 'after' or 'at'")
-const timeChange = z.strictObject({ day: z.exactOptional(z.number().int().min(1)), phase: z.exactOptional(phase) })
+const timeChange = z.strictObject({ day: z.exactOptional(z.number().int().min(1).max(21)), phase: z.exactOptional(phase) })
 export const effectSchema = z.union([
   z.tuple([z.literal('honor'), id, z.boolean()]),
   z.tuple([z.literal('stat'), stat, whole]),

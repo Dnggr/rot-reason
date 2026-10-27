@@ -1,5 +1,6 @@
 // ui/hooks/useGame.ts — the one hook the UI uses: engine state in a reducer, screens, autosave, Continue, restart chapter, debug report (ARCHITECTURE §1)
 import { useEffect, useMemo, useReducer, useState } from 'react'
+import { NAME_MAX } from '../../engine/bounds'
 import { buildReport, reportText } from '../../engine/report'
 import { makeSave } from '../../engine/save'
 import { journalOf, type JournalView } from '../../engine/journal'
@@ -73,7 +74,7 @@ export function useGame(story: Story, persist: Store, debug: boolean = false): G
       rerender((n) => n + 1)
     },
     toTitle: () => dispatch({ type: 'SCREEN', screen: 'title' }),
-    start: (bg, name) => dispatch({ type: 'START', bg, name: name.trim() || S.defaultName, seed: newSeed() }),
+    start: (bg, name) => dispatch({ type: 'START', bg, name: name.trim().slice(0, NAME_MAX) || S.defaultName, seed: newSeed() }),
     resume: () => {
       if (saved.kind === 'ok') dispatch({ type: 'LOAD', save: saved.save })
     },

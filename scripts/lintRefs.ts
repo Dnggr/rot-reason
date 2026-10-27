@@ -11,6 +11,7 @@ export function lintRefs(story: Story, flags: Readonly<Record<string, string>>, 
   const readers = new Set<string>()
   const held = new Set<string>()
   const revealed: [string, string][] = []
+  const secretReads: [string, string][] = []
   const traits = knownTraits(story)
   const chapters = new Set(scenes.map((s) => chapterOf(s.id)))
   const trait = (where: string, id: string): void => void (traits.has(id) || errors.push(`${where}: unknown trait ${id} (a background trait, a traitBonus key or a PERKS trait; give a story-only trait an empty traitBonus row)`))
@@ -28,6 +29,7 @@ export function lintRefs(story: Story, flags: Readonly<Record<string, string>>, 
       if ('all' in c || 'any' in c || 'not' in c) continue
       if (c[0] === 'flag') flag(s.id, c[1], readers)
       if (c[0] === 'trait') trait(`${s.id} condition`, c[1])
+      if (c[0] === 'secret') secretReads.push([s.id, c[1]])
       if (NPC_CONDITIONS.has(c[0])) npcs(`${s.id} condition`, c[1])
       if (c[0] === 'bg' && !Object.hasOwn(story.backgrounds, c[1])) errors.push(`${s.id}: unknown background ${c[1]}`)
     }
@@ -47,11 +49,13 @@ export function lintRefs(story: Story, flags: Readonly<Record<string, string>>, 
       if ('all' in c || 'any' in c || 'not' in c) continue
       if (c[0] === 'flag') flag(`ending ${r.id}`, c[1], readers)
       if (c[0] === 'trait') trait(`ending ${r.id}`, c[1])
+      if (c[0] === 'secret') secretReads.push([`ending ${r.id}`, c[1]])
       if (NPC_CONDITIONS.has(c[0])) npcs(`ending ${r.id}`, c[1]) // the same npc conditions as a scene's (D32)
       if (c[0] === 'bg' && !Object.hasOwn(story.backgrounds, c[1])) errors.push(`ending ${r.id}: unknown background ${c[1]}`)
     }
   }
   for (const [where, id] of revealed) if (!held.has(id)) warnings.push(`${where}: reveal ${id} but no scene holds that secret`)
+  for (const [where, id] of secretReads) if (!held.has(id)) warnings.push(`${where}: secret condition ${id} is read but no scene holds that secret (it can never be true)`)
   for (const f of Object.keys(flags)) {
     if (setters.has(f) && !readers.has(f)) warnings.push(`flag ${f} is set but never read`)
     if (readers.has(f) && !setters.has(f)) warnings.push(`flag ${f} is read but never set`)

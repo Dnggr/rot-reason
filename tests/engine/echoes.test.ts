@@ -20,6 +20,28 @@ describe('schedule', () => {
     }
   })
 })
+describe('schedule: an identical pending echo is not stacked (M3 s7, D35)', () => {
+  it('the same scene with the same countdown or chapter is skipped, with an ECHO line', () => {
+    const a = schedule(makeState(), { scene: 'c1.e', after: 1 }).state
+    const b = schedule(a, { scene: 'c1.e', after: 1 })
+    expect(b.state).toBe(a)
+    expect(b.log).toEqual([{ kind: 'ECHO', text: 'c1.e in 1 is already pending, not scheduled twice' }])
+    const c = schedule(makeState({ chapter: 'c1' }), { scene: 'c4.f', at: 'c4' }).state
+    expect(schedule(c, { scene: 'c4.f', at: 'c4' }).state).toBe(c)
+  })
+  it('a different scene, countdown or kind of trigger still schedules', () => {
+    const a = schedule(makeState(), { scene: 'c1.e', after: 2 }).state
+    expect(schedule(a, { scene: 'c1.e', after: 3 }).state.echoes).toHaveLength(2)
+    expect(schedule(a, { scene: 'c1.f', after: 2 }).state.echoes).toHaveLength(2)
+    expect(schedule(a, { scene: 'c1.e', at: 'c4' }).state.echoes).toHaveLength(2)
+  })
+  it('an echo that already fired can be scheduled again', () => {
+    const a = schedule(makeState(), { scene: 'c1.e', after: 1 }).state
+    const fired = take(tick(a)).state
+    expect(fired.echoes).toEqual([])
+    expect(schedule(fired, { scene: 'c1.e', after: 1 }).state.echoes).toHaveLength(1)
+  })
+})
 describe('tick / due / take', () => {
   it('after: 2 fires on the second transition after it was scheduled, not before', () => {
     let s = schedule(makeState(), { scene: 'echo', after: 2 }).state

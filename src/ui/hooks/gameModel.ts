@@ -7,6 +7,7 @@ import { reduce } from '../../engine/reducer'
 import { makeSave, readSave, replay, SAVE_KEY, writeSave, type KeyValueStore } from '../../engine/save'
 import { currentView, hudOf, type Hud, type View } from '../../engine/select'
 import type { Action, Background, GameState, SaveData, Story } from '../../engine/types'
+import { S } from '../strings'
 import type { EraseStore } from '../storage'
 import { diffToasts } from '../toasts'
 import { tierBanner, type Banner } from '../tiers'
@@ -25,7 +26,7 @@ export interface UiState {
 export const MAX_READ = 30 // scenes kept above the current one
 export type UiAction = Action | { type: 'SCREEN'; screen: Screen } | { type: 'BANNER_OFF' } | { type: 'DEBUG_REWIND' } // rewind is a session operation (it replays history), so it lives here, not in the engine
 export function initialUi(story: Story): UiState {
-  const r = startGame(story, Object.keys(story.backgrounds)[0] ?? '', '', 1) // throws on a story with no background: the error boundary shows it
+  const r = startGame(story, Object.keys(story.backgrounds)[0] ?? '', S.defaultName, 1) // the placeholder behind the Title screen, never autosaved; throws on a story with no background: the error boundary shows it
   return { screen: 'title', from: 'title', game: pushLog(r.state, r.log), checkpoint: null, toasts: [], seq: 0, read: [], banner: undefined }
 }
 // Wraps engine `reduce` (the only state-changing path); everything else here is navigation and display. DEBUG_* actions are dropped unless `debug` is on (the panel is mounted).

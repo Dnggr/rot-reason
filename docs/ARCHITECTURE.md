@@ -23,12 +23,12 @@ src/
     reducer.ts      reduce(state, action, story) -> state   (the only state change path; never throws) (live since M1 s3)
     choose.ts       CHOOSE / CONTINUE: validate, tick, cost, check, fx, cap, time, advance (live since M1 s3)
     flow.ts         advance / enter: $resume, missing target, death, chapter change, echo take, `on` effects (live since M1 s3)
-    init.ts         startGame(story, bg, name, seed), SAVE_VERSION (3 since M3 s2) (live since M1 s3)
+    init.ts         startGame(story, bg, name, seed) (throws on an unknown background or a name that is blank or over NAME_MAX, D35), SAVE_VERSION (4 since M3 s3) (live since M1 s3)
     choices.ts      status(choice, state): hidden / locked / broke / open (live since M1 s3)
     ids.ts          SYS_* scene ids, RESUME, chapterOf, findScene (live since M1 s3)
-    bounds.ts       clamp + the value ranges; throws on NaN/Infinity (live since M1 s2)
+    bounds.ts       clamp + the value ranges, `PHASES` (the order of a day) and `NAME_MAX` (24); throws on NaN/Infinity (live since M1 s2; PHASES / NAME_MAX M3 s7)
     conditions.ts   evaluate(cond, state) -> boolean (live since M1 s2)
-    effects.ts      apply(effect, state, deeds, social?) -> {state, log, owed?, deed?}; applyAll(list, state, deeds, social?): pairs unwitnessed deeds with the next `secret`, reveal makes the party react, ends with the walk-out check; `time` never runs backwards: a day before the current one is an ERROR and changes nothing (live since M1 s2; social M3 s1; time M3 s6, D34)
+    effects.ts      apply(effect, state, deeds, social?) -> {state, log, owed?, deed?}; applyAll(list, state, deeds, social?): pairs unwitnessed deeds with the next `secret`, reveal makes the party react, ends with the walk-out check; `time` never runs backwards: a day before the current one, or an earlier phase on the same day, is an ERROR and changes nothing (live since M1 s2; social M3 s1; time M3 s6, D34, phase M3 s7, D35)
     deeds.ts        DEED_KEEP (20), addDeed, reactors, trimDeeds (gives the scene cap's correction back to the scene's deeds): the Journal's deed list (live since M3 s2, D30; trim M3 s3, D31)
     met.ts          meet, metIn: GameState.met, who the player has met (live since M3 s3, D31)
     journal.ts      journalOf(state, story) -> { deeds (newest first, with who reacted), people (party first; the party, the dead and anyone met, and anyone whose trust or fear rose) with their perk line }: the Journal's selector (live since M3 s2, D30)
@@ -36,11 +36,11 @@ src/
     honor.ts        tierOf, applyDeed (returns the deed and its repeat factor), capScene, surface, repeatFactor, roundAway (live since M1 s2)
     migrations.ts   save upgrades, one function per version step: v1to2 adds `owedTags` (M3 s1), v2to3 adds `deeds` (M3 s2)
     checks.ts       resolveCheck(attr, dc, state, traitBonus, perks?) -> {state, roll, bonus, total, pass, log}; heldTraits(state, perks): the player's traits plus the perk trait of every living companion in the party, so a perk lasts exactly as long as the companion is with you (live since M1 s2; perks M3 s2, D30)
-    echoes.ts       schedule, tick, due, take (live since M1 s2)
+    echoes.ts       schedule (an identical pending echo, same scene and same countdown or chapter, is skipped with an ECHO line, D35), tick, due, take (live since M1 s2)
     endings.ts      resolveEnding(state, rules), AUTO / DEATH / SYS ending ids (live since M1 s3)
     rng.ts          seeded mulberry32, pure: `nextFloat(rng) -> {value, rng}`, `nextInt`, `d6`, `initRng(seed)` (live since M1 s1)
     save.ts         makeSave, migrate, replay, loadSave, readSave / writeSave (storage injected) (live since M1 s3)
-    stateSchema.ts  Zod schema for GameState and the save envelope, validState (live since M1 s3); the party must be at most PARTY_MAX, without repeats, all living npcs (D32). Every id the state holds must exist in the story: `validState(raw, story)` / `stateProblem(raw, story)` (strict, the fuzz bot's check) add `stateRefs.refProblem` (D33, D34). `loadableState(raw, story)` is what a load uses: it heals first (`stateHeal`), then applies the same check; `loadProblem` words why a load failed (D34)
+    stateSchema.ts  Zod schema for GameState and the save envelope, validState (live since M1 s3); `name` is 1 to NAME_MAX characters and not blank, in the state and in the envelope (D35); the party must be at most PARTY_MAX, without repeats, all living npcs (D32). Every id the state holds must exist in the story: `validState(raw, story)` / `stateProblem(raw, story)` (strict, the fuzz bot's check) add `stateRefs.refProblem` (D33, D34). `loadableState(raw, story)` is what a load uses: it heals first (`stateHeal`), then applies the same check; `loadProblem` words why a load failed (D34)
     stateRefs.ts    refProblem(state, story): scene, echo and resume scenes, bg, flags (`story.flags`), chapter (an echo or sys scene may sit in another chapter, but it must exist), met, owed keys (held secrets only), secrets, npc table (exactly the story's npcs) (D33); and since M3 s6 (D34) an echo's `atChapter` (a chapter with a scene), a party member who was met, traits (known, no repeats: `knownTraits` = a background's trait, a `traitBonus` key or a `PERKS` trait), deed tags (or `unknown`) and the npcs in a deed's `who`, `deedCount` keys (deed tags), and the shape of every `history` entry (`scene:choice` or `scene:>`; the scene's existence is not checked, so a renamed scene does not strand a save). Returns the first problem as a sentence
     stateHeal.ts    healState(state, story) -> { state, notes }: a save from an older build keeps its run: an npc the story added is filled in from `story.npcs`, and an npc, flag, met entry, party member, echo (scene or chapter gone), deed record, deed count or trait the story no longer has is dropped; the same object back when nothing needs it. The scene, background and chapter are never healed (D34)
     select.ts       view selectors: currentView(state, story) -> View (`lines` = all text; `beats` = each line with its `say` speaker; each locked choice carries its `lock` condition), hudOf(state) -> Hud (live since M1 s3; lock and hudOf M2 s1; beats D28)
@@ -79,7 +79,7 @@ tests/          engine/*.test.ts  ui/*.test.ts  golden/*.test.ts
 GameState {
   v: number                       // save schema version
   seed: number; rng: number       // seed + current rng state
-  name: string                    // player name, set by START
+  name: string                    // player name, set by START: 1 to 24 characters, not blank (D35)
   scene: string; chapter: string
   day: number; phase: 'dawn'|'day'|'dusk'|'night'
   stats: { hp, reason, rot }      res: { food, ammo, meds }
@@ -154,7 +154,7 @@ Actions (typed in `engine/types.ts`): `START(bg,name,seed)`, `CHOOSE(choice)` wh
 
 ## 8. Tooling scripts
 
-- `lint-story.ts` (CLI) + `lintCore/Graph/Refs/Walk/Party/Time/Tone.ts` (live since M1 s3; `lintTime` M3 s6: a warning when a `time` day is earlier than one a route has already reached, judged per way out of a scene; `lintTone` since the intro: no "zombie" / "undead" in story text, story-share warning): schema per scene, duplicate ids, missing targets, reachability, no path to an ending, `$resume` rules, ending ids, flag / character (`who`, `say`, conditions, effects) / deed tag / trait (`knownTraits`, M3 s6) / background references, an echo `at` a chapter no scene has (M3 s6), plus style warnings (STORY_FORMAT §8). Exits non-zero on error; warnings are printed.
+- `lint-story.ts` (CLI) + `lintCore/Graph/Refs/Walk/Party/Lists/Time/Tone.ts` (live since M1 s3; `lintTime` M3 s6: a warning when a `time` day is earlier than one a route has already reached, judged per way out of a scene, and since M3 s7 (D35) the same for a phase earlier than the one reached on the same day; `lintLists` M3 s7: per effect list, an unwitnessed deed with no `secret` after it, the same echo twice, an echo `at` its own chapter; `lintTone` since the intro: no "zombie" / "undead" in story text, story-share warning): schema per scene, duplicate ids, missing targets, reachability, no path to an ending, `$resume` rules, ending ids, flag / character (`who`, `say`, conditions, effects) / deed tag / trait (`knownTraits`, M3 s6) / background references, an echo `at` a chapter no scene has (M3 s6), an echo whose target is not tagged `echo` (M3 s7), a `secret` condition no scene holds (warning, M3 s7), plus style warnings (STORY_FORMAT §8). Exits non-zero on error; warnings are printed.
 - `fuzz.ts` (CLI) + `fuzzRun.ts` (live since M1 s3): `npm run fuzz -- [runs=1000] [seed=1]` plays random games per background with a seeded bot. Fails on soft-locks (no enabled choice), loops (> 500 steps), invalid state (`gameStateSchema`), any ERROR log line, a fallback ending, or a replay of `seed + bg + name + history` that differs from the live run. Prints the failing `seed` and history. Endings never reached are printed as information (M6 turns that into a gate).
 - Coverage: `npm run coverage` (`@vitest/coverage-v8`, D16) fails under 90% line coverage on `src/engine`.
 - `rules-check.ts`: line limits, header-comment check, engine/story purity (golden rules 1 and 3), and fails if git tracks anything under `node_modules/` or `dist/` (`git ls-files`; skipped with a warning outside git; added M1 s1). Live since M0.
