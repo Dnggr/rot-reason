@@ -1,8 +1,9 @@
 // engine/stateSchema.ts — Zod schemas for runtime data: GameState and the save envelope (saves are validated on load, ARCHITECTURE §5.3)
 import { z } from 'zod'
 import { DEED_KEEP } from './deeds'
-import { findScene, SYS_ERROR } from './ids'
+import { SYS_ERROR } from './ids'
 import { PARTY_MAX } from './relations'
+import { refProblem } from './stateRefs'
 import type { GameState, Story } from './types'
 const id = z.string().min(1)
 const int = z.number().int()
@@ -34,9 +35,14 @@ export const saveHeadSchema = z.object({
   v: int, seed: int, bg: id, name: z.string(), history: z.array(z.string()), savedAt: z.number().finite(),
   snapshot: z.unknown(), checkpoint: z.unknown(),
 })
-// A usable state: valid shape and ranges, a scene that exists in this story, and not parked on the error scene.
+// Why a state breaks the rules (shape and ranges, then every id it holds must exist in this story, D33, engine/stateRefs.ts); undefined when it does not. The fuzz bot checks it every step.
+export function stateProblem(raw: unknown, story: Story): string | undefined {
+  const r = gameStateSchema.safeParse(raw)
+  if (!r.success) return `${r.error.issues[0]?.path.join('.')} ${r.error.issues[0]?.message}`
+  return refProblem(r.data, story)
+}
+// A usable state: no problem above, and not parked on the error scene.
 export function validState(raw: unknown, story: Story): GameState | undefined {
   const r = gameStateSchema.safeParse(raw)
-  if (!r.success || r.data.scene === SYS_ERROR || findScene(story, r.data.scene) === undefined) return undefined
-  return r.data
+  return r.success && r.data.scene !== SYS_ERROR && refProblem(r.data, story) === undefined ? r.data : undefined
 }

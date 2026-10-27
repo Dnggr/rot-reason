@@ -10,20 +10,20 @@ const PRESETS: Record<string, { include: string[]; compress?: boolean }> = {
   docs: { include: ['docs/**', 'README.md'] },
   core: { include: [...BASE, ...CFG, 'docs/ARCHITECTURE.md', 'docs/STORY_FORMAT.md', 'src/engine/**', 'tests/**'] },
   story: {
-    include: [...BASE, 'docs/STORY_FORMAT.md', 'docs/STORYBOARD.md', 'docs/CHARACTERS.md', 'docs/HONOR.md', 'src/story/flags.ts', 'src/story/characters.ts', 'src/story/chapters/prologue.ts'], // the intro is the voice reference
+    include: [...BASE, 'docs/STORY_FORMAT.md', 'docs/STORYBOARD.md', 'docs/STORYLINE.md', 'docs/CHARACTERS.md', 'docs/HONOR.md', 'src/story/flags.ts', 'src/story/characters.ts', 'src/story/chapters/prologue.ts'], // the intro is the voice reference
   },
   ui: { include: [...BASE, 'docs/UI_UX.md', 'docs/ARCHITECTURE.md', 'src/ui/**', 'src/engine/types.ts', 'src/engine/select.ts'] },
   bug: { include: [...BASE, 'docs/ARCHITECTURE.md'] }, // add the files from the debug log: npm run pack -- bug src/engine/honor.ts
-  chapter: { include: [...BASE, 'docs/STORY_FORMAT.md', 'docs/STORYBOARD.md', 'src/story/flags.ts'] }, // add: src/story/chapters/ch2*
+  chapter: { include: [...BASE, 'docs/STORY_FORMAT.md', 'docs/STORYBOARD.md', 'docs/STORYLINE.md', 'src/story/flags.ts'] }, // add: src/story/chapters/ch2*
   // ---- TASK PACKS: one per upcoming session, named <milestone><session> (START_HERE Rule 0.5). Delete when the milestone is done. ----
   // M4 s1: Prologue part 2 (p.street, p.gate) + the start of Ch1; settle ROADMAP open question 8 (content budget at 85:15) first
   m4s1: {
     include: [
-      ...BASE, ...PACKING, 'docs/STORYBOARD.md', 'docs/STORY_FORMAT.md', 'docs/CHARACTERS.md', 'docs/HONOR.md', 'docs/GAME_DESIGN.md',
+      ...BASE, ...PACKING, 'docs/STORYBOARD.md', 'docs/STORYLINE.md', 'docs/STORY_FORMAT.md', 'docs/CHARACTERS.md', 'docs/HONOR.md', 'docs/GAME_DESIGN.md',
       'src/story/flags.ts', 'src/story/characters.ts', 'src/story/honor.ts', 'src/story/approval.ts', 'src/story/traits.ts', 'src/story/tiers.ts', 'src/story/index.ts',
       'src/story/chapters/prologue.ts', 'src/story/chapters/test.ts', 'src/story/chapters/index.ts',
       'scripts/lint-story.ts', 'scripts/lintTone.ts', 'tests/prologue.test.ts', 'tests/story.test.ts', 'tests/engine/testStory.ts',
-      'docs/ARCHITECTURE.md', 'scripts/lintRefs.ts', 'src/engine/stateSchema.ts', 'src/engine/save.ts', 'src/engine/relations.ts', // M3 s4 review bugs the new scenes may touch (save references, `party -id`)
+      'docs/ARCHITECTURE.md', 'scripts/lintRefs.ts', 'src/engine/stateSchema.ts', 'src/engine/stateRefs.ts', // M3 s5 review bugs the new scenes may touch (trait / echo-chapter lint, deed and trait refs in saves)
     ],
   },
 }

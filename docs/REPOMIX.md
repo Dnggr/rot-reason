@@ -21,8 +21,8 @@ Goal: give Claude **just enough** to work, in as few tokens as possible, and mak
 | `pack:map` | whole `src` with `--compress` (signatures only) | New chat, "where is X?", architecture questions | ≤ 8k |
 | `pack:docs` | all `docs/**` + README | Planning / design sessions (read every doc) | ~21k (measured in M0) |
 | `pack:core` | ARCHITECTURE, STORY_FORMAT, `src/engine/**`, `tests/**` | Engine work | ≤ 15k |
-| `pack:story` | STORY_FORMAT, STORYBOARD, CHARACTERS, HONOR, `src/story/flags.ts`, `src/story/characters.ts`, `src/story/chapters/prologue.ts` (voice reference) | Writing scenes | ~20k (measured with the intro) |
-| `pack -- chapter <globs>` | STORY_FORMAT, STORYBOARD, flags + the globs you add, e.g. `src/story/chapters/ch2*` | Editing a chapter | ≤ 10k |
+| `pack:story` | STORY_FORMAT, STORYBOARD, STORYLINE, CHARACTERS, HONOR, `src/story/flags.ts`, `src/story/characters.ts`, `src/story/chapters/prologue.ts` (voice reference) | Writing scenes | ~20k (measured with the intro) |
+| `pack -- chapter <globs>` | STORY_FORMAT, STORYBOARD, STORYLINE, flags + the globs you add, e.g. `src/story/chapters/ch2*` | Editing a chapter | ≤ 10k |
 | `pack:ui` | UI_UX, ARCHITECTURE, `src/ui/**`, `src/engine/types.ts`, `src/engine/select.ts` | UI work | ≤ 15k |
 | `pack -- bug <files>` | ARCHITECTURE + the files you list, e.g. `src/engine/honor.ts` | Debugging | ≤ 6k |
 

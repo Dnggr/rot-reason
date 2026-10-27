@@ -11,6 +11,7 @@ Paste this file first in any new Claude chat, then `HANDOFF.md`, then a repomix 
 1. **Docs first.** Before any plan, code, or answer, read `START_HERE.md` and `HANDOFF.md`, then every doc the Doc map below lists for your task. If a needed doc is not in your context, say which one and stop; do not guess.
 2. **Docs last.** After you change or fix anything (code, story, config, scripts), you must edit the docs to match what you actually did, in the same response:
    - `HANDOFF.md`: always (what changed, decisions, bugs, next tasks).
+   - `STORYLINE.md` whenever scenes are added, renamed or removed. **Never delete or reword a line ending `-joshua`** (the owner's notes): follow it, or say in `HANDOFF.md` why not.
    - Every other doc your change touches (architecture, story format, storyboard, honor, UI, roadmap checkboxes, repomix presets, commands...).
 3. **Docs are the source of truth.** If code and docs disagree, fix the disagreement now (update the doc, or flag it as a bug in `HANDOFF.md`). Never leave it for later.
 4. **Return the updated docs as full files**, listed with the code files, under their `### docs/...` headings.
@@ -43,8 +44,8 @@ Vite 8 + React 19 + TypeScript 7 (strict) + Vitest 5 (+ `@vitest/coverage-v8`, a
 ## Repo map
 
 ```
-docs/                 these files (read first, update last)
-src/engine/           pure logic: reducer (+ choose, flow, init, debug), select, journal, conditions, effects, relations (trust / fear, party, approval, walk-out), deeds, honor, rng, echoes, checks (+ perks), choices, bounds, endings, save (+ stateSchema, migrations), actions, ids, log, report
+docs/                 these files (read first, update last); STORYLINE.md = the story as a readable map the owner edits
+src/engine/           pure logic: reducer (+ choose, flow, init, debug), select, journal, conditions, effects, relations (trust / fear, party, approval, walk-out), deeds, honor, rng, echoes, checks (+ perks), choices, bounds, endings, save (+ stateSchema, stateRefs, migrations), actions, ids, log, report
 src/story/            data only: chapters/ (prologue = the live intro; test chapter continues it until M4), index (assembles the Story), characters, backgrounds, endings, flags, system, honor, approval, traits (+ perks), tiers
 src/ui/               App, Game (screen router), strings, lockReason, toasts, names, storage, version, settings, typewriter, turns, tiers, keys, vitals, debugApi; screens/ (Title, Background, Play, Settings, Journal, Ending); components/ (Backdrop, StatBar, HonorMeter, SceneView, Dock, Lines, ChoiceList/Button, Toast, CharacterCard, TierBanner, ErrorFallback/Boundary, ReportButton); hooks/ (useGame + gameModel, useStory, useSettings, useTypewriter, useTurn, useKeys); styles/ (tokens, base, play, stage, motion)
 src/debug/            DebugPanel (+ StateView, Controls, forceRoll, rrHandle), loaded lazily by main.tsx in dev or with ?debug=1; nothing else imports it; the report builder is src/engine/report.ts
@@ -82,7 +83,7 @@ public/               images (WebP), later audio
 
 | Task | Open |
 |---|---|
-| Write or change story scenes | STORYBOARD, STORY_FORMAT, CHARACTERS, HONOR |
+| Write or change story scenes | STORYBOARD, STORYLINE, STORY_FORMAT, CHARACTERS, HONOR |
 | Engine / state / saves | ARCHITECTURE, STORY_FORMAT |
 | UI / styling | UI_UX, ARCHITECTURE (UI section) |
 | Balance / new mechanic | GAME_DESIGN, HONOR |

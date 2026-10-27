@@ -6,7 +6,7 @@ import { reduce } from '../src/engine/reducer'
 import { initRng, nextInt } from '../src/engine/rng'
 import { replay } from '../src/engine/save'
 import { currentView } from '../src/engine/select'
-import { gameStateSchema } from '../src/engine/stateSchema'
+import { stateProblem } from '../src/engine/stateSchema'
 import type { Action, GameState, Story } from '../src/engine/types'
 export const MAX_STEPS = 500
 export interface Failure {
@@ -34,8 +34,8 @@ function play(story: Story, bg: string, seed: number): Played {
   let bot = initRng(seed ^ 0x5bd1e995)
   let seenErrors = 0
   for (let steps = 1; steps <= MAX_STEPS; steps++) {
-    const bad = gameStateSchema.safeParse(s)
-    if (!bad.success) return { steps, state: s, why: `invalid state: ${bad.error.issues[0]?.path.join('.')} ${bad.error.issues[0]?.message}` }
+    const bad = stateProblem(s, story) // shape, party and every id the state holds (D33)
+    if (bad !== undefined) return { steps, state: s, why: `invalid state: ${bad}` }
     const errors = s.log.filter((e) => e.kind === 'ERROR')
     if (errors.length > seenErrors) return { steps, state: s, why: `ERROR log: ${errors[errors.length - 1]?.text}` }
     seenErrors = errors.length

@@ -80,6 +80,7 @@ Shape rules (enforced by `engine/schema.ts`): `party` and `trait` values start w
 Runtime rules (`engine/effects.ts`, `applyAll` applies a list in order):
 
 - Numbers are clamped (hp 0-5, reason/rot 0-100, res 0-9, trust -100..100, fear 0..100, day 1-21). `time` sets absolute values.
+- `['party','-id']` and `['party','+id']` both need a known npc (an unknown id is an ERROR at run time, D33).
 - `party` holds at most 3 and a joiner must be a known npc **who is alive** and **who would not walk out at once** (trust -30 or lower with fear under 60 is an ERROR, D31; `lint:story` warns when an effect list does this, in either order). `trust`, `fear`, `kill` on an unknown npc, an unknown deed tag or a missing `+`/`-` are ERROR log lines and change nothing. `trust` / `fear` on a dead npc is logged and ignored (D31). `trust`, `fear` and `party` also mark the npc as met (the Journal lists them); so does a scene's `who` and the speaker of a `say` beat. `stat`, `res`, `trust` and `fear` take whole numbers (a fraction is a schema error, so the state always passes its own schema).
 - `echo` `after: N`: N scenes play normally, then the echo fires at the next transition. `at: 'c4'`: due while the chapter is `c4`.
 - Unwitnessed deeds: put `['honor', tag, false]` before `['secret', id]` in the same list. The secret then owes the rest of the deed and pays it on `['reveal', id]`. A secret with no deed before it owes nothing. A remainder with no secret after it is forfeited and logged.

@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { apply, applyAll } from '../../src/engine/effects'
 import { changeChapter } from '../../src/engine/flow'
-import { NO_SOCIAL, react, walkouts } from '../../src/engine/relations'
+import { NO_SOCIAL, party, react, walkouts } from '../../src/engine/relations'
 import { reduce } from '../../src/engine/reducer'
 import { currentView } from '../../src/engine/select'
 import type { Action, Effect, Scene } from '../../src/engine/types'
@@ -138,5 +138,19 @@ describe('golden: an unwitnessed deed surfaces later and applies the remainder',
     const live = run(story, pick('a'), go, go, pick('a'))
     expect(live.history).toEqual(['c1.a:a', 'c1.b:>', 'c1.c:>', 'c2.a:a'])
     expect(start(story).history).toEqual([])
+  })
+})
+describe('party -id of an unknown npc (was: a silent success, M3 s4 bug, D33)', () => {
+  it('is an ERROR like +id, and changes nothing', () => {
+    for (const spec of ['-ghost', '+ghost']) {
+      const r = party(makeState({ party: ['nora'] }), spec, social)
+      expect(r.log.map((l) => l.kind)).toEqual(['ERROR'])
+      expect(r.log[0]?.text).toBe(`party ${spec}: unknown npc`)
+      expect(r.state.party).toEqual(['nora'])
+    }
+  })
+  it('-id of a known npc that is not in the party is still a quiet no-op, and of one in the party still leaves', () => {
+    expect(party(makeState(), '-nora', social).log.map((l) => l.kind)).toEqual(['FX'])
+    expect(party(makeState({ party: ['nora'] }), '-nora', social).state.party).toEqual([])
   })
 })

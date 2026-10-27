@@ -6,7 +6,7 @@
 Mobile portrait first (360-430 px wide), one column. From 900 px up the Title and Play screens use the full-width stage layout of §3. Background, Settings, Ending and error screens stay a centered 560 px column. Works offline after first load (PWA later).
 
 ## 2. Screens
-Live: Title (Continue, New game, Settings in a left column over a backdrop; a second tap confirms erasing a save; the Ending and the error fallback ask the same, D31), Background, Play (stage layout, §3: the story in the middle, a bottom dock only while a character talks or choices are offered; Menu, Journal and Settings top-right on wide screens, at the bottom on narrow ones), Settings (M2 s2), Journal (M3 s2), Ending, ErrorFallback. Next: Camp (M4).
+Live: Title (Continue, New game, Settings in a left column over a backdrop; a second tap confirms erasing a save (the button relaxes after 4 s or when it loses focus, D33); the Ending and the error fallback ask the same, D31), Background, Play (stage layout, §3: the story in the middle, a bottom dock only while a character talks or choices are offered; Menu, Journal and Settings top-right on wide screens, at the bottom on narrow ones), Settings (M2 s2), Journal (M3 s2), Ending, ErrorFallback. Next: Camp (M4).
 
 | Screen | Purpose | Key elements |
 |---|---|---|

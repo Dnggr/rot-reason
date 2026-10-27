@@ -127,6 +127,7 @@ export interface StoryTables {
   social: Social
   perks: Readonly<Record<string, Perk>> // npc id -> perk (D30)
   tiers: Readonly<Record<Tier, string>> // the line of the full-screen banner shown when honor enters a tier (HONOR §2, D30)
+  flags: Readonly<Record<string, string>> // the flag registry (flag id -> meaning); a save may hold only these (D33)
 }
 export interface Story extends StoryTables {
   scenes: Readonly<Record<SceneId, Scene>>

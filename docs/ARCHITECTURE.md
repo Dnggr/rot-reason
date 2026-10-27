@@ -40,7 +40,8 @@ src/
     endings.ts      resolveEnding(state, rules), AUTO / DEATH / SYS ending ids (live since M1 s3)
     rng.ts          seeded mulberry32, pure: `nextFloat(rng) -> {value, rng}`, `nextInt`, `d6`, `initRng(seed)` (live since M1 s1)
     save.ts         makeSave, migrate, replay, loadSave, readSave / writeSave (storage injected) (live since M1 s3)
-    stateSchema.ts  Zod schema for GameState and the save envelope, validState (live since M1 s3); the party must be at most PARTY_MAX, without repeats, all living npcs (D32). It checks shape and the party, not references to the story (open bug)
+    stateSchema.ts  Zod schema for GameState and the save envelope, validState (live since M1 s3); the party must be at most PARTY_MAX, without repeats, all living npcs (D32). Every id the state holds must exist in the story: `validState(raw, story)` / `stateProblem(raw, story)` add `stateRefs.refProblem` (D33)
+    stateRefs.ts    refProblem(state, story): scene, echo and resume scenes, bg, flags (`story.flags`), chapter (an echo or sys scene may sit in another chapter, but it must exist), met, owed keys (held secrets only), secrets, npc table (exactly the story's npcs); returns the first problem as a sentence (D33)
     select.ts       view selectors: currentView(state, story) -> View (`lines` = all text; `beats` = each line with its `say` speaker; each locked choice carries its `lock` condition), hudOf(state) -> Hud (live since M1 s3; lock and hudOf M2 s1; beats D28)
     log.ts          LogLine, Applied, line, pushLog (200-entry ring buffer), formatEntry (live since M1 s2)
     report.ts       buildReport, reportText: the debug report JSON, pure (live since M2 s1)
@@ -63,7 +64,7 @@ src/
     tiers.ts        pure: tierBanner(prev, next, lines) -> the banner when honor entered a new tier, BANNER_MS (M3 s2, D30)
     debugApi.ts     DebugApi + DebugPanelComponent: what the game hands the debug panel
     screens/    TitleScreen  BackgroundScreen  PlayScreen  SettingsScreen  EndingScreen  JournalScreen (live; the Journal is drawn over PlayScreen)   Camp (later)
-    components/ Backdrop  StatBar  HonorMeter  SceneView  Dock  Lines  ChoiceList  ChoiceButton  Toast  ReportButton  ErrorFallback  ErrorBoundary  CharacterCard  TierBanner  ConfirmButton (live); `ui/confirm.ts` (the two-tap rule), `ui/fallback.ts` (the error fallback's actions; `canRetry`: the death ending's Restart chapter)
+    components/ Backdrop  StatBar  HonorMeter  SceneView  Dock  Lines  ChoiceList  ChoiceButton  Toast  ReportButton  ErrorFallback  ErrorBoundary  CharacterCard  TierBanner  ConfirmButton (live); `ui/confirm.ts` (the two-tap rule: `step(armed, 'tap' | 'blur' | 'timeout')`, `ARM_MS` 4 s, D33), `ui/fallback.ts` (the error fallback's actions; `canRetry`: the death ending's Restart chapter)
     hooks/      useGame.ts  gameModel.ts (pure reducer, autosave, Continue, playRoute, rewind)  useStory.ts  useSettings.ts  useTypewriter.ts  useTurn.ts  useKeys.ts
     styles/     tokens.css  base.css  play.css  stage.css (backdrop, HUD, story, dock with portrait / spoken line / Choices panel, Title column; wide grid)  motion.css
   debug/        DebugPanel.tsx  StateView.tsx  Controls.tsx  forceRoll.ts  rrHandle.ts  debug.css   (live since M2 s2)
@@ -136,7 +137,7 @@ Actions (typed in `engine/types.ts`): `START(bg,name,seed)`, `CHOOSE(choice)` wh
 ## 6. Save system
 
 - Key `rr_save_v1` (+ `rr_slot_1..3` later). Value: `{ v, seed, bg, name, history, snapshot, checkpoint, savedAt }` (`bg` and `name` let a replay start without a trusted snapshot, D19). `savedAt` comes from the storage layer; the engine has no clock.
-- Load order (`save.loadSave`): migrate -> validate snapshot (`stateSchema`) -> if invalid, replay `seed + bg + name + history` -> if that fails, load the chapter checkpoint -> else a list of errors (the UI offers "Restart chapter" or "New game").
+- Load order (`save.loadSave`): migrate -> validate snapshot (`stateSchema` + `stateRefs`, so a save that names a scene, flag, npc or background this story lacks counts as invalid, D33) -> if invalid, replay `seed + bg + name + history` -> if that fails, load the chapter checkpoint -> else a list of errors (the UI offers "Restart chapter" or "New game").
 - `makeSave(state, checkpoint, story, savedAt)` moves the checkpoint to the current state whenever the scene is tagged `gate`. Never autosave a state parked on `sys.error`.
 - Storage is injected as `KeyValueStore { getItem, setItem }`; `readSave` returns `undefined` when nothing is stored and an error result (never a throw) for bad JSON.
 - Autosave after every state change on the play screen (`useGame` effect -> `gameModel.autosave`; synchronous, no debounce, D21). A failed write shows a notice, never a throw. Continue reads the save with `readSave` on the title screen; an unreadable save shows a notice and New game. `ui/storage.ts` falls back to memory when localStorage is blocked, and the Title warns. Manual slots later (M5).

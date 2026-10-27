@@ -26,14 +26,14 @@ export function signedList(list: readonly string[], spec: string): string[] | un
   if (spec.startsWith('-')) return list.filter((x) => x !== name)
   return undefined
 }
-// '+id' joins, '-id' leaves. A joiner must be a known npc who is alive and who would not walk out at once (D31); the party holds PARTY_MAX.
+// '+id' joins, '-id' leaves; either way the id must be a known npc (D33). A joiner must be alive and must not walk out at once (D31); the party holds PARTY_MAX.
 export function party(s: GameState, spec: string, social: Social = NO_SOCIAL): Applied {
   const id = spec.slice(1)
   const next = signedList(s.party, spec)
   if (next === undefined) return fail(s, `party ${spec}: must start with + or -`)
+  const n = npcOf(s, id)
+  if (n === undefined) return fail(s, `party ${spec}: unknown npc`) // for '-id' too (D33): a computed effect must not leave a ghost silently
   if (spec.startsWith('+')) {
-    const n = npcOf(s, id)
-    if (n === undefined) return fail(s, `party ${spec}: unknown npc`)
     if (!n.alive) return fail(s, `party ${spec}: ${id} is dead`)
     if (!s.party.includes(id) && wouldLeave(n, social)) return fail(s, `party ${spec}: ${id} would walk out at once (trust ${n.trust}, fear ${n.fear}; leave line ${social.leaveTrust}, fear holds at ${social.fearHolds})`)
   }
