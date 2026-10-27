@@ -88,6 +88,30 @@ describe('lintStory: references', () => {
     expect(has(lint(one([], [{ if: ['bg', 'astronaut'], text: 'x' }])).errors, 'unknown background astronaut')).toBe(true)
   })
 })
+describe('lintStory: traits and echo chapters (M3 s6)', () => {
+  const one = (fx: unknown[], text: unknown = 'x'): Scene[] => [{ id: 'c1.a', text: text as string, choices: [{ id: 'a', text: 'x', fx, to: 'c1.b' }, { id: 'b', text: 'y', to: 'c1.b' }] } as Scene, base[1] as Scene]
+  const over = { backgrounds: { dockworker: { ...tables.backgrounds['dockworker'], trait: 'Hauler' } } as StoryTables['backgrounds'], traitBonus: { Bruiser: { grit: 2 }, Quiet: {} }, perks: { brick: { trait: 'Bruiser', text: 'x' }, juno: { trait: 'Signal', text: 'x' } } } as Partial<StoryTables>
+  it('rejects a trait id no table knows, as an effect, a condition and an ending condition', () => {
+    expect(has(lint(one([['trait', '+Ghost']]), over).errors, 'c1.a trait: unknown trait Ghost')).toBe(true)
+    expect(has(lint(one([['trait', '-Ghost']]), over).errors, 'unknown trait Ghost')).toBe(true)
+    expect(has(lint(one([], [{ if: ['trait', 'Ghost'], text: 'x' }]), over).errors, 'c1.a condition: unknown trait Ghost')).toBe(true)
+    expect(has(lint(one([], [{ if: { not: ['trait', 'Ghost'] }, text: 'x' }]), over).errors, 'unknown trait Ghost')).toBe(true)
+    expect(has(lint(base, { ...over, endings: [{ id: 'e', if: ['trait', 'Ghost'] }, { id: 'last' }] }).errors, 'ending e: unknown trait Ghost')).toBe(true)
+  })
+  it('accepts a background trait, a traitBonus key (even an empty row) and a perk trait', () => {
+    for (const t of ['Hauler', 'Bruiser', 'Quiet', 'Signal']) {
+      expect(lint(one([['trait', `+${t}`]]), over).errors).toEqual([])
+      expect(lint(one([], [{ if: ['trait', t], text: 'x' }]), over).errors).toEqual([])
+    }
+  })
+  it('rejects an echo `at` a chapter no scene has, and accepts one that has a scene', () => {
+    const at = (chapter: string): Scene[] => [{ id: 'c1.a', text: 'x', choices: [{ id: 'a', text: 'x', echo: { scene: 'c1.e', at: chapter }, to: 'c1.b' }, { id: 'b', text: 'y', to: 'c1.b' }] } as Scene, base[1] as Scene, { id: 'c1.e', tags: ['echo'], text: 'x', next: '$resume' }]
+    expect(has(lint(at('c9')).errors, 'c1.a: echo c1.e waits for chapter c9, which has no scene')).toBe(true)
+    expect(has(lint(one([['echo', { scene: 'c1.b', at: 'c9' }]])).errors, 'waits for chapter c9')).toBe(true) // an `on` / fx echo too
+    expect(has(lint(at('c1')).errors, 'waits for chapter')).toBe(false)
+    expect(has(lint([...at('c2'), { id: 'c2.a', text: 'x', end: 'plain' }]).errors, 'waits for chapter')).toBe(false)
+  })
+})
 describe('lintStory: warnings', () => {
   const warnOf = (fx: unknown[], text = 'x') => lint([{ id: 'c1.a', text, choices: [{ id: 'a', text: 'x', fx, to: 'c1.b' }, { id: 'b', text: 'y', fx: [['honor', 'mercy', true]], to: 'c1.b' }] } as Scene, base[1] as Scene]).warnings
   it('flags set but never read, and read but never set', () => {

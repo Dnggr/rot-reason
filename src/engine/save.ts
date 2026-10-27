@@ -5,7 +5,7 @@ import { findScene, SYS_ERROR } from './ids'
 import { pushLog } from './log'
 import { v1to2, v2to3, v3to4 } from './migrations'
 import { reduce } from './reducer'
-import { saveHeadSchema, validState } from './stateSchema'
+import { loadableState, loadProblem, saveHeadSchema } from './stateSchema'
 import type { Action, ChoiceId, GameState, SaveData, Story } from './types'
 export const SAVE_KEY = 'rr_save_v1'
 export type Migrations = Readonly<Record<number, (raw: Record<string, unknown>) => Record<string, unknown>>> // v -> upgrades v to v+1
@@ -14,7 +14,7 @@ export interface KeyValueStore {
   getItem(key: string): string | null
   setItem(key: string, value: string): void
 }
-export type LoadResult = { ok: true; save: SaveData; via: 'snapshot' | 'replay' | 'checkpoint' } | { ok: false; errors: string[] }
+export type LoadResult = { ok: true; save: SaveData; via: 'snapshot' | 'replay' | 'checkpoint'; healed?: string[] } | { ok: false; errors: string[] } // `healed`: what a load repaired because the story changed (D34)
 const CHOICE_IDS: readonly ChoiceId[] = ['a', 'b', 'c', 'd']
 function toAction(token: string): Action | undefined {
   if (token === CONTINUE_TOKEN) return { type: 'CONTINUE' }
@@ -60,7 +60,7 @@ export function replay(story: Story, start: { seed: number; bg: string; name: st
   }
   return { state: s }
 }
-// snapshot if it is valid; else replay seed + history; else the last chapter checkpoint; else the reasons it failed.
+// snapshot if it can be used (after healing, D34); else replay seed + history; else the last chapter checkpoint; else the reasons it failed.
 export function loadSave(raw: unknown, story: Story): LoadResult {
   let obj: Record<string, unknown>
   try {
@@ -71,17 +71,17 @@ export function loadSave(raw: unknown, story: Story): LoadResult {
   const head = saveHeadSchema.safeParse(obj)
   if (!head.success) return { ok: false, errors: [`save envelope: ${head.error.message}`] }
   const h = head.data
-  const checkpoint = h.checkpoint === null ? undefined : validState(h.checkpoint, story)
-  const make = (state: GameState, via: 'snapshot' | 'replay' | 'checkpoint'): LoadResult => ({
-    ok: true, via,
-    save: { v: SAVE_VERSION, seed: h.seed, bg: h.bg, name: h.name, history: state.history, snapshot: state, checkpoint: checkpoint ?? null, savedAt: h.savedAt },
+  const checkpoint = h.checkpoint === null ? undefined : loadableState(h.checkpoint, story)
+  const make = (state: GameState, via: 'snapshot' | 'replay' | 'checkpoint', healed: string[] = []): LoadResult => ({
+    ok: true, via, ...(healed.length > 0 ? { healed } : {}),
+    save: { v: SAVE_VERSION, seed: h.seed, bg: h.bg, name: h.name, history: state.history, snapshot: state, checkpoint: checkpoint?.state ?? null, savedAt: h.savedAt },
   })
-  const snapshot = validState(h.snapshot, story)
-  if (snapshot !== undefined) return make(snapshot, 'snapshot')
+  const snapshot = loadableState(h.snapshot, story)
+  if (snapshot !== undefined) return make(snapshot.state, 'snapshot', snapshot.notes)
   const re = replay(story, h, h.history)
   if ('state' in re) return make(re.state, 'replay')
-  if (checkpoint !== undefined) return make(checkpoint, 'checkpoint')
-  return { ok: false, errors: ['snapshot is invalid', re.error, 'no usable checkpoint'] }
+  if (checkpoint !== undefined) return make(checkpoint.state, 'checkpoint', checkpoint.notes)
+  return { ok: false, errors: [`snapshot is invalid: ${loadProblem(h.snapshot, story)}`, re.error, h.checkpoint === null ? 'no checkpoint' : `no usable checkpoint: ${loadProblem(h.checkpoint, story)}`] }
 }
 export function writeSave(store: KeyValueStore, save: SaveData, key: string = SAVE_KEY): void {
   store.setItem(key, JSON.stringify(save))

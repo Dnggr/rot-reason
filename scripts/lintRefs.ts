@@ -1,5 +1,6 @@
-// scripts/lintRefs.ts — reference checks: flags, characters, deed tags, backgrounds, secrets, plus the style warnings
-import { SYS_SCENES } from '../src/engine/ids'
+// scripts/lintRefs.ts — reference checks: flags, characters, deed tags, traits, echo chapters, backgrounds, secrets, plus the style warnings
+import { chapterOf, SYS_SCENES } from '../src/engine/ids'
+import { knownTraits } from '../src/engine/stateRefs'
 import type { Scene, Story } from '../src/engine/types'
 import { conditionsOf, effectsOf, flatten, speakersOf, wordCount } from './lintWalk'
 const NPC_CONDITIONS: ReadonlySet<string> = new Set(['alive', 'party', 'trust', 'fear'])
@@ -10,6 +11,9 @@ export function lintRefs(story: Story, flags: Readonly<Record<string, string>>, 
   const readers = new Set<string>()
   const held = new Set<string>()
   const revealed: [string, string][] = []
+  const traits = knownTraits(story)
+  const chapters = new Set(scenes.map((s) => chapterOf(s.id)))
+  const trait = (where: string, id: string): void => void (traits.has(id) || errors.push(`${where}: unknown trait ${id} (a background trait, a traitBonus key or a PERKS trait; give a story-only trait an empty traitBonus row)`))
   const npcs = (where: string, id: string): void => {
     if (!Object.hasOwn(story.npcs, id)) errors.push(`${where}: unknown character ${id}`)
   }
@@ -23,6 +27,7 @@ export function lintRefs(story: Story, flags: Readonly<Record<string, string>>, 
     for (const c of conditionsOf(s)) {
       if ('all' in c || 'any' in c || 'not' in c) continue
       if (c[0] === 'flag') flag(s.id, c[1], readers)
+      if (c[0] === 'trait') trait(`${s.id} condition`, c[1])
       if (NPC_CONDITIONS.has(c[0])) npcs(`${s.id} condition`, c[1])
       if (c[0] === 'bg' && !Object.hasOwn(story.backgrounds, c[1])) errors.push(`${s.id}: unknown background ${c[1]}`)
     }
@@ -31,6 +36,8 @@ export function lintRefs(story: Story, flags: Readonly<Record<string, string>>, 
       if (e[0] === 'honor' && !Object.hasOwn(story.deeds, e[1])) errors.push(`${s.id}: unknown deed tag ${e[1]}`)
       if (e[0] === 'trust' || e[0] === 'fear' || e[0] === 'kill') npcs(`${s.id} ${e[0]}`, e[1])
       if (e[0] === 'party') npcs(`${s.id} party`, e[1].slice(1))
+      if (e[0] === 'trait') trait(`${s.id} trait`, e[1].slice(1))
+      if (e[0] === 'echo' && e[1].at !== undefined && !chapters.has(e[1].at)) errors.push(`${s.id}: echo ${e[1].scene} waits for chapter ${e[1].at}, which has no scene (it would never fire)`)
       if (e[0] === 'secret') held.add(e[1])
       if (e[0] === 'reveal') revealed.push([s.id, e[1]])
     }
@@ -39,6 +46,7 @@ export function lintRefs(story: Story, flags: Readonly<Record<string, string>>, 
     for (const c of r.if === undefined ? [] : flatten(r.if)) {
       if ('all' in c || 'any' in c || 'not' in c) continue
       if (c[0] === 'flag') flag(`ending ${r.id}`, c[1], readers)
+      if (c[0] === 'trait') trait(`ending ${r.id}`, c[1])
       if (NPC_CONDITIONS.has(c[0])) npcs(`ending ${r.id}`, c[1]) // the same npc conditions as a scene's (D32)
       if (c[0] === 'bg' && !Object.hasOwn(story.backgrounds, c[1])) errors.push(`ending ${r.id}: unknown background ${c[1]}`)
     }

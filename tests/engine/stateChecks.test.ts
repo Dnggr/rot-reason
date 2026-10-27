@@ -6,7 +6,7 @@ import { gameStateSchema, validState } from '../../src/engine/stateSchema'
 import { deeds, makeState, social } from './fixtures'
 import { makeStory } from './storyFixture'
 const story = makeStory([{ id: 'c0.start', text: 'x', next: 'c0.start' }], { npcs: { nora: { name: 'Nora', trust: 10, fear: 0 }, brick: { name: 'Brick', trust: 0, fear: 5 }, juno: { name: 'Juno', trust: 0, fear: 0 }, hart: { name: 'Hart', trust: 0, fear: 0 } } })
-const withParty = (party: string[], over: Partial<ReturnType<typeof makeState>> = {}) => ({ ...makeState({ party, ...over }), scene: 'c0.start' })
+const withParty = (party: string[], over: Partial<ReturnType<typeof makeState>> = {}) => ({ ...makeState({ party, met: party, ...over }), scene: 'c0.start' }) // whoever travels with you has been met (M3 s6)
 const reason = (raw: unknown): string => {
   const r = gameStateSchema.safeParse(raw)
   return r.success ? '' : (r.error.issues[0]?.message ?? '')

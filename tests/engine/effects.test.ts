@@ -81,6 +81,15 @@ describe('apply: honor, secrets, echoes, time', () => {
     expect(run(['time', { phase: 'dusk' }], { day: 5 }).state).toMatchObject({ day: 5, phase: 'dusk' })
     expect(run(['time', { day: 40 }]).state.day).toBe(21)
   })
+  it('time never runs backwards: an earlier day is an ERROR that changes nothing (M3 s6, D34); the same day and later are fine', () => {
+    const s = makeState({ day: 5, phase: 'dusk' })
+    const back = apply(['time', { day: 1, phase: 'dawn' }], s, deeds)
+    expect(back.state).toBe(s)
+    expect(back.log).toEqual([{ kind: 'ERROR', text: 'time day 1 is before day 5: time does not run backwards, effect ignored' }])
+    expect(apply(['time', { day: 5, phase: 'night' }], s, deeds).state).toMatchObject({ day: 5, phase: 'night' })
+    expect(apply(['time', { day: 6, phase: 'dawn' }], s, deeds).state).toMatchObject({ day: 6, phase: 'dawn' })
+    expect(apply(['time', { day: 40 }], makeState({ day: 21 }), deeds).log[0]?.kind).toBe('FX') // a clamped 40 is day 21, not before it
+  })
   it('an unknown effect kind is an ERROR log', () => {
     expect(run(['bogus', 'x'] as unknown as Effect).log[0]?.kind).toBe('ERROR')
   })

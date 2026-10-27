@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { DEED_KEEP } from './deeds'
 import { SYS_ERROR } from './ids'
 import { PARTY_MAX } from './relations'
+import { healState } from './stateHeal'
 import { refProblem } from './stateRefs'
 import type { GameState, Story } from './types'
 const id = z.string().min(1)
@@ -35,14 +36,29 @@ export const saveHeadSchema = z.object({
   v: int, seed: int, bg: id, name: z.string(), history: z.array(z.string()), savedAt: z.number().finite(),
   snapshot: z.unknown(), checkpoint: z.unknown(),
 })
-// Why a state breaks the rules (shape and ranges, then every id it holds must exist in this story, D33, engine/stateRefs.ts); undefined when it does not. The fuzz bot checks it every step.
+const shapeText = (e: z.ZodError): string => `${e.issues[0]?.path.join('.')} ${e.issues[0]?.message}`
+// Why a state breaks the rules (shape and ranges, then every id it holds must exist in this story, D33, D34, engine/stateRefs.ts); undefined when it does not. Strict: the fuzz bot checks it every step.
 export function stateProblem(raw: unknown, story: Story): string | undefined {
   const r = gameStateSchema.safeParse(raw)
-  if (!r.success) return `${r.error.issues[0]?.path.join('.')} ${r.error.issues[0]?.message}`
-  return refProblem(r.data, story)
+  return r.success ? refProblem(r.data, story) : shapeText(r.error)
 }
 // A usable state: no problem above, and not parked on the error scene.
 export function validState(raw: unknown, story: Story): GameState | undefined {
   const r = gameStateSchema.safeParse(raw)
   return r.success && r.data.scene !== SYS_ERROR && refProblem(r.data, story) === undefined ? r.data : undefined
+}
+// What a load may use: the state is healed first (D34: ids the story renamed or removed are filled or dropped, see stateHeal.ts), then it must pass every check of `validState`. Notes say what was repaired.
+export function loadableState(raw: unknown, story: Story): { state: GameState; notes: string[] } | undefined {
+  const r = gameStateSchema.safeParse(raw)
+  if (!r.success || r.data.scene === SYS_ERROR) return undefined
+  const healed = healState(r.data, story)
+  return refProblem(healed.state, story) === undefined ? healed : undefined
+}
+// The reason `loadableState` said no, for the player's error list; a reference problem says the save may come from an older build.
+export function loadProblem(raw: unknown, story: Story): string {
+  const r = gameStateSchema.safeParse(raw)
+  if (!r.success) return shapeText(r.error)
+  if (r.data.scene === SYS_ERROR) return 'it was saved on the error scene'
+  const why = refProblem(healState(r.data, story).state, story)
+  return why === undefined ? 'unknown reason' : `${why} (this save may be from an older build of the story)`
 }

@@ -77,6 +77,7 @@ export function apply(e: Effect, s: GameState, deeds: DeedTable, social: Social 
     case 'echo': return schedule(s, e[1])
     case 'time': {
       const day = e[1].day === undefined ? s.day : clamp(e[1].day, DAY_RANGE)
+      if (day < s.day) return fail(s, `time day ${e[1].day} is before day ${s.day}: time does not run backwards, effect ignored`) // M3 s6, D34
       const phase = e[1].phase ?? s.phase
       return ok({ ...s, day, phase }, `time day ${day} ${phase}`)
     }

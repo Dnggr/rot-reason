@@ -153,7 +153,8 @@ describe('loadSave', () => {
   })
   it('reports every reason when nothing is usable', () => {
     const r = loadSave({ ...stored(), snapshot: 7, history: ['c1.a:z'], checkpoint: { bad: 1 } }, story)
-    expect(r).toEqual({ ok: false, errors: ['snapshot is invalid', expect.stringContaining('replay step 0'), 'no usable checkpoint'] })
+    expect(r).toEqual({ ok: false, errors: [expect.stringContaining('snapshot is invalid: '), expect.stringContaining('replay step 0'), expect.stringContaining('no usable checkpoint: ')] })
+    expect(loadSave({ ...stored(), snapshot: 7, history: ['c1.a:z'], checkpoint: null }, story)).toMatchObject({ ok: false, errors: [expect.any(String), expect.any(String), 'no checkpoint'] })
     expect(loadSave(null, story)).toEqual({ ok: false, errors: ['save is not an object'] })
     expect(loadSave({ v: 1 }, story)).toMatchObject({ ok: false, errors: [expect.stringContaining('save envelope')] })
   })

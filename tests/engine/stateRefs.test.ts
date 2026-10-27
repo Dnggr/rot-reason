@@ -1,10 +1,11 @@
-// tests/engine/stateRefs.test.ts — M3 s4 bug closed in D33: a save that points at things the story does not have (scenes, bg, flags, chapter, met, owed keys, npc table) is refused on load
+// tests/engine/stateRefs.test.ts — M3 s4 bug closed in D33 and M3 s5 bug closed in D34: a save that points at things the story does not have (scenes, bg, flags, chapter, met, owed keys, npc table, deed tags, traits, history) is refused by the strict check
 import { describe, expect, it } from 'vitest'
 import { startGame } from '../../src/engine/init'
 import { loadSave, makeSave } from '../../src/engine/save'
 import { stateProblem, validState } from '../../src/engine/stateSchema'
 import type { GameState } from '../../src/engine/types'
 import { makeStory } from './storyFixture'
+const dwell = { tag: 'mercy', witnessed: true, surfaced: false, day: 1, delta: 5, who: { nora: 10 } }
 const story = makeStory(
   [
     { id: 'c1.a', text: 'a', next: 'c1.b' },
@@ -56,5 +57,26 @@ describe('validState checks every id against the story (was: shape and party onl
     expect(r.ok && r.via).toBe('replay')
     const bad = loadSave({ ...hurt, history: ['c1.a:zz'], checkpoint: good }, story)
     expect(bad.ok && bad.via).toBe('checkpoint')
+  })
+})
+describe('the parts D33 did not check (M3 s5 bug 4, closed in M3 s6)', () => {
+  it('accepts what the engine makes: deeds (also the Journal\'s `unknown`), counts, traits, a party that was met, an echo for a chapter that exists, a real history', () => {
+    const ok = with_({ deeds: [dwell, { ...dwell, tag: 'unknown', who: {} }], deedCount: { mercy: 1 }, traits: ['Hauler', 'Bruiser'], met: ['nora'], party: ['nora'], echoes: [{ scene: 'c1.e', atChapter: 'c2' }], history: ['c1.a:>', 'c1.b:a'] })
+    expect(stateProblem(ok, story)).toBeUndefined()
+  })
+  it('refuses each probe from the M3 s5 review, with its own reason', () => {
+    const cases: [string, Partial<GameState>][] = [
+      ['deed sneeze is not a deed tag of the story', { deeds: [{ ...dwell, tag: 'sneeze' }] }],
+      ['deed mercy names ghost, who is not an npc of the story', { deeds: [{ ...dwell, who: { ghost: 5 } }] }],
+      ['deedCount counts sneeze, which is not a deed tag of the story', { deedCount: { sneeze: 1 } }],
+      ['trait Ghost is not a trait of the story', { traits: ['Hauler', 'Ghost'] }],
+      ['trait Hauler is held twice', { traits: ['Hauler', 'Hauler'] }],
+      ['echo c1.e waits for chapter c9, which has no scene', { echoes: [{ scene: 'c1.e', atChapter: 'c9' }] }],
+      ['party member nora is not in met', { party: ['nora'] }],
+      ['history entry 1 ("lol") is not "scene:choice"', { history: ['c1.a:a', 'lol'] }],
+      ['history entry 0 ("c1.a:z") is not "scene:choice"', { history: ['c1.a:z'] }],
+      ['history entry 0 (":a") is not "scene:choice"', { history: [':a'] }],
+    ]
+    for (const [why, over] of cases) expect(stateProblem(with_(over), story)).toBe(why)
   })
 })

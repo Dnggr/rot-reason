@@ -23,7 +23,7 @@ const PRESETS: Record<string, { include: string[]; compress?: boolean }> = {
       'src/story/flags.ts', 'src/story/characters.ts', 'src/story/honor.ts', 'src/story/approval.ts', 'src/story/traits.ts', 'src/story/tiers.ts', 'src/story/index.ts',
       'src/story/chapters/prologue.ts', 'src/story/chapters/test.ts', 'src/story/chapters/index.ts',
       'scripts/lint-story.ts', 'scripts/lintTone.ts', 'tests/prologue.test.ts', 'tests/story.test.ts', 'tests/engine/testStory.ts',
-      'docs/ARCHITECTURE.md', 'scripts/lintRefs.ts', 'src/engine/stateSchema.ts', 'src/engine/stateRefs.ts', // M3 s5 review bugs the new scenes may touch (trait / echo-chapter lint, deed and trait refs in saves)
+      'docs/ARCHITECTURE.md', 'scripts/lintGraph.ts', 'scripts/lintRefs.ts', 'src/engine/echoes.ts', 'src/engine/effects.ts', // M3 s6 review bugs the new scenes may touch (echo target tag, echo `at` own chapter, duplicate echoes, time phase)
     ],
   },
 }
