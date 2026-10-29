@@ -31,7 +31,7 @@ input, textarea { width: 100%; font: var(--ui-size) var(--font-ui); color: var(-
 .chip.tone { color: var(--text); }
 .chip.cost { color: var(--honor); border-color: var(--honor); }
 .chip.odds { color: var(--reason); border-color: var(--reason); }
-.chip.lock { color: var(--blood); border-color: var(--blood); }
+.chip.lock { color: var(--blood-text); border-color: var(--blood); }
 .honor { display: flex; align-items: center; gap: calc(var(--space) * 2); font: 13px var(--font-ui); }
 .honor-bar { position: relative; flex: 1; height: 8px; background: var(--panel); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
 .honor-fill { position: absolute; top: 0; bottom: 0; }
@@ -54,7 +54,7 @@ input, textarea { width: 100%; font: var(--ui-size) var(--font-ui); color: var(-
 .recap { display: grid; grid-template-columns: max-content 1fr; gap: 4px calc(var(--space) * 2); font-family: var(--font-ui); }
 .recap dt { color: var(--muted); }
 .recap dd { margin: 0; }
-.error h1 { color: var(--blood); }
+.error h1 { color: var(--blood-text); }
 .mood-dread { box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.8); filter: saturate(0.75); }
 .mood-warm { background-image: linear-gradient(rgba(212, 167, 58, 0.07), transparent 45%); }
 .mood-tense { background-image: linear-gradient(rgba(163, 35, 31, 0.06), transparent 45%); }
@@ -92,7 +92,7 @@ input[type='checkbox'] { width: 24px; height: 24px; flex: none; padding: 0; acce
 .perk { margin: var(--space) 0 0; font-size: calc(var(--ui-size) * 0.9); }
 .tier-banner { position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--space) * 2); padding: 6vw; text-align: center; cursor: pointer; background: rgba(0, 0, 0, 0.9); }
 .tier-name { margin: 0; font: 600 13px var(--font-ui); letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); }
-.tier-T1 .tier-name, .tier-T2 .tier-name { color: var(--blood); }
+.tier-T1 .tier-name, .tier-T2 .tier-name { color: var(--blood-text); }
 .tier-T4 .tier-name, .tier-T5 .tier-name { color: var(--honor); }
 .tier-line { margin: 0; max-width: 28rem; font: var(--story-size)/var(--story-line) var(--font-story); }
 .tier-banner .btn { width: auto; min-width: 160px; }

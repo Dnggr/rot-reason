@@ -32,7 +32,7 @@ function reveal(s: GameState, id: string, social: Social): Applied {
   if (tags.length === 0 && paid !== 0) cur = addDeed(cur, { tag: UNKNOWN_DEED, witnessed: false, surfaced: true, day: s.day, delta: paid, who: {} })
   return { state: cur, log }
 }
-export function apply(e: Effect, s: GameState, deeds: DeedTable, social: Social = NO_SOCIAL): Applied {
+export function apply(e: Effect, s: GameState, deeds: DeedTable, social: Social = NO_SOCIAL, lead: number = 0): Applied {
   switch (e[0]) {
     case 'honor': {
       const r = applyDeed(s, e[1], e[2], 1, deeds)
@@ -74,7 +74,7 @@ export function apply(e: Effect, s: GameState, deeds: DeedTable, social: Social 
       return { state: { ...s, secrets: [...s.secrets, e[1]] }, log: [line('SECRET', `hold ${e[1]}`)] }
     }
     case 'reveal': return reveal(s, e[1], social)
-    case 'echo': return schedule(s, e[1])
+    case 'echo': return schedule(s, e[1], lead)
     case 'time': {
       const day = e[1].day === undefined ? s.day : clamp(e[1].day, DAY_RANGE)
       if (day < s.day) return fail(s, `time day ${e[1].day} is before day ${s.day}: time does not run backwards, effect ignored`) // M3 s6, D34
@@ -87,13 +87,13 @@ export function apply(e: Effect, s: GameState, deeds: DeedTable, social: Social 
 }
 // Applies a list in order. An unwitnessed deed's remainder and tag are held by the next `secret` in the same list (deed first, then secret, D15, D29):
 // the secret then owes the honor and hides the deed until `reveal`. A deed with no secret after it is forfeited (logged). Companions who no longer stand you walk out at the end.
-export function applyAll(list: readonly Effect[] | undefined, state: GameState, deeds: DeedTable, social: Social = NO_SOCIAL): Applied {
+export function applyAll(list: readonly Effect[] | undefined, state: GameState, deeds: DeedTable, social: Social = NO_SOCIAL, lead: number = 0): Applied {
   let cur = state
   const log: LogLine[] = []
   let held = 0
   let hidden: string[] = []
   for (const e of list ?? []) {
-    const r = apply(e, cur, deeds, social)
+    const r = apply(e, cur, deeds, social, lead)
     cur = r.state
     log.push(...r.log)
     held += r.owed ?? 0

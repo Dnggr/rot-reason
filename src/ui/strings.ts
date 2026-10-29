@@ -69,6 +69,7 @@ export const S = {
   saveFailed: 'Could not save your progress.',
   saveBroken: 'Your saved game could not be loaded. Start a new game.',
   recovered: 'Recovered from an earlier point.',
+  healed: 'Updated for this version of the game.', // a save the story outgrew was repaired on load (D34)
   errorTitle: 'Something broke',
   errorBody: 'The game hit an error. Copy the debug report and send it with a note on what you did.',
   errorMissing: 'The story lost its place. Copy the debug report, then restart the chapter.',

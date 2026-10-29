@@ -1,6 +1,6 @@
 // engine/flow.ts — scene transitions: chapter change, echo take, entering a scene, death and missing-scene fallbacks (ARCHITECTURE §4)
 import { clamp, FEAR_RANGE } from './bounds'
-import { onEntry, take } from './echoes'
+import { ENTRY_LEAD, take } from './echoes'
 import { applyAll } from './effects'
 import { capScene } from './honor'
 import { chapterOf, findScene, isSys, RESUME, SYS_DEATH, SYS_MISSING } from './ids'
@@ -15,7 +15,7 @@ export function changeChapter(s: GameState, chapter: string, social: Social = NO
   const out = walkouts({ ...s, chapter, deedCount: {}, npc }, social)
   return { state: out.state, log: [line('FX', `chapter ${chapter}: deed counts reset, fear -${FEAR_DECAY}`), ...out.log] }
 }
-// Moves into a scene: its `on` effects run under the honor scene cap; hp 0 sends the player to sys.death (death beats any ending).
+// Moves into a scene: its `on` effects run under the honor scene cap; hp 0 sends the player to sys.death (death beats any ending). Who the scene shows is met from the state AFTER `on`, because that is the state the view is read from (M3 s9; the speakers of a beat or a glitch that `on` flips are judged as the player sees them).
 export function enter(state: GameState, id: SceneId, story: Story): Applied {
   const scene = findScene(story, id)
   if (scene === undefined) {
@@ -24,15 +24,14 @@ export function enter(state: GameState, id: SceneId, story: Story): Applied {
     return { state: r.state, log: [line('ERROR', `missing scene ${id}`), ...r.log] }
   }
   const before = state.honor
-  const seen = meet({ ...state, scene: id }, metIn(scene, state)) // whoever the scene shows is met before its effects run (D31)
-  const on = applyAll(onEntry(scene.on), seen, story.deeds, story.social)
+  const on = applyAll(scene.on, { ...state, scene: id }, story.deeds, story.social, ENTRY_LEAD)
   const cap = capScene(before, on.state, state.deeds)
   const log = [line('SCENE', id), ...on.log, ...cap.log]
   if (cap.state.stats.hp <= 0 && !isSys(id)) {
     const d = enter(cap.state, SYS_DEATH, story)
     return { state: d.state, log: [...log, line('FX', 'hp is 0'), ...d.log] }
   }
-  return { state: cap.state, log }
+  return { state: meet(cap.state, metIn(scene, cap.state)), log } // a scene the player is sent away from (death) shows nobody
 }
 // Leaves `from` towards `target`: resolves $resume, missing targets and death, then chapter change and a due echo (even before an ending), then enters.
 export function advance(state: GameState, target: SceneId, story: Story, from: Scene): Applied {

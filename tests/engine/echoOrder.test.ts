@@ -1,12 +1,12 @@
 // tests/engine/echoOrder.test.ts — M3 s7 review bugs closed in D36: `after` counts the same for an `on` echo and a choice `echo`, an echo `after` is capped, glitch text hides its speakers from `met`
 import { describe, expect, it } from 'vitest'
-import { onEntry } from '../../src/engine/echoes'
+import { ENTRY_LEAD, schedule } from '../../src/engine/echoes'
 import { ECHO_AFTER_MAX } from '../../src/engine/bounds'
 import { reduce } from '../../src/engine/reducer'
 import { effectSchema } from '../../src/engine/schema'
 import { metIn } from '../../src/engine/met'
 import { stateProblem } from '../../src/engine/stateSchema'
-import type { Action, Effect, GameState, Scene, Story } from '../../src/engine/types'
+import type { Action, GameState, Scene, Story } from '../../src/engine/types'
 import { makeState } from './fixtures'
 import { pick, run, start } from './reducerHelpers'
 import { makeStory } from './storyFixture'
@@ -38,10 +38,18 @@ describe('echo `after` means the same for `on` and a choice `echo`', () => {
     const viaTarget = makeStory([{ id: 'c1.z', text: 'z', choices: [{ id: 'a', text: 'Go.', to: 'c1.a' }] }, { id: 'c1.a', text: 'a', on: [['echo', spec]], next: 'c1.b' }, ...tail])
     expect(route(viaTarget, [pick('a')])).toEqual(['c1.z', 'c1.a', 'c1.b', 'c1.e', 'c1.c', 'c1.d'])
   })
-  it('onEntry adds one step to `after` only, and leaves `at` and other effects alone', () => {
-    const list: Effect[] = [['echo', { scene: 'x', after: 2 }], ['echo', { scene: 'y', at: 'c4' }], ['set', 'k']]
-    expect(onEntry(list)).toEqual([['echo', { scene: 'x', after: 3 }], ['echo', { scene: 'y', at: 'c4' }], ['set', 'k']])
-    expect(onEntry(undefined)).toBeUndefined()
+  it('a lead adds steps to the countdown of `after` only, and the log shows the authored `after` (M3 s9)', () => {
+    const s = makeState()
+    const a = schedule(s, { scene: 'x', after: 2 }, ENTRY_LEAD)
+    expect(a.state.echoes).toEqual([{ scene: 'x', dueIn: 3 }])
+    expect(a.log.map((l) => l.text)).toEqual(['x in 2 (on entry)'])
+    expect(schedule(s, { scene: 'y', at: 'c4' }, ENTRY_LEAD).state.echoes).toEqual([{ scene: 'y', atChapter: 'c4' }])
+    expect(schedule(s, { scene: 'x', after: 2 }).log.map((l) => l.text)).toEqual(['x in 2']) // a choice echo has no lead and no suffix
+  })
+  it('an `on` echo logs the authored `after`, not the shifted countdown, when a scene is entered', () => {
+    const story = makeStory([{ id: 'c1.a', text: 'a', on: [['echo', spec]], next: 'c1.b' }, ...tail])
+    expect(start(story).log.some((l) => l.text === 'c1.e in 1 (on entry)')).toBe(true)
+    expect(start(story).echoes).toEqual([{ scene: 'c1.e', dueIn: 2 }])
   })
   it('the dedupe compares the real countdown: the same moment is one echo, a different one stacks', () => {
     const planted = (first: number, second: number) => run(makeStory([{ id: 'c1.a', text: 'a', choices: [{ id: 'a', text: 'Go.', echo: { scene: 'c1.e', after: first }, to: 'c1.f' }] }, { id: 'c1.f', text: 'f', on: [['echo', { scene: 'c1.e', after: second }]], next: 'c1.d' }, { id: 'c1.d', text: 'd', end: 'plain' }, echo]), pick('a')).echoes.map((e) => e.dueIn)

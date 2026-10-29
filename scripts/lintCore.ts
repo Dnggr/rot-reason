@@ -1,7 +1,8 @@
-// scripts/lintCore.ts — lintStory: schema check per scene, duplicate ids, then the graph, reference, party, list, time and tone checks (STORY_FORMAT §8)
+// scripts/lintCore.ts — lintStory: schema check per scene, duplicate ids, then the graph, reference, party, list, echo-reach, time and tone checks (STORY_FORMAT §8)
 import { sceneSchema } from '../src/engine/schema'
 import type { Scene, StoryTables } from '../src/engine/types'
 import { buildStoryFrom } from './lintBuild'
+import { lintEchoes } from './lintEchoes'
 import { lintGraph } from './lintGraph'
 import { lintLists } from './lintLists'
 import { lintParty } from './lintParty'
@@ -34,6 +35,7 @@ export function lintStory(chapters: Record<string, readonly unknown[]>, system: 
   lintRefs(story, flags, errors, warnings)
   lintParty(story, warnings)
   lintLists(story, warnings)
+  lintEchoes(story, warnings)
   lintTime(story, warnings)
   lintTone(story, errors, warnings)
   return { errors, warnings }

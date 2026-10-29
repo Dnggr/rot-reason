@@ -1,4 +1,4 @@
-// ui/screens/TitleScreen.tsx — full-screen backdrop, title and the buttons stacked on the left: Continue (day, chapter, honor tier) / New game / Settings; a second tap (ConfirmButton) confirms erasing an existing save
+// ui/screens/TitleScreen.tsx — full-screen backdrop, title and the buttons stacked on the left: Continue (day, chapter, honor tier; a line when the save was recovered or repaired) / New game / Settings; a second tap (ConfirmButton) confirms erasing an existing save
 import { Backdrop } from '../components/Backdrop'
 import { ConfirmButton } from '../components/ConfirmButton'
 import type { Saved } from '../hooks/gameModel'
@@ -22,6 +22,7 @@ export function TitleScreen({ saved, persistent, onNew, onContinue, onSettings }
             {S.continue}
             <span className="sub">{saved.hud.name} · {S.dayPhase(saved.hud.day, saved.hud.phase)} · {S.chapter(saved.chapter)} · {S.tier[saved.hud.tier]}</span>
             {saved.via !== 'snapshot' && <span className="sub">{S.recovered}</span>}
+            {saved.healed !== undefined && <span className="sub">{S.healed}</span>}
           </button>
         )}
         {saved.kind === 'ok'

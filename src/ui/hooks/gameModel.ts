@@ -85,13 +85,13 @@ export function autosave(store: KeyValueStore, game: GameState, checkpoint: Game
 }
 export type Saved =
   | { kind: 'none' }
-  | { kind: 'ok'; save: SaveData; via: 'snapshot' | 'replay' | 'checkpoint'; hud: Hud; chapter: string }
+  | { kind: 'ok'; save: SaveData; via: 'snapshot' | 'replay' | 'checkpoint'; hud: Hud; chapter: string; healed?: readonly string[] } // `healed`: what the load repaired because the story changed (D34), shown on Continue
   | { kind: 'broken'; errors: string[] }
 export function savedGame(store: KeyValueStore, story: Story): Saved {
   const r = readSave(store, story)
   if (r === undefined) return { kind: 'none' }
   if (!r.ok) return { kind: 'broken', errors: r.errors }
-  return { kind: 'ok', save: r.save, via: r.via, hud: hudOf(r.save.snapshot), chapter: r.save.snapshot.chapter }
+  return { kind: 'ok', save: r.save, via: r.via, hud: hudOf(r.save.snapshot), chapter: r.save.snapshot.chapter, ...(r.healed === undefined ? {} : { healed: r.healed }) }
 }
 export const hasSave = (store: KeyValueStore): boolean => store.getItem(SAVE_KEY) !== null
 export const eraseSave = (store: EraseStore): void => store.removeItem(SAVE_KEY)

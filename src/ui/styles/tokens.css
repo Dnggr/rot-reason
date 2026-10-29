@@ -5,7 +5,8 @@
   --text: #e6e2d3;
   --muted: #8b8a7c;
   --rot: #7a8f3a;
-  --blood: #a3231f;
+  --blood: #a3231f; /* fills and borders */
+  --blood-text: #e5594f; /* text on --bg and --panel: 4.9:1 or better (the fill red is 2.6:1) */
   --honor: #d4a73a;
   --reason: #6f8fa6;
   --border: #2c2f29;
@@ -20,4 +21,4 @@
 :root[data-text='L'] { --story-size: 21px; --story-line: 1.6; --ui-size: 18px; }
 :root[data-text='XL'] { --story-size: 24px; --story-line: 1.65; --ui-size: 20px; }
 /* Settings > High contrast: the same tokens, brighter (every pair is above 7:1 on --bg) */
-:root.hc { --bg: #000; --panel: #0a0a0a; --text: #fff; --muted: #d0d0c8; --rot: #b9d85c; --blood: #ff6a62; --honor: #ffd75e; --reason: #8ec9ff; --border: #9a9a90; }
+:root.hc { --bg: #000; --panel: #0a0a0a; --text: #fff; --muted: #d0d0c8; --rot: #b9d85c; --blood: #ff6a62; --blood-text: #ff6a62; --honor: #ffd75e; --reason: #8ec9ff; --border: #9a9a90; }

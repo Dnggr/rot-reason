@@ -16,14 +16,14 @@ const PRESETS: Record<string, { include: string[]; compress?: boolean }> = {
   bug: { include: [...BASE, 'docs/ARCHITECTURE.md'] }, // add the files from the debug log: npm run pack -- bug src/engine/honor.ts
   chapter: { include: [...BASE, 'docs/STORY_FORMAT.md', 'docs/STORYBOARD.md', 'docs/STORYLINE.md', 'src/story/flags.ts'] }, // add: src/story/chapters/ch2*
   // ---- TASK PACKS: one per upcoming session, named <milestone><session> (START_HERE Rule 0.5). Delete when the milestone is done. ----
-  // M4 s1: Prologue part 2 (p.street, p.gate) + the start of Ch1; settle ROADMAP open question 8 (content budget at 85:15) first; the M3 s7 echo bugs are fixed (D36)
+  // M4 s1: Prologue part 2 (p.street, p.gate) + the start of Ch1; settle ROADMAP open question 8 (content budget at 85:15) first; the M3 s7 and s8 echo / met bugs are fixed (D36, D37)
   m4s1: {
     include: [
       ...BASE, ...PACKING, 'docs/STORYBOARD.md', 'docs/STORYLINE.md', 'docs/STORY_FORMAT.md', 'docs/CHARACTERS.md', 'docs/HONOR.md', 'docs/GAME_DESIGN.md',
       'src/story/flags.ts', 'src/story/characters.ts', 'src/story/honor.ts', 'src/story/approval.ts', 'src/story/traits.ts', 'src/story/tiers.ts', 'src/story/index.ts',
       'src/story/chapters/prologue.ts', 'src/story/chapters/test.ts', 'src/story/chapters/index.ts',
       'scripts/lint-story.ts', 'scripts/lintTone.ts', 'tests/prologue.test.ts', 'tests/story.test.ts', 'tests/engine/testStory.ts',
-      'docs/ARCHITECTURE.md', 'scripts/lintGraph.ts', 'scripts/lintRefs.ts', 'scripts/lintLists.ts', 'scripts/lintWalk.ts', 'src/engine/echoes.ts', 'src/engine/effects.ts', 'src/engine/flow.ts', 'src/engine/schema.ts', 'src/engine/met.ts', 'src/engine/select.ts', 'src/engine/bounds.ts', // M3 s8 review bugs the new scenes may touch (`met` before `on`, echo scene with `end`, echo that never fires)
+      'docs/ARCHITECTURE.md', 'scripts/lintGraph.ts', 'scripts/lintRefs.ts', 'scripts/lintLists.ts', 'scripts/lintWalk.ts', 'src/engine/echoes.ts', 'src/engine/effects.ts', 'src/engine/flow.ts', 'src/engine/schema.ts', 'src/engine/met.ts', 'src/engine/select.ts', 'src/engine/bounds.ts', 'scripts/lintEchoes.ts', 'src/engine/debug.ts', // M3 s9 review bugs the new scenes may touch (an echo scene that schedules itself, `DEBUG_JUMP` into an echo scene)
     ],
   },
 }

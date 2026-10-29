@@ -67,10 +67,10 @@ describe('lintLists: echoes', () => {
     expect(later.warnings.filter((w) => w.includes('echo'))).toEqual([])
   })
   it('warns when one list schedules the same echo twice (the engine keeps one), also through a choice `echo`', () => {
-    const twice = warns(withFx([['echo', { scene: 'c1.e', after: 1 }], ['echo', { scene: 'c1.e', after: 1 }]], [echo]), 'echo')
+    const twice = warns(withFx([['echo', { scene: 'c1.e', after: 1 }], ['echo', { scene: 'c1.e', after: 1 }]], [echo]), 'scheduled twice')
     expect(twice).toEqual(['c1.a:a: echo c1.e is scheduled twice in one list; the engine keeps one (an identical pending echo is skipped)'])
     const viaChoice: Scene = { id: 'c1.a', text: 'x', choices: [{ id: 'a', text: 'x', fx: [['echo', { scene: 'c1.e', after: 1 }]], echo: { scene: 'c1.e', after: 1 }, to: 'c1.z' }] }
-    expect(warns([viaChoice, end, echo], 'echo')).toHaveLength(1)
-    expect(warns(withFx([['echo', { scene: 'c1.e', after: 1 }], ['echo', { scene: 'c1.e', after: 2 }]], [echo]), 'echo')).toEqual([])
+    expect(warns([viaChoice, end, echo], 'scheduled twice')).toHaveLength(1)
+    expect(warns(withFx([['echo', { scene: 'c1.e', after: 1 }], ['echo', { scene: 'c1.e', after: 2 }]], [echo]), 'scheduled twice')).toEqual([])
   })
 })

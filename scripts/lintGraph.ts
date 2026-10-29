@@ -1,4 +1,4 @@
-// scripts/lintGraph.ts — graph checks: missing targets, unreachable scenes, no path to an ending, $resume rules, echo targets tagged 'echo', no plain exit into an echo scene, ending ids, system scenes
+// scripts/lintGraph.ts — graph checks: missing targets, unreachable scenes, no path to an ending, $resume rules (an echo scene must exit with $resume), echo targets tagged 'echo', no plain exit into an echo scene, ending ids, system scenes
 import { endingIds } from '../src/engine/endings'
 import { RESUME, SYS_SCENES, isSys } from '../src/engine/ids'
 import type { Scene, Story } from '../src/engine/types'
@@ -20,6 +20,7 @@ export function lintGraph(story: Story, errors: string[]): void {
     const isEcho = s.tags?.includes('echo') === true
     if (resumes && !isEcho) errors.push(`${s.id}: ${RESUME} is only for scenes tagged 'echo'`)
     if (isEcho && exitsOf(s).some((t) => t !== RESUME)) errors.push(`${s.id}: an echo scene must exit with ${RESUME} only`)
+    if (isEcho && !resumes) errors.push(`${s.id}: an echo scene must exit with ${RESUME} (with 'end' or no exit the game stops here and the player's destination stays pending, STORY_FORMAT §5)`)
   }
   const seen = new Set<string>([story.start, ...SYS_SCENES])
   const queue = [...seen]

@@ -10,7 +10,7 @@ Live: Title (Continue, New game, Settings in a left column over a backdrop; a se
 
 | Screen | Purpose | Key elements |
 |---|---|---|
-| Title | New / Continue / Settings | Continue shows day, chapter, honor tier |
+| Title | New / Continue / Settings | Continue shows day, chapter, honor tier, and a line when the save was recovered from an earlier point or repaired for this version (D37) |
 | Background | Pick name + background | 3 cards: attributes, trait, kit, one-line hook |
 | Play | The game | See layout below |
 | Camp | Hub between spikes | Eat / Rest / Talk / Plan; party cards with trust |
@@ -92,7 +92,8 @@ Live: `Backdrop` (full-screen background layer), `StatBar` (vitals and resource 
 | `--text` | #e6e2d3 | bone-white text |
 | `--muted` | #8b8a7c | secondary |
 | `--rot` | #7a8f3a | infection, Rot |
-| `--blood` | #a3231f | danger, infamy |
+| `--blood` | #a3231f | danger, infamy: fills and borders (pips, negative bars, lock chip border) |
+| `--blood-text` | #e5594f | the same red as text (lock chip, error title, tier name): 4.9:1 on `--panel`, 5.4:1 on `--bg` (D37) |
 | `--honor` | #d4a73a | honor, respect |
 | `--reason` | #6f8fa6 | Reason, calm |
 | `--border` | #2c2f29 | card and chip outlines |
@@ -116,7 +117,7 @@ Live: `Backdrop` (full-screen background layer), `StatBar` (vitals and resource 
 
 ## 9. Accessibility
 - Text size S/M/L/XL (live): `<html data-text>` changes `--story-size`, `--story-line`, `--ui-size` in `tokens.css`; chips, notes and the top bar scale from `--ui-size`.
-- Contrast ratio ≥ 4.5:1; high-contrast mode (live, `<html class="hc">`) switches the palette tokens; every text pair in it is above 7:1 on black. Known gap in the default palette: `--blood` text is about 2.6:1 on `--bg` (the lock chip and the error title), below 4.5:1; high contrast fixes it, the default is for the M7 accessibility pass.
+- Contrast ratio ≥ 4.5:1; high-contrast mode (live, `<html class="hc">`) switches the palette tokens; every text pair in it is above 7:1 on black. Text in `--blood` uses `--blood-text` (D37, tested in `tests/ui/healedUi.test.ts`). Known gap: the `--blood` fills and borders are about 2.6:1 on `--bg`, under the 3:1 asked of UI components (ROADMAP, M3 s9 list); high contrast fixes it, the default is for the M7 accessibility pass or sooner.
 - Soften violence and Sound are stored and put on `<html>` (`soften`; no audio) but nothing reads them yet: no scene has a softer variant and there is no sound (M7).
 - No color-only meaning (icons + labels for stats and tiers).
 - `prefers-reduced-motion` honored (CSS media query in `motion.css`, and it sets the first-run default); the in-app Reduce motion also switches off the typewriter. All animation lives in `motion.css`, behind one switch.
