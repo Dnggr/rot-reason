@@ -1,6 +1,6 @@
 // engine/flow.ts — scene transitions: chapter change, echo take, entering a scene, death and missing-scene fallbacks (ARCHITECTURE §4)
 import { clamp, FEAR_RANGE } from './bounds'
-import { take } from './echoes'
+import { onEntry, take } from './echoes'
 import { applyAll } from './effects'
 import { capScene } from './honor'
 import { chapterOf, findScene, isSys, RESUME, SYS_DEATH, SYS_MISSING } from './ids'
@@ -25,7 +25,7 @@ export function enter(state: GameState, id: SceneId, story: Story): Applied {
   }
   const before = state.honor
   const seen = meet({ ...state, scene: id }, metIn(scene, state)) // whoever the scene shows is met before its effects run (D31)
-  const on = applyAll(scene.on, seen, story.deeds, story.social)
+  const on = applyAll(onEntry(scene.on), seen, story.deeds, story.social)
   const cap = capScene(before, on.state, state.deeds)
   const log = [line('SCENE', id), ...on.log, ...cap.log]
   if (cap.state.stats.hp <= 0 && !isSys(id)) {

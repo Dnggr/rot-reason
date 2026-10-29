@@ -1,4 +1,4 @@
-// scripts/lintGraph.ts — graph checks: missing targets, unreachable scenes, no path to an ending, $resume rules, echo targets tagged 'echo', ending ids, system scenes
+// scripts/lintGraph.ts — graph checks: missing targets, unreachable scenes, no path to an ending, $resume rules, echo targets tagged 'echo', no plain exit into an echo scene, ending ids, system scenes
 import { endingIds } from '../src/engine/endings'
 import { RESUME, SYS_SCENES, isSys } from '../src/engine/ids'
 import type { Scene, Story } from '../src/engine/types'
@@ -8,11 +8,13 @@ export function lintGraph(story: Story, errors: string[]): void {
   const has = (id: string): boolean => Object.hasOwn(story.scenes, id)
   const edges = (s: Scene): string[] => [...exitsOf(s), ...echoTargetsOf(s)].filter((t) => t !== RESUME)
   if (!has(story.start)) errors.push(`start scene ${story.start} does not exist`)
+  else if (story.scenes[story.start]?.tags?.includes('echo') === true) errors.push(`start scene ${story.start} is an echo scene; an echo scene is reached by an 'echo' effect only`)
   for (const id of SYS_SCENES) if (!has(id)) errors.push(`system scene ${id} is missing`)
   const known = endingIds(story.endings)
   for (const s of scenes) {
     for (const t of [...exitsOf(s), ...echoTargetsOf(s)]) if (t !== RESUME && !has(t)) errors.push(`${s.id}: target ${t} does not exist`)
     for (const t of echoTargetsOf(s)) if (has(t) && story.scenes[t]?.tags?.includes('echo') !== true) errors.push(`${s.id}: echo target ${t} must be tagged 'echo' (an untagged echo scene drops the player's destination, STORY_FORMAT §5)`)
+    for (const t of exitsOf(s)) if (t !== RESUME && story.scenes[t]?.tags?.includes('echo') === true) errors.push(`${s.id}: exit to ${t} is an echo scene; an echo scene is reached by an 'echo' effect only (a plain exit leaves $resume with nothing pending and lands on sys.missing)`)
     if (s.end !== undefined && !known.includes(s.end)) errors.push(`${s.id}: unknown ending ${s.end}`)
     const resumes = exitsOf(s).includes(RESUME)
     const isEcho = s.tags?.includes('echo') === true

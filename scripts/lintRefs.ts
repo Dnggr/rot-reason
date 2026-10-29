@@ -60,10 +60,13 @@ export function lintRefs(story: Story, flags: Readonly<Record<string, string>>, 
     if (setters.has(f) && !readers.has(f)) warnings.push(`flag ${f} is set but never read`)
     if (readers.has(f) && !setters.has(f)) warnings.push(`flag ${f} is read but never set`)
   }
-  lintStyle(scenes, warnings)
+  lintStyle(scenes, Object.keys(story.backgrounds), warnings)
 }
-// Warnings: long scenes, fake choices (identical outcomes), no always-open choice, chapters without an honor tag.
-function lintStyle(scenes: Scene[], warnings: string[]): void {
+// True when the beats' own `['bg', id]` conditions name every background: one of them always shows, so the page is never empty.
+const coversBackgrounds = (beats: Exclude<Scene['text'], string>, backgrounds: string[]): boolean =>
+  backgrounds.length > 0 && backgrounds.every((id) => beats.some((b) => typeof b !== 'string' && Array.isArray(b.if) && b.if[0] === 'bg' && b.if[1] === id))
+// Warnings: long scenes, fake choices (identical outcomes), no always-open choice (no `if`, `lock` or `cost`), no unconditional beat, chapters without an honor tag.
+function lintStyle(scenes: Scene[], backgrounds: string[], warnings: string[]): void {
   const honorIn = new Map<string, boolean>()
   for (const s of scenes) {
     const ch = s.id.split('.')[0] ?? s.id
@@ -72,7 +75,8 @@ function lintStyle(scenes: Scene[], warnings: string[]): void {
     const cs = s.choices ?? []
     const outcome = (c: (typeof cs)[number]): string => JSON.stringify([c.fx, c.to, c.check, c.echo])
     if (cs.length > 1 && unique(cs.map(outcome)).length === 1) warnings.push(`${s.id}: every choice has the same outcome (fake choice)`)
-    if (cs.length > 0 && cs.every((c) => c.if !== undefined || c.lock !== undefined)) warnings.push(`${s.id}: every choice has if/lock (possible soft-lock)`)
+    if (cs.length > 0 && cs.every((c) => c.if !== undefined || c.lock !== undefined || c.cost !== undefined)) warnings.push(`${s.id}: every choice has if/lock/cost (possible soft-lock: nothing is always open)`)
+    if (typeof s.text !== 'string' && s.text.every((b) => typeof b !== 'string' && b.if !== undefined) && !coversBackgrounds(s.text, backgrounds)) warnings.push(`${s.id}: every beat of the text has an \`if\` (the page can be empty)`)
   }
   for (const [ch, ok] of honorIn) if (!ok) warnings.push(`chapter ${ch}: no honor tag used`)
 }

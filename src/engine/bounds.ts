@@ -8,6 +8,7 @@ export const TRUST_RANGE: Range = [-100, 100]
 export const FEAR_RANGE: Range = [0, 100]
 export const DAY_RANGE: Range = [1, 21]
 export const PHASES: readonly Phase[] = ['dawn', 'day', 'dusk', 'night'] // in the order a day runs; `time` never goes back along it (M3 s7, D35)
+export const ECHO_AFTER_MAX = 500 // the longest `after` an echo may name (an `on` echo adds 1, so the countdown stays under the state schema's 1000; M3 s8, D36)
 export const NAME_MAX = 24 // the longest player name (the Background screen caps the box at this; the save schema refuses more)
 export function clamp(n: number, [min, max]: Range): number {
   if (!Number.isFinite(n)) throw new RangeError(`bounds: not a finite number (${String(n)})`)

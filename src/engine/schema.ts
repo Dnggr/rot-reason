@@ -1,5 +1,6 @@
 // engine/schema.ts — Zod schemas for story data (STORY_FORMAT); parse(scene) validates shape, the linter does the graph
 import { z } from 'zod'
+import { ECHO_AFTER_MAX } from './bounds'
 import type { Condition } from './types'
 const id = z.string().min(1)
 const cmp = z.enum(['>=', '<=', '>', '<', '=='])
@@ -32,7 +33,7 @@ export const conditionSchema: z.ZodType<Condition> = z.lazy(() =>
   ]),
 )
 const echoSpec = z
-  .strictObject({ scene: id, after: z.exactOptional(z.number().int().min(1)), at: z.exactOptional(id) })
+  .strictObject({ scene: id, after: z.exactOptional(z.number().int().min(1).max(ECHO_AFTER_MAX)), at: z.exactOptional(id) })
   .refine((e) => (e.after === undefined) !== (e.at === undefined), "echo needs exactly one of 'after' or 'at'")
 const timeChange = z.strictObject({ day: z.exactOptional(z.number().int().min(1).max(21)), phase: z.exactOptional(phase) })
 export const effectSchema = z.union([

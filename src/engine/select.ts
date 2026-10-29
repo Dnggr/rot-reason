@@ -32,8 +32,9 @@ export interface View {
   choices: ChoiceView[]
   ending: string | undefined
 }
+export const glitches = (scene: Scene, s: GameState): boolean => scene.glitch !== undefined && s.stats.reason < GLITCH_BELOW // the glitch text replaces the scene's beats (met.metIn reads this too)
 function beatsOf(scene: Scene, s: GameState): BeatView[] {
-  if (scene.glitch !== undefined && s.stats.reason < GLITCH_BELOW) return [{ text: scene.glitch, say: undefined }]
+  if (scene.glitch !== undefined && glitches(scene, s)) return [{ text: scene.glitch, say: undefined }]
   const beats = typeof scene.text === 'string' ? [scene.text] : scene.text
   return beats.flatMap((b): BeatView[] => {
     if (typeof b === 'string') return [{ text: b, say: undefined }]
